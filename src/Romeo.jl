@@ -1,78 +1,50 @@
 module Romeo
 
-using GLWindow, GLAbstraction, ModernGL, ImmutableArrays, Reactive, GLFW, Images, Quaternions, GLText
+using GLWindow, GLAbstraction, ModernGL, ImmutableArrays, Reactive, GLFW, Images, Quaternions, GLText, Compat
 import Mustache
 
-export visualize # Visualize an object
-export edit      # Edit an object
-export clear!    # clear rendering
 
-
-const sourcedir = Pkg.dir("GLPlot", "src")
+const sourcedir = Pkg.dir("Romeo", "src")
 const shaderdir = joinpath(sourcedir, "shader")
 
-include(joinpath(sourcedir, "grid.jl"))
-include(joinpath(sourcedir, "surface.jl"))
-include(joinpath(sourcedir, "volume.jl"))
-include(joinpath(sourcedir, "image.jl"))
-include(joinpath(sourcedir, "util.jl"))
-#include(joinpath(sourcedir, "text.jl"))
+function include_all(folder::String)
+    for file in readdir(path)
+        if endswith(file, ".jl")
+            include(joinpath(path, file))
+        end
+    end
+end
+mergedefault!{S}(style::Style{S}, styles, customdata) = merge!(styles[S], Dict{Symbol, Any}(customdata))
+
+
+include(joinpath(sourcedir,         "types.jl"))
+include_all(joinpath(sourcedir,     "window"))
+include(joinpath(sourcedir,         "color.jl"))
+include(joinpath(sourcedir,         "visualize_interface.jl"))
+include(joinpath(sourcedir,         "edit_interface.jl"))
+include_all(joinpath(sourcedir,     "share"))
+include_all(joinpath(sourcedir,     "edit"))
+include_all(joinpath(sourcedir,     "visualize"))
+include(joinpath(sourcedir,         "exports.jl"))
+
+
 
 
 global const RENDER_LIST = RenderObject[]
 
 
-function display(args...;keyargs...)
-    obj = toopengl(args...;keyargs...)
+function visualize(args...;keyargs...)
+    obj = visualize(args...;keyargs...)
     push!(RENDER_LIST, obj)
     obj
 end
-function display(x::RenderObject)
+function visualize(x::RenderObject)
     push!(RENDER_LIST, x)
     x
 end
+
 clear!() = empty!(RENDER_LIST)
 
-
-
-#=
-Args
-        async: if true, renderloop gets started asyncronously, if not, you eed to start it yourself
-            w: window width      
-            h: window height
-  eyeposition: position of the camera
-       lookat: point the camera looks at
-returns:
-    window with window event signals
-=#
-function createdisplay(;async=false, w=500, h=500, eyeposition=Vec3(1,1,0), lookat=Vec3(0), windowhints=[(GLFW.SAMPLES, 4)], debugging=false) 
-    global window   = createwindow("GLPlot", w, h, debugging=debugging, windowhints=windowhints) 
-    global pcamera  = PerspectiveCamera(window.inputs, eyeposition, lookat)
-    global ocamera  = OrthographicCamera(window.inputs)
-    if async
-        @async renderloop(window)
-    end
-    window
-end
-#=
-Renderloop - blocking
-=#
-function renderloop(window)
-    global RENDER_LIST
-    glClearColor(1,1,1,0)
-    while !GLFW.WindowShouldClose(window.glfwWindow)
-        yield()
-        glViewport(0,0, window.inputs[:framebuffer_size].value...)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        for elem in RENDER_LIST
-            render(elem)
-        end
-        GLFW.SwapBuffers(window.glfwWindow)
-        GLFW.PollEvents()
-    end
-    GLFW.Terminate()
-    empty!(RENDER_LIST)
-end
 
 
 

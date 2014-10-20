@@ -1,3 +1,7 @@
+const SCREEN_STACK = Screen[]
+
+const SELECTION = Int[]
+const SELECTION_QUERIES = Reactangle{Rectangle}[]
 function createdisplay()
   windowhints = [
     (GLFW.SAMPLES, 0), 
@@ -7,7 +11,7 @@ function createdisplay()
     (GLFW.AUX_BUFFERS, 0)
   ]
 
-  window  = createdisplay(w=1920, h=1080, windowhints=windowhints)
+  window   = createdisplay(w=1920, h=1080, windowhints=windowhints)
 
   mousepos = window.inputs[:mouseposition]
 
@@ -40,8 +44,8 @@ function createdisplay()
 
   framebuffsize = [window.inputs[:framebuffer_size].value]
 
-  color     = Texture(RGBA{Ufixed8},     framebuffsize, parameters=parameters)
-  stencil   = Texture(Vector2{GLushort}, framebuffsize, parameters=parameters)
+  color   = Texture(RGBA{Ufixed8},     framebuffsize, parameters=parameters)
+  stencil = Texture(Vector2{GLushort}, framebuffsize, parameters=parameters)
 
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color.id, 0)
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, stencil.id, 0)
@@ -50,14 +54,14 @@ function createdisplay()
 
   glGenRenderbuffers(1, rboDepthStencil)
   glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil[1])
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, framebuffsize...)
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, framebuffsize...)
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepthStencil[1])
 
   lift(window.inputs[:framebuffer_size]) do window_size
     resize!(color, window_size)
     resize!(stencil, window_size)
     glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil[1])
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, window_size...)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, window_size...)
   end
 end
 
