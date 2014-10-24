@@ -1,43 +1,37 @@
-export mix, SURFACE, CIRCLE, CUBE, POINT
+SURFACE(scale=1) = @compat Dict(
+  :vertex         => Vec3(0),
+  :offset         => GLBuffer(Float32[0,0, 0,1, 1,1, 1,0] * scale, 2),
+  :index          => indexbuffer(GLuint[0,1,2,2,3,0]),
+  :xscale         => 1f0,
+  :yscale         => 1f0,
+  :zscale         => 1f0,
+  :z              => 0f0,
+  :drawingmode    => GL_TRIANGLES,
+)
 
+CIRCLE(r=0.4, x=0, y=0, points=6) = @compat Dict(
+  :vertex         => Vec3(0),
+  :offset         => GLBuffer(gencircle(r, x, y, points) , 2),
+  :index          => indexbuffer(GLuint[i for i=0:points + 1]),
+  :xscale         => 1f0,
+  :yscale         => 1f0,
+  :zscale         => 1f0,
+  :z              => 0f0,
+  :drawingmode    => GL_TRIANGLE_FAN
+)
+begin 
+local const cubedata = gencubenormals(Vec3(0), Vec3(1, 0, 0), Vec3(0,1, 0), Vec3(0,0,1))
+CUBE() = @compat Dict(
+  :vertex         => GLBuffer(cubedata[1]),
+  :normal_vector  => GLBuffer(cubedata[3]),
+  :index          => indexbuffer(cubedata[4]),
 
-glsl_attributes = [
-  "instance_functions"  => readall(open(joinpath(shaderdir,"instance_functions.vert"))),
-  "GLSL_EXTENSIONS"     => "#extension GL_ARB_draw_instanced : enable"
-]
-SURFACE(scale=1) = [
-    :vertex         => Vec3(0),
-    :offset         => GLBuffer(Float32[0,0, 0,1, 1,1, 1,0] * scale, 2),
-    :index          => indexbuffer(GLuint[0,1,2,2,3,0]),
-    :xscale         => 1f0,
-    :yscale         => 1f0,
-    :zscale         => 1f0,
-    :z              => 0f0,
-    :drawingmode    => GL_TRIANGLES,
-]
-
-CIRCLE(r=0.4, x=0, y=0, points=6) = [
-    :vertex         => Vec3(0),
-    :offset         => GLBuffer(gencircle(r, x, y, points) , 2),
-    :index          => indexbuffer(GLuint[i for i=0:points + 1]),
-    :xscale         => 1f0,
-    :yscale         => 1f0,
-    :zscale         => 1f0,
-    :z              => 0f0,
-    :drawingmode    => GL_TRIANGLE_FAN
-]
-const vertexes, uv, normals, indexes = gencubenormals(Vec3(0), Vec3(1, 0, 0), Vec3(0,1, 0), Vec3(0,0,1))
-
-CUBE() = [
-  :vertex         => GLBuffer(vertexes),
   :offset         => Vec2(0), # For other geometry, the texture lookup offset is zero
-  :index          => indexbuffer(indexes),
-  :normal_vector  => GLBuffer(normals),
   :zscale         => 1f0,
   :z              => 0f0,
   :drawingmode    => GL_TRIANGLES
-]
-POINT() = [
+)
+POINT() = @compat Dict(
   :vertex         => GLBuffer(Vec3[Vec3(0)]),
   :offset         => Vec2(0), # For other geometry, the texture lookup offset is zero
   :index          => indexbuffer(GLuint[0]),
@@ -45,66 +39,44 @@ POINT() = [
   :zscale         => 1f0,
   :z              => 0f0,
   :drawingmode    => GL_POINTS
-]
+)
 
-parameters = [
-    (GL_TEXTURE_MIN_FILTER, GL_NEAREST),
-    (GL_TEXTURE_MAG_FILTER, GL_NEAREST),
-    (GL_TEXTURE_WRAP_S,  GL_REPEAT),
-    (GL_TEXTURE_WRAP_T,  GL_REPEAT),
-  ]
+function surf{T <: AbstractArray}(::Style{:Default}, data::Dict{Symbol, Any})
+  screen  = data[:screen]
+  camera  = screen.perspectivecamera
 
-function toopengl{T <: Union(AbstractArray, Real)}(
-			attributevalue::Matrix{T}, attribute::Symbol=:z; 
-			primitive=SURFACE(), xrange=(-1,1), yrange=(-1,1), color=Vec4(0,0,0,1), 
-			lightposition=Vec3(20, 20, -20), camera=pcamera, rest...)
+  customattributes = Dict{Symbol, Any}()
+  customview       = @compat Dict(
+    "GLSL_EXTENSIONS" => "#extension GL_ARB_draw_instanced : enable"
+  )
 
-  xn  = size(attributevalue, 1)
-  yn  = size(attributevalue, 2)
-  if isa(xrange, Matrix)
-    x = Texture(xrange, 1, parameters=parameters)
-    y = Texture(yrange, 1, parameters=parameters)
-  else
-    x   = Vec2(first(xrange), last(xrange))
-    y   = Vec2(first(yrange), last(yrange))
-  end
-  push!(rest, (:color, color))
-  customattributes = (Symbol => Any)[]
-  customview = (ASCIIString => ASCIIString)[]
-
-  for (key, value) in rest
+  # transform values to OpenGL types, and create the correct keys for the shader view
+  for (key, value) in data
     if isa(value, Matrix)
       customattributes[key] = Texture(value, parameters=parameters)
     elseif isa(value, ASCIIString)
       customview[string(key)*"_calculation"] = value
       customview[string(key)*"_type"] = "uniform float "
+    elseif isa(value, NTuple{2, Real})
+      customattributes[key] = Vec2(first(value), last(value))
     else
       customattributes[key] = value #todo: check for unsupported types
     end
   end
-  data = merge( [
-    attribute       => Texture(attributevalue, parameters=parameters),
-    :xrange         => x,
-    :yrange         => y,
-    :texdimension   => Vec2(xn,yn),
-    :projection     => camera.projection,
-    :view           => camera.view,
-    :normalmatrix   => camera.normalmatrix,
-    :light_position => lightposition,
-    :modelmatrix    => eye(Mat4)
-  ], customattributes)
+
+  data[:projection]   = camera.projection
+  data[:view]         = camera.view
+  data[:normalmatrix] = camera.normalmatrix
+    
   # Depending on what the primitivie is, additional values have to be calculated
-  if !haskey(primitive, :normal_vector)
-    primitive[:normal_vector] = Vec3(0)
-  end
-  if !haskey(primitive, :xscale)
+  if !haskey(data, :xscale)
     primitive[:xscale] = float32(1 / xn)
   end
-  if !haskey(primitive, :yscale)
+  if !haskey(data, :yscale)
     primitive[:yscale] = float32(1 / yn)
   end
   merged = merge(primitive, data)
-  merge!(glsl_attributes,customview)
+  merge!(glsl_attributes, customview)
 
   fragdatalocation = [(0, "fragment_color"),(1, "fragment_groupid")]
   program = TemplateProgram(
@@ -125,14 +97,12 @@ function toopengl{T <: AbstractArray}(
           xrange=(0,1), yrange=(0,1), xborder=0.05, yborder=0.05, gap=0.2, color=Vec4(0,0,0,1), 
           camera=pcamera
         )
-  result    = RenderObject[]
 
+  result        = RenderObject[]
   mappedresult  = map(res->hcat( collect(values(res))...), values(array))
-
-  xrangestart = first(xrange) + xborder
-  xrangeend = last(xrange) - xborder
-
-  yrange    = (first(yrange) + yborder, last(yrange) - yborder)
+  xrangestart   = first(xrange) + xborder
+  xrangeend     = last(xrange) - xborder
+  yrange        = (first(yrange) + yborder, last(yrange) - yborder)
 
   L = length(mappedresult)
   xstep     = ((xrangeend-xrangestart) - ((L-1)*gap)) / L

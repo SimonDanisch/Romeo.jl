@@ -7,6 +7,7 @@ visualize(::Style{:MyAwesomeNewStyle}, ...) = do something different
 immutable Style{StyleValue}
 end
 Style(x::Symbol) = Style{x}()
+mergedefault!{S}(style::Style{S}, styles, customdata) = merge!(styles[S], Dict{Symbol, Any}(customdata))
 
 #########################################################################################################
 #=
@@ -33,7 +34,6 @@ function GLGlyph(glyph::Char, line::Integer, row::Integer, style_group::Integer)
   GLGlyph{Uint16}(uint16(glyph), uint16(line), uint16(row), uint16(style_group))
 end
 
-GLGlyph(x::GLGlyph; glyph=x.glyph, line=x.line, row=x.row, style_group=x.style_group) = GLGlyph(glyph, line, row, style_group)
 GLGlyph() = GLGlyph(' ', typemax(Uint16), typemax(Uint16), 0)
 
 Base.length{T}(::GLGlyph{T})                   = 4

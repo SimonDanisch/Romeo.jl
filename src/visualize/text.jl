@@ -8,18 +8,17 @@ function visualize(style::Style{:Default}, text::String, data::Dict{Symbol, Any}
   glypharray          = toglypharray(text)
   data[:style_group]  = Texture([data[:color]])
   data[:textlength]   = length(text) # needs to get remembered, as glypharray is usually bigger than the text
-  data[:lines]        = line 
+  data[:lines]        = count(x->x=='\n', text) 
+  textGPU             = Texture(glypharray)
   # To make things simple for now, checks if the texture is too big for the GPU are done by 'Texture' and an error gets thrown there.
-  return visualize(style, Texture(glypharray), data)
+  return visualize(style, textGPU, data)
 end
-
 
 # This is the low-level text interface, which simply prepares the correct shader and cameras
 function visualize(::Style{:Default}, text::Texture{GLGlyph{Uint16}, 4, 2}, data::Dict{Symbol, Any})
-  
   camera             = data[:camera]
-  renderdata         = merge(data, data[:camera].data) # merge font texture and uv informations -> details @ GLFont/src/types.jl
-  renderdata[:model] = renderdata[:model] * translationmatrix(Vec3(20,1080-20,0))
+  renderdata         = merge(data, data[:font].data) # merge font texture and uv informations -> details @ GLFont/src/types.jl
+  renderdata[:model] = renderdata[:model] * translationmatrix(Vec3(20,1000-20,0))
 
   view = [
     "GLSL_EXTENSIONS" => "#extension GL_ARB_draw_instanced : enable"

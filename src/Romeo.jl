@@ -1,51 +1,47 @@
 module Romeo
 
-using GLWindow, GLAbstraction, ModernGL, ImmutableArrays, Reactive, GLFW, Images, Quaternions, GLText, Compat
+using GLWindow 
+using GLAbstraction
+using ModernGL
+using ImmutableArrays
+using Reactive
+using GLFW
+using Images
+using Quaternions
+using GLText
+using Compat
+using Color
+using FixedPointNumbers
 import Mustache
-
-
+ 
 const sourcedir = Pkg.dir("Romeo", "src")
 const shaderdir = joinpath(sourcedir, "shader")
 
-function include_all(folder::String)
-    for file in readdir(path)
-        if endswith(file, ".jl")
-            include(joinpath(path, file))
-        end
-    end
-end
-mergedefault!{S}(style::Style{S}, styles, customdata) = merge!(styles[S], Dict{Symbol, Any}(customdata))
+include(joinpath(     sourcedir, "utils.jl"))
+include(joinpath(     sourcedir, "types.jl"))
+include_all(joinpath( sourcedir, "display"))
+include(joinpath(     sourcedir, "color.jl"))
+include(joinpath(     sourcedir, "visualize_interface.jl"))
+include(joinpath(     sourcedir, "edit_interface.jl"))
+include_all(joinpath( sourcedir, "share"))
+include_all(joinpath( sourcedir, "edit"))
+include_all(joinpath( sourcedir, "visualize"))
 
+export visualize    # Visualize an object
+export edit         # Edit an object
 
-include(joinpath(sourcedir,         "types.jl"))
-include_all(joinpath(sourcedir,     "window"))
-include(joinpath(sourcedir,         "color.jl"))
-include(joinpath(sourcedir,         "visualize_interface.jl"))
-include(joinpath(sourcedir,         "edit_interface.jl"))
-include_all(joinpath(sourcedir,     "share"))
-include_all(joinpath(sourcedir,     "edit"))
-include_all(joinpath(sourcedir,     "visualize"))
-include(joinpath(sourcedir,         "exports.jl"))
+export RGBAU8       # typealias for RGBA ufixed 8 value
+export rgba         # function for creating a rgba Float32 color
+export rgbaU8       # function for creating a rgba Ufixed8 color
 
+export tohsva       # Convert to HSVA
+export torgba       # Converts to RGBA
 
-
-
-global const RENDER_LIST = RenderObject[]
-
-
-function visualize(args...;keyargs...)
-    obj = visualize(args...;keyargs...)
-    push!(RENDER_LIST, obj)
-    obj
-end
-function visualize(x::RenderObject)
-    push!(RENDER_LIST, x)
-    x
-end
-
-clear!() = empty!(RENDER_LIST)
-
-
-
+# Surface Rendering
+export mix      # mix colors
+export SURFACE  # function that generates a Surface primitive for every datapoint, which can leave a gap
+export CIRCLE   # function that generates Circular surface primitive for every datapoint
+export CUBE     # function that generates Cube primitives for every datapoint
+export POINT    # function that generates Point primitives for every datapoint
 
 end # module
