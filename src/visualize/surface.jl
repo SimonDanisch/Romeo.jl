@@ -31,6 +31,7 @@ CUBE() = @compat Dict(
   :z              => 0f0,
   :drawingmode    => GL_TRIANGLES
 )
+end
 POINT() = @compat Dict(
   :vertex         => GLBuffer(Vec3[Vec3(0)]),
   :offset         => Vec2(0), # For other geometry, the texture lookup offset is zero
@@ -41,7 +42,7 @@ POINT() = @compat Dict(
   :drawingmode    => GL_POINTS
 )
 
-function surf{T <: AbstractArray}(::Style{:Default}, data::Dict{Symbol, Any})
+function surf(::Style{:Default}, data::Dict{Symbol, Any})
   screen  = data[:screen]
   camera  = screen.perspectivecamera
 

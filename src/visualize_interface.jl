@@ -10,6 +10,7 @@ TEXT_DEFAULTS = @compat Dict(
   :newline          => -Vec3(0, getfont().props[1][2], 0),
   :advance          => Vec3(getfont().props[1][1], 0, 0),
   :screen           => first(SCREEN_STACK),
+  :camera           => pocamera,
   :font             => getfont()
 ))
 
@@ -46,3 +47,64 @@ visualize{T <: PointType}(zpoints::Matrix{T},        attribute = :z,  style=Styl
 visualize{T <: PointType}(zpoints::Texture{T, 1, 2}, attribute = :z,  style=Style(:Default); customization...) = visualize(style, zpoints, attribute, mergedefault!(style, SURFACE_DEFAULTS, customization))
 visualize{T <: PointType}(x::Matrix{T}, y::Matrix{T}, z::Matrix{T},   style=Style(:Default); customization...) = visualize(style, zpoints, attribute, mergedefault!(style, SURFACE_DEFAULTS, customization))
 end
+# END Surface Rendering
+#################################################################################################################################
+
+
+#################################################################################################################################
+# Image Rendering:
+IMAGE_DEFAULTS = @compat(Dict(
+:Default => @compat(Dict(
+    :normrange      => Vec2(0,1),   # stretch the value 0-1 to normrange: normrange.x + (color * (normrange.y - normrange.x))
+    :kernel         => 1f0,         # kernel can be a matrix or a float, whereas the float gets interpreted as a multiplicator
+    :model          => eye(Mat4),
+    :screen         => first(SCREEN_STACK),
+    :modelmatrix    => eye(Mat4),
+    :camera         => pocamera
+)),
+:GaussFiltered => @compat(Dict(
+    :normrange      => Vec2(0,1),   # stretch the value 0-1 to normrange: normrange.x + (color * (normrange.y - normrange.x))
+    :kernel         => Float32[1 2 1; 2 4 2; 1 2 1] / 16f0,         # kernel can be a matrix or a float, whereas the float gets interpreted as a multiplicator
+    :model          => eye(Mat4),
+    :screen         => first(SCREEN_STACK),
+    :modelmatrix    => eye(Mat4),
+    :camera         => pocamera
+)),
+:LaPlace => @compat(Dict(
+    :normrange      => Vec2(0,1),   # stretch the value 0-1 to normrange: normrange.x + (color * (normrange.y - normrange.x))
+    :kernel         => Float32[-1 -1 -1; -1 9 -1; -1 -1 -1],         # kernel can be a matrix or a float, whereas the float gets interpreted as a multiplicator
+    :model          => eye(Mat4),
+    :screen         => first(SCREEN_STACK),
+    :modelmatrix    => eye(Mat4),
+    :camera         => pocamera
+))))
+begin 
+local PixelType = Union(ColorValue, AbstractAlphaColorValue)
+visualize{T <: PixelType, CDim}(image::Texture{T, CDim, 2}, style=Style(:Default); customization...) = visualize(style, image, mergedefault!(style, IMAGE_DEFAULTS, customization))
+end
+
+# END Image Rendering
+#################################################################################################################################
+
+#################################################################################################################################
+# Volume Rendering:
+VOLUME_DEFAULTS = @compat(Dict(
+:Default => @compat(Dict(
+  :spacing        => [1f0, 1f0, 1f0], 
+  :stepsize       => 0.001f0,
+  :isovalue       => 0.5f0, 
+  :algorithm      => 1f0, 
+  :color          => Vec3(0,0,1), 
+  :light_position => Vec3(2, 2, -2),
+  :camera         => pcamera,
+  :screen         => first(SCREEN_STACK)
+))
+))
+begin 
+local PointType = Union(RGB, Real, RGBA)
+visualize{T <: PointType}(intensities::Array{T, 3},         style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
+visualize{T <: PointType}(intensities::Image{T, 3},         style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
+visualize{T <: PointType}(intensities::Texture{T, 1, 3},    style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
+end
+# END Volume Rendering
+#################################################################################################################################

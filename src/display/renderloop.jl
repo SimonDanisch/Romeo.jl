@@ -45,8 +45,8 @@ parameters = [
   (GL_TEXTURE_MAG_FILTER, GL_NEAREST) 
 ]
 
-fb = glGenFramebuffers()
-glBindFramebuffer(GL_FRAMEBUFFER, fb)
+global const RENDER_FRAMEBUFFER = glGenFramebuffers()
+glBindFramebuffer(GL_FRAMEBUFFER, RENDER_FRAMEBUFFER)
 
 framebuffsize = [window.inputs[:framebuffer_size].value]
 
@@ -67,14 +67,14 @@ lift(window.inputs[:framebuffer_size]) do window_size
   resize!(color, window_size)
   resize!(stencil, window_size)
   glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil[1])
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, window_size...)
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, (window_size)...)
 end
 
 
 function renderloop(window)
   global RENDER_LIST
   yield() 
-  glBindFramebuffer(GL_FRAMEBUFFER, fb)
+  glBindFramebuffer(GL_FRAMEBUFFER, RENDER_FRAMEBUFFER)
   glDrawBuffers(2, [GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1])
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -93,12 +93,12 @@ function renderloop(window)
   end
 
   glReadBuffer(GL_COLOR_ATTACHMENT0)
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, fb)
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, RENDER_FRAMEBUFFER)
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
   glClear(GL_COLOR_BUFFER_BIT)
 
   window_size = window.inputs[:framebuffer_size].value
-  glBlitFramebuffer(0,0, window_size..., 0,0, window_size..., GL_COLOR_BUFFER_BIT, GL_NEAREST)
+  glBlitFramebuffer(0,0, window_size..., 0,0, window_size..., GL_COLOR_BUFFER_BIT, GL_LINEAR)
     
   GLFW.SwapBuffers(window.glfwWindow)
   GLFW.PollEvents()

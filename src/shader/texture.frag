@@ -8,12 +8,10 @@
 
 {{filterkernel_type}} filterkernel;
 
-
 uniform vec2 normrange;
-uniform float filternorm;
 
 
-vec4 filter_img(sampler2D kernel, float norm)
+vec4 filter_img(sampler2D kernel)
 {
 	ivec2 size = textureSize(kernel, 0);
 	vec2 sizef = vec2(size);
@@ -33,15 +31,15 @@ vec4 filter_img(sampler2D kernel, float norm)
       accum += (texelFetch(kernel, kerneli, 0).r * texture(image, uv_frag + windowi)) ;
     }
   }
-  return vec4(accum.rgb / norm, 1);
+  return vec4(accum.rgb, 1);
 }
-vec4 filter_img(float kernel, float norm)
+vec4 filter_img(float kernel)
 {
-    return (kernel * texture(image, uv_frag)) / norm;
+    return kernel * texture(image, uv_frag);
 }
 void main(){
 
-	vec4 color   = filter_img(filterkernel, filternorm);
+	vec4 color   = filter_img(filterkernel);
   frag_color   = normrange.x + (color * (normrange.y - normrange.x));
 	frag_groupid = uvec2(0,0);
 }

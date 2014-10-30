@@ -1,15 +1,9 @@
-function initvolume()
-  const global volumeshader = TemplateProgram(joinpath(shaderdir, "simple.vert")     , joinpath(shaderdir, "iso.frag"))
-  const global uvwshader    = TemplateProgram(joinpath(shaderdir, "uvwposition.vert"), joinpath(shaderdir, "uvwposition.frag"))
-   
-  const global uvwposition_framebuffer = glGenFramebuffers() 
-end
-init_after_context_creation(initvolume)
+const global volumeshader = TemplateProgram(joinpath(shaderdir, "simple.vert")     , joinpath(shaderdir, "iso.frag"), fragdatalocation=[(0, "fragment_color"),(1, "fragment_groupid")])
+const global uvwshader    = TemplateProgram(joinpath(shaderdir, "uvwposition.vert"), joinpath(shaderdir, "uvwposition.frag"))
+const global uvwposition_framebuffer = glGenFramebuffers() 
 
 
-
-
-function toopengl{T,A}(img::Image{T, 3, A}; stepsize=0.001f0, isovalue=0.5f0, algorithm=2f0, color=Vec4(0,0,1,1))
+function visualize{T,A}(style::Style, img::Image{T, 3, A}, data::Dict{Symbol, Any})
   volume = img.data
   max = maximum(volume)
   min = minimum(volume)
@@ -27,52 +21,35 @@ begin
       (GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE),
       (GL_TEXTURE_WRAP_R,     GL_CLAMP_TO_EDGE)
   ]
-  function toopengl{T <: Real}(img::Array{T, 3}; 
-        spacing = [1f0, 1f0, 1f0], stepsize=0.001f0, isovalue=0.5f0, algorithm=2f0, 
-        color=Vec3(0,0,1), lightposition=Vec3(2, 2, -2),
-        camera=pcamera
-      )
+  function visualize{T <: Real}(style::Style, img::Array{T, 3}, data::Dict{Symbol, Any})
+    spacing = data[:spacing]
+    camera = data[:camera]
 
-    v, uvw, indexes = gencube(spacing...)
-
-    cubedata = [
-        :vertex         => GLBuffer(v, 3),
-        :uvw            => GLBuffer(uvw, 3),
-        :indexes        => GLBuffer(indexes, 1, buffertype = GL_ELEMENT_ARRAY_BUFFER),
-        :projectionview => camera.projectionview
-    ]
-    
+    v, uvw, indexes = gencube(data[:spacing]...)
 
     cube1,frontf1, backf1 = genuvwcube(1f0, 1f0, 1f0, uvwposition_framebuffer, camera)
     cube2,frontf2, backf2 = genuvwcube(0.1f0, 1f0, 1f0, uvwposition_framebuffer, camera)
 
-    delete!(cubedata, :uvw)
+    data[:vertex]         = GLBuffer(v, 3)
+    data[:indexes]        = indexbuffer(indexes)
+    data[:projectionview] = camera.projectionview
+    data[:frontface1]     = frontf1
+    data[:backface1]      = backf1
+    data[:backface2]      = backf2
+    data[:frontface2]     = frontf2
+    data[:volume_tex]     = Texture(img, parameters=texparams)
 
-    cubedata[:frontface1]     = frontf1
-    cubedata[:backface1]      = backf1
-    cubedata[:backface2]      = backf2
-    cubedata[:frontface2]     = frontf2
-
-    cubedata[:volume_tex]     = Texture(reinterpret(Vec1, img, size(img)), parameters=texparams)
-    cubedata[:stepsize]       = stepsize
-    cubedata[:isovalue]       = isovalue
-    cubedata[:algorithm]      = algorithm
-    cubedata[:color]          = color
-
-    cubedata[:light_position] = lightposition
-
-    volume = RenderObject(cubedata, volumeshader)
+    volume = RenderObject(data, volumeshader)
 
     rendertouvwtexture = () -> begin
       render(cube1)
       render(cube2)
-      glBindFramebuffer(GL_FRAMEBUFFER, 0)
+      glBindFramebuffer(GL_FRAMEBUFFER, RENDER_FRAMEBUFFER)
 
     end
     prerender!(volume, rendertouvwtexture, glEnable, GL_DEPTH_TEST, glDepthFunc, GL_LESS, glEnable, GL_CULL_FACE, glCullFace, GL_BACK, enabletransparency)
     postrender!(volume, render, volume.vertexarray)
     volume
-
   end
 end
 #=
@@ -114,7 +91,6 @@ function genuvwcube(x, y, z, fb, camera)
   rendersetup = () -> begin
       glBindFramebuffer(GL_FRAMEBUFFER, fb)
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, backface.id, 0)
-      glClearColor(1,1,1,0)
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
       glDisable(GL_DEPTH_TEST)

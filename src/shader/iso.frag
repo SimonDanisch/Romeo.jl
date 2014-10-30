@@ -2,6 +2,7 @@
 
 {{in}} vec4 vertpos;
 {{out}} vec4 fragment_color;
+{{out}} uvec2 fragment_groupid;
 
 uniform sampler2D frontface1;
 uniform sampler2D backface1;
@@ -172,4 +173,5 @@ void main()
     }
   }
   fragment_color = result_color;
+  fragment_groupid = uvec2(0);
 }
