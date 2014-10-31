@@ -99,7 +99,6 @@ function renderloop(window)
 
   window_size = window.inputs[:framebuffer_size].value
   glBlitFramebuffer(0,0, window_size..., 0,0, window_size..., GL_COLOR_BUFFER_BIT, GL_LINEAR)
-    
   GLFW.SwapBuffers(window.glfwWindow)
   GLFW.PollEvents()
 end

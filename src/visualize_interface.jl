@@ -27,15 +27,18 @@ visualize(text::Texture{GLGlyph{Uint16}, 4, 2},   style=Style(:Default); customi
 
 SURFACE_DEFAULTS = @compat Dict(
 :Default => @compat Dict(
-    :primitive      => SURFACE(),     #can also be CUBES(), CIRCLES(), POINT()
-    :xrange         => (-1,1),        # can also be a matrix
-    :yrange         => (-1,1),        # can also be a matrix
+    :primitive      => SURFACE(),     # can also be CUBES(), CIRCLES(), POINT()
+    :x              => (-1,1),        # can also be a matrix
+    :y              => (-1,1),        # can also be a matrix
+    :z              => 0f0,           # can also be a matrix
     :color          => rgba(0,0,0,1), # can also be Array/Texture{RGB/RGBA, 1/2}, with "/" meaning OR. 
                                       # A 1D Array of color values is assumed to be a colormap.
                                       # A 2D Array can have higher or lower resolution, and will be automatically mapped on the data points.
-    :lightposition  => Vec3(20, 20, -20), 
+    :light_position => Vec3(20, 20, -20), 
+
+    :camera         => pcamera,
     :screen         => first(SCREEN_STACK),
-    :modelmatrix    => eye(Mat4),
+    :model          => eye(Mat4),
     :interpolate    => false,
     :normal_vector  => 0f0 # meaning, that normal vector needs to be calculated on the gpu
 ))

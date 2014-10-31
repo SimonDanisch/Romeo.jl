@@ -42,9 +42,15 @@ POINT() = @compat Dict(
   :drawingmode    => GL_POINTS
 )
 
+function visualize(style::Style{:Default}, datapoints::Matrix{Float32}, attribute::Symbol, data::Dict{Symbol,Any})
+  data[attribute]=datapoints
+  surf(style, data)
+end
+
 function surf(::Style{:Default}, data::Dict{Symbol, Any})
-  screen  = data[:screen]
-  camera  = screen.perspectivecamera
+  screen           = data[:screen]
+  camera           = data[:camera]
+  primitive        = data[:primitive]
 
   customattributes = Dict{Symbol, Any}()
   customview       = @compat Dict(
@@ -52,9 +58,21 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
   )
 
   # transform values to OpenGL types, and create the correct keys for the shader view
+  xn, yn = (0,0)
+  # Depending on what the primitivie is, additional values have to be calculated
+  if !haskey(primitive, :xscale)
+    primitive[:xscale] = float32(1 / xn)
+  end
+  if !haskey(primitive, :yscale)
+    primitive[:yscale] = float32(1 / yn)
+  end
+  merge!(customattributes, primitive)
+  
   for (key, value) in data
     if isa(value, Matrix)
       customattributes[key] = Texture(value, parameters=parameters)
+
+      xn, yn = size(value)
     elseif isa(value, ASCIIString)
       customview[string(key)*"_calculation"] = value
       customview[string(key)*"_type"] = "uniform float "
@@ -64,28 +82,20 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
       customattributes[key] = value #todo: check for unsupported types
     end
   end
-
-  data[:projection]   = camera.projection
-  data[:view]         = camera.view
-  data[:normalmatrix] = camera.normalmatrix
-    
-  # Depending on what the primitivie is, additional values have to be calculated
-  if !haskey(data, :xscale)
-    primitive[:xscale] = float32(1 / xn)
-  end
-  if !haskey(data, :yscale)
-    primitive[:yscale] = float32(1 / yn)
-  end
-  merged = merge(primitive, data)
-  merge!(glsl_attributes, customview)
+  customattributes[:projection]     = camera.projection
+  customattributes[:view]           = camera.view
+  customattributes[:normalmatrix]   = camera.normalmatrix
+  customattributes[:griddimensions] = Vec2(xn,yn)
+  
+  
 
   fragdatalocation = [(0, "fragment_color"),(1, "fragment_groupid")]
   program = TemplateProgram(
-    joinpath(shaderdir, "instance_template.vert"), joinpath(shaderdir, "phongblinn.frag"), 
-    view=glsl_attributes, attributes=merged, fragdatalocation=fragdatalocation
+    joinpath(shaderdir, "surface.vert"), joinpath(shaderdir, "phongblinn.frag"), 
+    view=customview, attributes=customattributes, fragdatalocation=fragdatalocation
   )
 
-  obj     = instancedobject(merged, program, xn*yn, primitive[:drawingmode])
+  obj     = instancedobject(customattributes, program, xn*yn, primitive[:drawingmode])
   prerender!(obj, glEnable, GL_DEPTH_TEST, glDepthFunc, GL_LEQUAL, glDisable, GL_CULL_FACE, enabletransparency)
   obj
 end

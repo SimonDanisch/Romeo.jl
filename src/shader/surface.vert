@@ -5,8 +5,8 @@
 {{normal_vector_type}} normal_vector; // normal might not be an uniform, whereas the other will be allways uniforms
 {{offset_type}}        offset; //offset for texture look up. Needed to get neighbouring vertexes, when rendering the surface
 
-{{xrange_type}} x; 
-{{yrange_type}} y;
+{{x_type}} x; 
+{{y_type}} y;
 {{z_type}} z;   
 
 {{xscale_type}} xscale; 
@@ -25,51 +25,38 @@ uniform bool interpolate;
 {{out}} vec3 V;
 {{out}} vec4 vert_color;
 
-
-void main(){
-    vec3 xyz, scale, normal, vert;
-
-    xyz.x       = fetch1stvalue(gl_InstanceID, x);
-    xyz.y       = fetch1stvalue(gl_InstanceID, y);
-    xyz.z       = fetch1stvalue(gl_InstanceID, z);
-
-    scale.x     = fetch1stvalue(gl_InstanceID, xscale);
-    scale.y     = fetch1stvalue(gl_InstanceID, yscale);
-    scale.z     = fetch1stvalue(gl_InstanceID, zscale);
-    
-
-    normal      = getnormal(z, uv, normal_vector);
-    N           = normalize(normalmatrix * normal);
-
-    vert_color  = {{color_calculation}}
-
-    V           = vec3(view * vec4(xyz, 1.0));
-    vert        = {{vertex_calculation}}
-
-    gl_Position = projection * view * modelmatrix * getmodelmatrix(xyz, scale) * vec4(vert.xyz, 1.0);
-}
 /**
 Function that fetches a float value, depending on what type is given
 */
-float fetch1stvalue(int index, sampler2D tex)
+float fetch1stvalue(ivec2 position, sampler2D tex)
 {
-    ivec2 position = ivec2(gl_InstanceID % textureSize(zscale, 0).x, gl_InstanceID / textureSize(zscale, 0).x);
-    if (interpolate)
-        return texelFetch(tex, position, 0).x;
-    else
-        return texture(tex, vec2(position) / vec2(textureSize(tex, 0)) ).x;
+    return texelFetch(tex, position, 0).x;
+}
+float fetch1stvalue(int index, vec2 range)
+{
+    float from  = range.x;
+    float to    = range.y;
+    return from + (float(index)/griddimensions.x) * (to - from);
 }
 float fetch1stvalue(int index, float value)
 {
     return value;
 }
-float fetch1stvalue(int index, vec3 range)
+
+float fetch1stvalue(vec2 position, sampler2D tex)
+{
+    return texture(tex, position).x;
+}
+float fetch1stvalue(vec2 index, float value)
+{
+    return value;
+}
+float fetch1stvalue(float position, vec2 range)
 {
     float from  = range.x;
     float to    = range.y;
-    return from + float(index) * (to - from));
+    return from + position * (to - from);
 }
-
 bool isinbounds(vec2 uv)
 {
     return (uv.x <= 1.0 && uv.y <= 1.0 && uv.x >= 0.0 && uv.y >= 0.0);
@@ -136,16 +123,49 @@ vec2 getuv(vec2 texdim, int index, vec2 offset)
 }
 ivec2 get2Dindex(int index1D, sampler2D tex)
 {
-    return ivec2(gl_InstanceID % textureSize(zscale, 0).x, gl_InstanceID / textureSize(zscale, 0).x);
+    return ivec2(gl_InstanceID % textureSize(tex, 0).x, gl_InstanceID / textureSize(tex, 0).x);
 }
 
 
 vec4 fetchrgba(int index, sampler2D tex)
 {
-    vec2 position = vec2(gl_InstanceID % textureSize(zscale, 0).x, gl_InstanceID / textureSize(zscale, 0).x);
+    vec2 position = vec2(gl_InstanceID % textureSize(tex, 0).x, gl_InstanceID / textureSize(tex, 0).x);
     return texture(tex, position / vec2(textureSize(tex, 0)) ).rgba;
 }
 vec4 fetchrgba(int index, vec4 rgba)
 {
     return rgba;
+}
+mat4 getmodelmatrix(vec3 xyz, vec3 scale)
+{
+   return mat4(
+      vec4(scale.x, 0, 0, 0),
+      vec4(0, scale.y, 0, 0),
+      vec4(0, 0, scale.z, 0),
+      vec4(xyz, 1));
+}
+
+void main(){
+    vec3 xyz, scale, normal, vert;
+    ivec2 ij    = ivec2(gl_InstanceID % int(griddimensions.x), gl_InstanceID / int(griddimensions.x)) + ivec2(offset);
+    vec2 uv     = vec2(ij) / griddimensions;
+
+    xyz.x       = fetch1stvalue(uv.x, x);
+    xyz.y       = fetch1stvalue(uv.y, y);
+    xyz.z       = fetch1stvalue(uv, z);
+
+    scale.x     = fetch1stvalue(uv, xscale);
+    scale.y     = fetch1stvalue(uv, yscale);
+    scale.z     = fetch1stvalue(uv, zscale);
+    
+
+    normal      = getnormal(z, uv, normal_vector);
+    N           = normalize(normalmatrix * normal);
+
+    vert_color  = {{color_calculation}}
+
+    V           = vec3(view * vec4(xyz, 1.0));
+    vert        = {{vertex_calculation}}
+
+    gl_Position = projection * view * model * getmodelmatrix(xyz, scale) * vec4(vert.xyz, 1.0);
 }

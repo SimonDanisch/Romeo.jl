@@ -30,6 +30,6 @@ function visualize(::Style{:Default}, text::Texture{GLGlyph{Uint16}, 4, 2}, data
     view=view, attributes=renderdata, fragdatalocation=[(0, "fragment_color"),(1, "fragment_groupid")]
   )
   obj = instancedobject(renderdata, shader, data[:textlength])
-  prerender!(obj, enabletransparency)
+  prerender!(obj, enabletransparency, glDisable, GL_DEPTH_TEST, glDisable, GL_CULL_FACE,)
   return obj
 end
