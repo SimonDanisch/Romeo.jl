@@ -61,6 +61,7 @@ bool isinbounds(vec2 uv)
 {
     return (uv.x <= 1.0 && uv.y <= 1.0 && uv.x >= 0.0 && uv.y >= 0.0);
 }
+
 vec3 getnormal(sampler2D zvalues, vec2 uv, float normal)
 {   
     float weps = 1.0/textureSize(zvalues,0).x;
@@ -152,7 +153,7 @@ void main(){
 
     xyz.x       = fetch1stvalue(uv.x, x);
     xyz.y       = fetch1stvalue(uv.y, y);
-    xyz.z       = fetch1stvalue(uv, z);
+    xyz.z       = fetch1stvalue(ij, z);
 
     scale.x     = fetch1stvalue(uv, xscale);
     scale.y     = fetch1stvalue(uv, yscale);

@@ -68,6 +68,10 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
   end
   merge!(customattributes, primitive)
   
+  customattributes[:projection]     = camera.projection
+  customattributes[:view]           = camera.view
+  customattributes[:normalmatrix]   = camera.normalmatrix
+
   for (key, value) in data
     if isa(value, Matrix)
       customattributes[key] = Texture(value, parameters=parameters)
@@ -82,9 +86,7 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
       customattributes[key] = value #todo: check for unsupported types
     end
   end
-  customattributes[:projection]     = camera.projection
-  customattributes[:view]           = camera.view
-  customattributes[:normalmatrix]   = camera.normalmatrix
+  
   customattributes[:griddimensions] = Vec2(xn,yn)
   
   
