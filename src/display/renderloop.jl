@@ -1,6 +1,6 @@
 const SCREEN_STACK      = Screen[]
 
-const RENDER_LIST       = RenderObject[]
+const RENDER_LIST       = Any[]
 const SELECTION         = Dict{Symbol, Input{Matrix{Vector2{Int}}}}()
 const SELECTION_QUERIES = Dict{Symbol, Rectangle{Int}}()
 
@@ -99,7 +99,7 @@ function renderloop(window)
 
   window_size = window.inputs[:framebuffer_size].value
   glBlitFramebuffer(0,0, window_size..., 0,0, window_size..., GL_COLOR_BUFFER_BIT, GL_LINEAR)
-  GLFW.SwapBuffers(window.glfwWindow)
+  GLFW.SwapBuffers(window.nativewindow)
   GLFW.PollEvents()
 end
 
