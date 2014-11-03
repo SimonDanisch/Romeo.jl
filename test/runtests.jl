@@ -1,36 +1,89 @@
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL
 
-immutable Screen2
+immutable Screen2{Style}
     id::Symbol
+    area::Signal{Rectangle}
     parent::Screen
-    children::Vector{Screen}
+    children::Dict{Symbol, Screen}
     inputs::Dict{Symbol, Any}
     renderlist::Vector{RenderObject}
-    area::Rectangle
-    hidden::Bool
-    hasfocus::Bool
-    function Screen(id::Symbol,
-                    children::Vector{Screen},
-                    inputs::Dict{Symbol, Any},
-                    renderList::Vector{Any})
-        parent = new()
-        new(id::Symbol, parent, children, inputs, renderList, GLFW.NullWindow)
+
+    hidden::Signal{Bool}
+    hasfocus::Signal{Bool}
+
+    perspectivecam::PerspectiveCamera
+    orthographiccam::OrthographicCamera
+    counter = 1
+    function Screen2(
+    	area::Signal{Rectangle},
+	    parent::Screen,
+	    children::Dict{Symbol, Screen},
+	    inputs::Dict{Symbol, Any},
+	    renderlist::Vector{RenderObject},
+
+	    hidden::Signal{Bool},
+	    hasfocus::Signal{Bool},
+
+	    perspectivecam::PerspectiveCamera,
+	    orthographiccam::OrthographicCamera)
+
+        new(symbol("display"*string(counter+=1)), area, parent, children, inputs, renderList, hidden, hasfocus, perspectivecam, orthographiccam)
     end
-    function Screen(id::Symbol,
+    function Screen2(id::Symbol,
                     parent::Screen,
                     children::Vector{Screen},
                     inputs::Dict{Symbol, Any},
-                    renderList::Vector{Any},
-                    glfwWindow::Window)
-        new(id::Symbol, parent, children, inputs, renderList, glfwWindow)
+                    renderList::Vector{Any})
+        new(id::Symbol, parent, children, inputs, renderList)
     end
 end
-splice!(collection, index[, replacement]) -> ite)
+
+
 function GLAbstraction.render(x::Screen2)
     glViewport(x.area)
     render(x.renderlist)
     render(x.children)
 end
+
+function inside(x::Screen, position::Vector2)
+	!any(x->inside(x, position), x.children) && inside(x.area)
+end
+
+function Screen(obj::RenderObject, parent::Screen2)
+
+	area 	 = boundingbox2D(obj)
+	hidden   = Input(false)
+	screen 	 = Screen(parent)
+	mouse 	 = filter(inside, Input(Screen), parent.inputs[:mouseposition])
+
+	hasfocus = lift(parent.inputs[:mouseposition], parent.inputs[:mousebuttonpressed], screen.area) do pos, buttons, area
+		isinside(pos, area) && !isempty(bottons)
+	end
+	buttons  = menubar(screen)
+	push!(parent.children, screen)
+	push!(screen.renderlist, buttons)
+	push!(screen.renderlist, obj)
+end
+
+function Screen(style::Style{:Default}, parent=first(SCREEN_STACK))
+
+	hidden   	= Input(true)
+	screen 	 	= Screen(parent)
+	mouse 	 	= filter(Input(Screen), parent.inputs[:mouseposition]) do screen, mpos
+	end
+	inputs 		= merge(parent.inputs, Dict(:mouseposition=>mouse))
+	opxcamera   = OrthographicPixelCamera(inputs)
+	pcamera  	= PerspectiveCamera(inputs)
+	hasfocus 	= lift(parent.inputs[:mouseposition], parent.inputs[:mousebuttonpressed], screen.area) do pos, buttons, area
+		isinside(pos, area) && !isempty(bottons)
+	end
+	screen 		= Screen(area, parent, children=Screen[], inputs, renderList, hidden, hasfocus, perspectivecam, orthographiccam)
+	buttons  = menubar(screen, style)
+	push!(parent.children, screen)
+	push!(screen.renderlist, buttons)
+
+end
+
 
 N       = 128
 volume  = Float32[sin(x / 12f0)+sin(y / 12f0)+sin(z / 12f0) for x=1:N, y=1:N, z=1:N]
