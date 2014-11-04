@@ -49,7 +49,7 @@ end
 
 function surf(::Style{:Default}, data::Dict{Symbol, Any})
   screen           = data[:screen]
-  camera           = data[:camera]
+  camera           = data[:screen].perspectivecam
   primitive        = data[:primitive]
 
   customattributes = Dict{Symbol, Any}()

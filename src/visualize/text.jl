@@ -16,9 +16,10 @@ end
 
 # This is the low-level text interface, which simply prepares the correct shader and cameras
 function visualize(::Style{:Default}, text::Texture{GLGlyph{Uint16}, 4, 2}, data::Dict{Symbol, Any})
-  camera             = data[:camera]
+  screen             = data[:screen]
+  camera             = screen.orthographiccam
   renderdata         = merge(data, data[:font].data) # merge font texture and uv informations -> details @ GLFont/src/types.jl
-  renderdata[:model] = renderdata[:model] * translationmatrix(Vec3(20,1000-20,0))
+  renderdata[:model] = renderdata[:model] * translationmatrix(Vec3(20,screen.area.value.y,0))
 
   view = [
     "GLSL_EXTENSIONS" => "#extension GL_ARB_draw_instanced : enable"

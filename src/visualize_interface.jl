@@ -10,7 +10,6 @@ TEXT_DEFAULTS = @compat Dict(
   :newline          => -Vec3(0, getfont().props[1][2], 0),
   :advance          => Vec3(getfont().props[1][1], 0, 0),
   :screen           => ROOT_SCREEN,
-  :camera           => ROOT_SCREEN.orthographiccam,
   :font             => getfont()
 ))
 
@@ -36,7 +35,6 @@ SURFACE_DEFAULTS = @compat Dict(
                                       # A 2D Array can have higher or lower resolution, and will be automatically mapped on the data points.
     :light_position => Vec3(20, 20, -20), 
 
-    :camera         => ROOT_SCREEN.perspectivecam,
     :screen         => ROOT_SCREEN,
     :model          => eye(Mat4),
     :interpolate    => false,
@@ -62,24 +60,21 @@ IMAGE_DEFAULTS = @compat(Dict(
     :kernel         => 1f0,         # kernel can be a matrix or a float, whereas the float gets interpreted as a multiplicator
     :model          => eye(Mat4),
     :screen         => ROOT_SCREEN,
-    :modelmatrix    => eye(Mat4),
-    :camera         => ROOT_SCREEN.orthographiccam
+    :model          => eye(Mat4),
 )),
 :GaussFiltered => @compat(Dict(
     :normrange      => Vec2(0,1),   # stretch the value 0-1 to normrange: normrange.x + (color * (normrange.y - normrange.x))
     :kernel         => Float32[1 2 1; 2 4 2; 1 2 1] / 16f0,         # kernel can be a matrix or a float, whereas the float gets interpreted as a multiplicator
     :model          => eye(Mat4),
     :screen         => ROOT_SCREEN,
-    :modelmatrix    => eye(Mat4),
-    :camera         => ROOT_SCREEN.orthographiccam
+    :model          => eye(Mat4),
 )),
 :LaPlace => @compat(Dict(
     :normrange      => Vec2(0,1),   # stretch the value 0-1 to normrange: normrange.x + (color * (normrange.y - normrange.x))
     :kernel         => Float32[-1 -1 -1; -1 9 -1; -1 -1 -1],         # kernel can be a matrix or a float, whereas the float gets interpreted as a multiplicator
     :model          => eye(Mat4),
     :screen         => ROOT_SCREEN,
-    :modelmatrix    => eye(Mat4),
-    :camera         => ROOT_SCREEN.orthographiccam
+    :model          => eye(Mat4),
 ))))
 begin 
 local PixelType = Union(ColorValue, AbstractAlphaColorValue)
@@ -99,7 +94,7 @@ VOLUME_DEFAULTS = @compat(Dict(
   :algorithm      => 1f0, 
   :color          => Vec3(0,0,1), 
   :light_position => Vec3(2, 2, -2),
-  :camera         => ROOT_SCREEN.perspectivecam,
+  :model          => eye(Mat4),
   :screen         => ROOT_SCREEN
 ))
 ))
@@ -110,4 +105,27 @@ visualize{T <: PointType}(intensities::Image{T, 3},         style=Style(:Default
 visualize{T <: PointType}(intensities::Texture{T, 1, 3},    style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
 end
 # END Volume Rendering
+#################################################################################################################################
+
+#################################################################################################################################
+# Color Rendering:
+COLOR_DEFAULTS = @compat(Dict(
+:Default => @compat(Dict(
+  :screen                   => ROOT_SCREEN,
+  :middle                   => Vec2(0.5),
+
+  :swatchsize               => 0.5f0,
+  :border_color             => rgba(1, 1, 0.99, 1),
+  :border_size              => 0.01f0,
+
+  :hover                    => Input(false),
+  :hue_saturation           => Input(false),
+  :brightness_transparency  => Input(false),
+  :antialiasing_value       => 0.01f0,
+  :model                    => eye(Mat4)
+))
+))
+visualize(color::AbstractAlphaColorValue, style=Style(:Default); customization...) = visualize(style, color, mergedefault!(style, COLOR_DEFAULTS, customization)) 
+
+# END Color Rendering
 #################################################################################################################################

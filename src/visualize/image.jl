@@ -22,7 +22,7 @@ function visualize{T, D}(style::Style, img::Texture{T, D, 2}, data::Dict{Symbol,
     :image            => img,
     :normrange        => data[:normrange],
     :filterkernel     => filterkernel,
-    :projectionview   => data[:camera].projectionview,
+    :projectionview   => data[:screen].orthographiccam.projectionview,
     :model            => data[:model]
   ]
 

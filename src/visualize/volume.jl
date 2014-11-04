@@ -23,12 +23,13 @@ begin
   ]
   function visualize{T <: Real}(style::Style, img::Array{T, 3}, data::Dict{Symbol, Any})
     spacing = data[:spacing]
-    camera = data[:camera]
+    screen = data[:screen]
+    camera = screen.perspectivecam
 
     v, uvw, indexes = gencube(data[:spacing]...)
 
-    cube1,frontf1, backf1 = genuvwcube(1f0, 1f0, 1f0, uvwposition_framebuffer, camera)
-    cube2,frontf2, backf2 = genuvwcube(0.1f0, 1f0, 1f0, uvwposition_framebuffer, camera)
+    cube1,frontf1, backf1 = genuvwcube(1f0, 1f0, 1f0, uvwposition_framebuffer, camera, screen)
+    cube2,frontf2, backf2 = genuvwcube(0.1f0, 1f0, 1f0, uvwposition_framebuffer, camera, screen)
 
     data[:vertex]         = GLBuffer(v, 3)
     data[:indexes]        = indexbuffer(indexes)
@@ -45,7 +46,7 @@ begin
       render(cube1)
       render(cube2)
       glBindFramebuffer(GL_FRAMEBUFFER, RENDER_FRAMEBUFFER)
-
+      glViewport(screen.area.value)
     end
     prerender!(volume, rendertouvwtexture, glEnable, GL_DEPTH_TEST, glDepthFunc, GL_LESS, glEnable, GL_CULL_FACE, glCullFace, GL_BACK, enabletransparency)
     postrender!(volume, render, volume.vertexarray)
@@ -71,7 +72,7 @@ function toopengl(dirpath::String; stepsize=0.001f0, isovalue=0.5f0, algorithm=2
 end
 =#
 
-function genuvwcube(x, y, z, fb, camera)
+function genuvwcube(x, y, z, fb, camera, screen)
   v, uvw, indexes = gencube(x,y,z)
   cubeobj = RenderObject([
     :vertex         => GLBuffer(v, 3),
@@ -80,16 +81,17 @@ function genuvwcube(x, y, z, fb, camera)
     :projectionview => camera.projectionview
   ], uvwshader)
 
-  frontface = Texture(Vec4, window.inputs[:window_size].value[3:4])
-  backface  = Texture(Vec4, window.inputs[:window_size].value[3:4])
-
-  lift(window.inputs[:window_size]) do window_size
-    resize!(frontface, window_size[3:4])
-    resize!(backface, window_size[3:4])
+  frontface = Texture(Vec4, [screen.area.value.w, screen.area.value.h])
+  backface  = Texture(Vec4, [screen.area.value.w, screen.area.value.h])
+  lift(screen.area) do window_size
+    resize!(frontface, [window_size.w, window_size.h])
+    resize!(backface, [window_size.w, window_size.h])
   end
   
   rendersetup = () -> begin
       glBindFramebuffer(GL_FRAMEBUFFER, fb)
+
+      glViewport(0,0,screen.area.value.w, screen.area.value.h)
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, backface.id, 0)
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
