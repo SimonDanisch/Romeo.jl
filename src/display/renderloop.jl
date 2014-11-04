@@ -1,6 +1,4 @@
-const SCREEN_STACK      = Screen[]
 
-const RENDER_LIST       = Any[]
 const SELECTION         = Dict{Symbol, Input{Matrix{Vector2{Int}}}}()
 const SELECTION_QUERIES = Dict{Symbol, Rectangle{Int}}()
 
@@ -29,12 +27,7 @@ windowhints = [
   (GLFW.AUX_BUFFERS, 0)
 ]
 
-const window = createwindow("Romeo", 1000, 800, windowhints=windowhints)
-push!(SCREEN_STACK, window)
-global pcamera  = PerspectiveCamera(window.inputs, Vec3(2), Vec3(0))
-global ocamera  = OrthographicCamera(window.inputs)
-global pocamera = OrthographicPixelCamera(window.inputs)
-
+const ROOT_SCREEN = createwindow("Romeo", 1000, 800, windowhints=windowhints)
 
 
 parameters = [
@@ -48,7 +41,7 @@ parameters = [
 global const RENDER_FRAMEBUFFER = glGenFramebuffers()
 glBindFramebuffer(GL_FRAMEBUFFER, RENDER_FRAMEBUFFER)
 
-framebuffsize = [window.inputs[:framebuffer_size].value]
+framebuffsize = [ROOT_SCREEN.inputs[:framebuffer_size].value]
 
 color   = Texture(RGBA{Ufixed8},     framebuffsize, parameters=parameters)
 stencil = Texture(Vector2{GLushort}, framebuffsize, parameters=parameters)
@@ -63,24 +56,22 @@ glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil[1])
 glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, framebuffsize...)
 glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepthStencil[1])
 
-lift(window.inputs[:framebuffer_size]) do window_size
-  resize!(color, window_size)
-  resize!(stencil, window_size)
+lift(ROOT_SCREEN.inputs[:framebuffer_size]) do ROOT_SCREEN_size
+  resize!(color, ROOT_SCREEN_size)
+  resize!(stencil, ROOT_SCREEN_size)
   glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil[1])
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, (window_size)...)
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, (ROOT_SCREEN_size)...)
 end
 
 
-function renderloop(window)
-  global RENDER_LIST
+function renderloop(ROOT_SCREEN)
+  global ROOT_SCREEN
   yield() 
   glBindFramebuffer(GL_FRAMEBUFFER, RENDER_FRAMEBUFFER)
   glDrawBuffers(2, [GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1])
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-  for elem in RENDER_LIST
-     render(elem)
-  end
+  render(ROOT_SCREEN)
 
   #Read all the selection queries
   if !isempty(SELECTION_QUERIES)
@@ -97,9 +88,9 @@ function renderloop(window)
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
   glClear(GL_COLOR_BUFFER_BIT)
 
-  window_size = window.inputs[:framebuffer_size].value
-  glBlitFramebuffer(0,0, window_size..., 0,0, window_size..., GL_COLOR_BUFFER_BIT, GL_LINEAR)
-  GLFW.SwapBuffers(window.nativewindow)
+  ROOT_SCREEN_size = ROOT_SCREEN.inputs[:framebuffer_size].value
+  glBlitFramebuffer(0,0, ROOT_SCREEN_size..., 0,0, ROOT_SCREEN_size..., GL_COLOR_BUFFER_BIT, GL_LINEAR)
+  GLFW.SwapBuffers(ROOT_SCREEN.nativewindow)
   GLFW.PollEvents()
 end
 
@@ -108,8 +99,8 @@ glClearColor(39.0/255.0, 40.0/255.0, 34.0/255.0, 1.0)
 
 if isinteractive()
 @async begin 
-  while window.inputs[:open].value
-    renderloop(window)
+  while ROOT_SCREEN.inputs[:open].value
+    renderloop(ROOT_SCREEN)
   end 
   GLFW.Terminate()
 end

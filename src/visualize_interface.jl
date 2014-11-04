@@ -9,8 +9,8 @@ TEXT_DEFAULTS = @compat Dict(
   :model            => eye(Mat4),
   :newline          => -Vec3(0, getfont().props[1][2], 0),
   :advance          => Vec3(getfont().props[1][1], 0, 0),
-  :screen           => first(SCREEN_STACK),
-  :camera           => pocamera,
+  :screen           => ROOT_SCREEN,
+  :camera           => ROOT_SCREEN.orthographiccam,
   :font             => getfont()
 ))
 
@@ -36,8 +36,8 @@ SURFACE_DEFAULTS = @compat Dict(
                                       # A 2D Array can have higher or lower resolution, and will be automatically mapped on the data points.
     :light_position => Vec3(20, 20, -20), 
 
-    :camera         => pcamera,
-    :screen         => first(SCREEN_STACK),
+    :camera         => ROOT_SCREEN.perspectivecam,
+    :screen         => ROOT_SCREEN,
     :model          => eye(Mat4),
     :interpolate    => false,
     :normal_vector  => 0f0 # meaning, that normal vector needs to be calculated on the gpu
@@ -61,25 +61,25 @@ IMAGE_DEFAULTS = @compat(Dict(
     :normrange      => Vec2(0,1),   # stretch the value 0-1 to normrange: normrange.x + (color * (normrange.y - normrange.x))
     :kernel         => 1f0,         # kernel can be a matrix or a float, whereas the float gets interpreted as a multiplicator
     :model          => eye(Mat4),
-    :screen         => first(SCREEN_STACK),
+    :screen         => ROOT_SCREEN,
     :modelmatrix    => eye(Mat4),
-    :camera         => pocamera
+    :camera         => ROOT_SCREEN.orthographiccam
 )),
 :GaussFiltered => @compat(Dict(
     :normrange      => Vec2(0,1),   # stretch the value 0-1 to normrange: normrange.x + (color * (normrange.y - normrange.x))
     :kernel         => Float32[1 2 1; 2 4 2; 1 2 1] / 16f0,         # kernel can be a matrix or a float, whereas the float gets interpreted as a multiplicator
     :model          => eye(Mat4),
-    :screen         => first(SCREEN_STACK),
+    :screen         => ROOT_SCREEN,
     :modelmatrix    => eye(Mat4),
-    :camera         => pocamera
+    :camera         => ROOT_SCREEN.orthographiccam
 )),
 :LaPlace => @compat(Dict(
     :normrange      => Vec2(0,1),   # stretch the value 0-1 to normrange: normrange.x + (color * (normrange.y - normrange.x))
     :kernel         => Float32[-1 -1 -1; -1 9 -1; -1 -1 -1],         # kernel can be a matrix or a float, whereas the float gets interpreted as a multiplicator
     :model          => eye(Mat4),
-    :screen         => first(SCREEN_STACK),
+    :screen         => ROOT_SCREEN,
     :modelmatrix    => eye(Mat4),
-    :camera         => pocamera
+    :camera         => ROOT_SCREEN.orthographiccam
 ))))
 begin 
 local PixelType = Union(ColorValue, AbstractAlphaColorValue)
@@ -99,8 +99,8 @@ VOLUME_DEFAULTS = @compat(Dict(
   :algorithm      => 1f0, 
   :color          => Vec3(0,0,1), 
   :light_position => Vec3(2, 2, -2),
-  :camera         => pcamera,
-  :screen         => first(SCREEN_STACK)
+  :camera         => ROOT_SCREEN.perspectivecam,
+  :screen         => ROOT_SCREEN
 ))
 ))
 begin 
