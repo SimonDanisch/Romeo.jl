@@ -1,11 +1,35 @@
-TEXT_EDIT_DEFAULTS = @compat Dict{Symbol, Any}(
-:Default => @compat Dict{Symbol, Any}(
-))
 
-edit(text::Texture{GLGlyph{Uint16}, 4, 2}, obj, style=Style(:Default); customization...) = edit(style, text, obj, mergedefault!(style, TEXT_EDIT_DEFAULTS, customization))
+edit(text::Texture{GLGlyph{Uint16}, 4, 2}, obj::RenderObject, style=Style(:Default); customization...) = edit(style, text, obj, mergedefault!(style, TEXT_EDIT_DEFAULTS, customization))
 
+function filtereselection(v0, selection, buttons)
+  if !isempty(buttons) && first(buttons) == 0  # if any button is pressed && its the left button
+    selection #return index
+  else
+    v0
+  end
+end
 
-function edit(v0, selection1, unicode_keys, special_keys)
+function haschanged(v0, selection)
+  (v0[2] != selection, selection)
+end
+
+function edit(style::Style{:Default}, textGPU::Texture{GLGlyph{Uint16}, 4, 2}, obj::RenderObject, custumization::Dict{Symbol, Any})
+  screen = custumization[:screen]
+  specialkeys = filteritems(screen.inputs[:buttonspressed], [GLFW.KEY_ENTER, GLFW.KEY_BACKSPACE], IntSet())
+
+  selectiondata = lift(first, SELECTION[:mouse_hover])
+  # Filter out the selected index,
+  changed = lift(first, foldl(haschanged, (true, selectiondata.value), selectiondata))
+
+  leftclick_selection = foldl(filtereselection, Vector2(-1), keepwhen(changed, Vector2(-1), selectiondata), screen.inputs[:mousebuttonspressed])
+
+  text      = vec(data(textGPU))
+  v00       = (obj, obj.alluniforms[:textlength], textGPU, text, leftclick_selection.value, leftclick_selection.value)
+
+  testinput = foldl(edit_text, v00, leftclick_selection, screen.inputs[:unicodeinput], specialkeys)
+end
+
+function edit_text(v0, selection1, unicode_keys, special_keys)
   # selection0 tracks, where the carsor is after a new character addition, selection10 tracks the old selection
   obj, textlength, textGPU, text0, selection0, selection10 = v0
   v1 = (obj, textlength, textGPU, text0, selection0, selection1)
@@ -32,60 +56,26 @@ function edit(v0, selection1, unicode_keys, special_keys)
     changed = true
     v1 = (obj, textlength, textGPU, text0, selection0 + Vector2(0,1), selection1)
   end
-
   if changed
-    line        = 1
-    advance     = 0
-    for i=1:length(text0)
-      if i <= textlength
-        glyph = text0[i].glyph
-        text0[i] = GLGlyph(glyph, line, advance, 0)
-        if glyph == '\n'
-          advance = 0
-          line += 1
-        else
-          advance += 1
-        end
-      else # Fill in default value
-        text0[i] = GLGlyph()
-      end
+    try 
+      update_glyphpositions!(textGPU)
+    catch ex
+      println(ex)
+      Base.error_show(STDERR, ex, catch_backtrace())
     end
-
+    #=
     if textlength > length(text0) || length(text0) % 1024 != 0
       newlength = 1024 - rem(length(text0)+1024, 1024)
       text0     = [text0, Array(GLGlyph{Uint16}, newlength)]
       resize!(textGPU, [1024, div(length(text0),1024)])
     end
     textGPU[1:0, 1:0] = reshape(text0, 1024, div(length(text0),1024))
+    =#
     obj[:postrender, renderinstanced] = (obj.vertexarray, textlength)
   end
-
   return v1
 end
 
-function edit(style::Style{:Default}, textGPU::Texture{GLGlyph{Uint16}, 4, 2}, obj, custumization::Dict{Symbol, Any})
-  specialkeys = filteritems(window.inputs[:buttonspressed], [GLFW.KEY_ENTER, GLFW.KEY_BACKSPACE], IntSet())
-  # Filter out the selected index, 
-  changed = lift(x->x[1], foldl((true, selectiondata.value), selectiondata) do v0, data
-    (v0[2] != data, data)
-  end)
-
-  leftclick_selection = foldl((Vector2(-1)), keepwhen(changed, Vector2(-1), selectiondata), window.inputs[:mousebuttonspressed]) do v0, data, buttons
-    if !isempty(buttons) && first(buttons) == 0  # if any button is pressed && its the left button
-      data #return index^^^
-    else
-      v0
-    end
-  end
-  text      = vec(data(textGPU))
-
-  v00       = (obj, obj.alluniforms[:textlength], textGPU, text, leftclick_selection.value, leftclick_selection.value)
-  testinput = foldl(edit_text, v00, leftclick_selection, window.inputs[:unicodeinput], specialkeys)
-
-  return lift(testinput) do tinput
-    Uint8[isascii(char(elem.glyph)) ? uint8(elem.glyph) : uint8(32) for elem in tinput[4][1:tinput[2]]]
-  end
-end
 
 
 
