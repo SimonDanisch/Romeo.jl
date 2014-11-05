@@ -74,8 +74,7 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
 
   for (key, value) in data
     if isa(value, Matrix)
-      customattributes[key] = Texture(value, parameters=parameters)
-
+      customattributes[key] = Texture(value)
       xn, yn = size(value)
     elseif isa(value, ASCIIString)
       customview[string(key)*"_calculation"] = value
@@ -97,7 +96,7 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
     view=customview, attributes=customattributes, fragdatalocation=fragdatalocation
   )
 
-  obj     = instancedobject(customattributes, program, xn*yn, primitive[:drawingmode])
+  obj     = instancedobject(customattributes, program, (xn-1)*(yn-1), primitive[:drawingmode])
   prerender!(obj, glEnable, GL_DEPTH_TEST, glDepthFunc, GL_LEQUAL, glDisable, GL_CULL_FACE, enabletransparency)
   obj
 end

@@ -114,9 +114,9 @@ COLOR_DEFAULTS = @compat(Dict(
   :screen                   => ROOT_SCREEN,
   :middle                   => Vec2(0.5),
 
-  :swatchsize               => 0.5f0,
+  :swatchsize               => 0.3f0,
   :border_color             => rgba(1, 1, 0.99, 1),
-  :border_size              => 0.01f0,
+  :border_size              => 0.05f0,
 
   :hover                    => Input(false),
   :hue_saturation           => Input(false),

@@ -4,7 +4,7 @@ local color_chooser_shader = TemplateProgram(
   fragdatalocation=[(0, "fragment_color"), (1, "fragment_groupid")]
 )
 
-local quad = genquad(Vec3(0, 0, 0), Vec3(50, 0, 0), Vec3(0, 50, 0))
+local quad = genquad(Vec3(0, 0, 0), Vec3(100, 0, 0), Vec3(0, 100, 0))
 
 #GLPlot.toopengl{T <: AbstractRGB}(colorinput::Input{T}) = toopengl(lift(x->AlphaColorValue(x, one(T)), RGBA{T}, colorinput))
 
@@ -24,7 +24,12 @@ function visualize{X <: AbstractAlphaColorValue}(style::Style, color::X, data)
 
   obj = RenderObject(rdata, color_chooser_shader)
 
-  prerender!(obj, glDisable, GL_CULL_FACE, glDisable, GL_DEPTH_TEST)#
+  obj[:postrender, render] = (obj.vertexarray,) # Render the vertexarray
+  obj[:prerender, glDisablei] = (GL_BLEND, 1) # Render the vertexarray
+  obj[:prerender, glEnablei] = (GL_BLEND, 0) # Render the vertexarray
+  obj[:prerender, glBlendFunc] = (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) # Render the vertexarray
+
+  prerender!(obj, glEnable, GL_DEPTH_TEST, glDepthFunc, GL_LESS, glDisable, GL_CULL_FACE, enabletransparency)#
   postrender!(obj, render, obj.vertexarray) # Render the vertexarray
 
   obj

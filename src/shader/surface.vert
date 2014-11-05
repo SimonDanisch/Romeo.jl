@@ -148,8 +148,9 @@ mat4 getmodelmatrix(vec3 xyz, vec3 scale)
 
 void main(){
     vec3 xyz, scale, normal, vert;
-    ivec2 ij    = ivec2(gl_InstanceID % int(griddimensions.x), gl_InstanceID / int(griddimensions.x)) + ivec2(offset);
-    vec2 uv     = vec2(ij) / griddimensions;
+    int index   = gl_InstanceID;
+    ivec2 ij    = ivec2((index / int(griddimensions.x-1)), (index % int(griddimensions.x-1))) + ivec2(offset);
+    vec2 uv     = vec2(ij) / (griddimensions);
 
     xyz.x       = fetch1stvalue(uv.x, x);
     xyz.y       = fetch1stvalue(uv.y, y);
@@ -163,7 +164,7 @@ void main(){
     normal      = getnormal(z, uv, normal_vector);
     N           = normalize(normalmatrix * normal);
 
-    vert_color  = {{color_calculation}}
+    vert_color  = vec4(0,1,0,1);
 
     V           = vec3(view * vec4(xyz, 1.0));
     vert        = {{vertex_calculation}}
