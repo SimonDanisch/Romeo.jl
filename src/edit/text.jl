@@ -61,7 +61,8 @@ function edit_text(v0, selection1, unicode_keys, special_keys)
       update_glyphpositions!(textGPU)
     catch ex
       println(ex)
-      Base.error_show(STDERR, ex, catch_backtrace())
+      Base.show_backtrace(STDERR, catch_backtrace())
+      rethrow(ex)
     end
     #=
     if textlength > length(text0) || length(text0) % 1024 != 0

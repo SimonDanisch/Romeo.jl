@@ -25,11 +25,10 @@ function update_groups!{T}(textGPU::Texture{GLGlyph{T}, 4, 2}, regexs::Dict{T, R
   end
 end
 
-function update_glyphpositions!{T}(text_array::Union(AbstractArray{GLGlyph{T}, 2}, Texture{GLGlyph{T}, 4, 2}), start=1, stop=length(text_array))
+function update_glyphpositions!{T}(text_array::AbstractArray{GLGlyph{T}, 2}, start=1, stop=length(text_array))
   line = text_array[start].line
   row  = text_array[start].row
-
-  for i=1:stop
+  for i=1:stop-1
     glyph = text_array[i].glyph
     setindex1D!(text_array, T[line, row], i, 2:3)
     if glyph == '\n'
@@ -40,7 +39,22 @@ function update_glyphpositions!{T}(text_array::Union(AbstractArray{GLGlyph{T}, 2
     end
   end
 end
-
+function update_glyphpositions!{T}(text_array::Texture{GLGlyph{T}, 4, 2}, start=1, stop=length(text_array))
+  textarray = data(text_array)
+  line = textarray[start].line
+  row  = textarray[start].row
+  for i=1:stop-1
+    glyph = textarray[i].glyph
+    setindex1D!(textarray, T[line, row], i, 2:3)
+    if glyph == '\n'
+      row = 0
+      line += 1
+    else
+      row += 1
+    end
+  end
+  text_array[1:end] = textarray
+end
 function makedisplayable(text::String)
   result = map(collect(text)) do x
     str = string(x)
