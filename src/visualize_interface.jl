@@ -29,16 +29,13 @@ SURFACE_DEFAULTS = @compat Dict(
     :primitive      => SURFACE(),     # can also be CUBES(), CIRCLES(), POINT()
     :x              => (-1,1),        # can also be a matrix
     :y              => (-1,1),        # can also be a matrix
-    :z              => 0f0,           # can also be a matrix
-    :color          => rgba(0,0,0,1), # can also be Array/Texture{RGB/RGBA, 1/2}, with "/" meaning OR. 
+    :color          => rgba(1,0,0,1), # can also be Array/Texture{RGB/RGBA, 1/2}, with "/" meaning OR. 
                                       # A 1D Array of color values is assumed to be a colormap.
                                       # A 2D Array can have higher or lower resolution, and will be automatically mapped on the data points.
     :light_position => Vec3(20, 20, -20), 
 
     :screen         => ROOT_SCREEN,
     :model          => eye(Mat4),
-    :interpolate    => false,
-    :normal_vector  => 0f0 # meaning, that normal vector needs to be calculated on the gpu
 ))
 
 begin 
@@ -114,9 +111,9 @@ COLOR_DEFAULTS = @compat(Dict(
   :screen                   => ROOT_SCREEN,
   :middle                   => Vec2(0.5),
 
-  :swatchsize               => 0.3f0,
+  :swatchsize               => 0.1f0,
   :border_color             => rgba(1, 1, 0.99, 1),
-  :border_size              => 0.05f0,
+  :border_size              => 0.02f0,
 
   :hover                    => Input(false),
   :hue_saturation           => Input(false),

@@ -15,7 +15,7 @@ function visualize{T, D}(style::Style, img::Texture{T, D, 2}, data::Dict{Symbol,
     filterkernel = Texture(kernel, parameters=texparams)
   end
 
-  data = [
+  data = @compat Dict(
     :vertex           => GLBuffer(v, 2),
     :index            => indexbuffer(indexes),
     :uv               => GLBuffer(uv, 2),
@@ -24,7 +24,7 @@ function visualize{T, D}(style::Style, img::Texture{T, D, 2}, data::Dict{Symbol,
     :filterkernel     => filterkernel,
     :projectionview   => data[:screen].orthographiccam.projectionview,
     :model            => data[:model]
-  ]
+  )
 
   fragdatalocation = [(0, "fragment_color"),(1, "fragment_groupid")]
   textureshader    = TemplateProgram(joinpath(shaderdir, "uv_vert.vert"), joinpath(shaderdir, "texture.frag"), attributes=data, fragdatalocation=fragdatalocation)

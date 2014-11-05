@@ -7,17 +7,18 @@ function insert_selectionquery!(name::Symbol, value::Rectangle)
   SELECTION[name]         = Input(Vector2{Int}[]')
   SELECTION[name]
 end
-function insert_selectionquery!(name::Symbol, value::Input{Rectangle})
+function insert_selectionquery!(name::Symbol, value::Signal{Rectangle{Int}})
   lift(value) do v
     SELECTION_QUERIES[name] = v
   end
-  SELECTION[name]         = Input(Vector2{Int}[]')
+  SELECTION[name]         = Input(Array(Vector2{Int}, value.value.w, value.value.h))
   SELECTION[name]
 end
 function delete_selectionquery!(name::Symbol)
   delete!(SELECTION_QUERIES, name)
   delete!(SELECTION, name)
 end
+
 
 windowhints = [
   (GLFW.SAMPLES, 0), 
@@ -28,7 +29,9 @@ windowhints = [
 ]
 
 const ROOT_SCREEN = createwindow("Romeo", 1000, 800, windowhints=windowhints)
-
+insert_selectionquery!(:mouse_hover, lift(ROOT_SCREEN.inputs[:mouseposition]) do mpos
+  Rectangle(int(mpos[1]), int(mpos[2]), 1,1)
+end)
 
 parameters = [
   (GL_TEXTURE_WRAP_S,  GL_CLAMP_TO_EDGE),

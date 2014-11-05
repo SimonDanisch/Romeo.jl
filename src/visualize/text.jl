@@ -21,9 +21,9 @@ function visualize(::Style{:Default}, text::Texture{GLGlyph{Uint16}, 4, 2}, data
   renderdata         = merge(data, data[:font].data) # merge font texture and uv informations -> details @ GLFont/src/types.jl
   renderdata[:model] = renderdata[:model] * translationmatrix(Vec3(20,screen.area.value.y,0))
 
-  view = [
+  view = @compat Dict(
     "GLSL_EXTENSIONS" => "#extension GL_ARB_draw_instanced : enable"
-  ] 
+  )
   renderdata[:text]           = text
   renderdata[:projectionview] = camera.projectionview
   shader = TemplateProgram(

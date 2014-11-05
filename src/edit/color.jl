@@ -4,7 +4,7 @@ function edit()
   color = colorinput.value
 
   # hover is true, if mouse 
-  hover = lift(selectiondata) do selection
+  hover = lift(SELECTION[:mouse_hover]) do selection
     selection[1][1] == obj.id
   end
 

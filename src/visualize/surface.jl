@@ -2,6 +2,7 @@ SURFACE(scale=1) = @compat Dict(
   :vertex         => Vec3(0),
   :offset         => GLBuffer(Float32[0,0, 0,1, 1,1, 1,0] * scale, 2),
   :index          => indexbuffer(GLuint[0,1,2,2,3,0]),
+  :normal_vector  => 0f0,
   :xscale         => 1f0,
   :yscale         => 1f0,
   :zscale         => 1f0,
@@ -9,15 +10,16 @@ SURFACE(scale=1) = @compat Dict(
   :drawingmode    => GL_TRIANGLES,
 )
 
-CIRCLE(r=0.4, x=0, y=0, points=6) = @compat Dict(
+CIRCLE(r=0.4f0, x=0f0, y=0f0, points=6) = @compat Dict(
   :vertex         => Vec3(0),
   :offset         => GLBuffer(gencircle(r, x, y, points) , 2),
   :index          => indexbuffer(GLuint[i for i=0:points + 1]),
+  :normal_vector  => 0f0,
   :xscale         => 1f0,
   :yscale         => 1f0,
   :zscale         => 1f0,
   :z              => 0f0,
-  :drawingmode    => GL_TRIANGLE_FAN
+  :drawingmode    => GL_TRIANGLE_FAN,
 )
 begin 
 local const cubedata = gencubenormals(Vec3(0), Vec3(1, 0, 0), Vec3(0,1, 0), Vec3(0,0,1))
@@ -51,7 +53,6 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
   screen           = data[:screen]
   camera           = data[:screen].perspectivecam
   primitive        = data[:primitive]
-
   customattributes = Dict{Symbol, Any}()
   customview       = @compat Dict(
     "GLSL_EXTENSIONS" => "#extension GL_ARB_draw_instanced : enable"
@@ -60,14 +61,8 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
   # transform values to OpenGL types, and create the correct keys for the shader view
   xn, yn = (0,0)
   # Depending on what the primitivie is, additional values have to be calculated
-  if !haskey(primitive, :xscale)
-    primitive[:xscale] = float32(1 / xn)
-  end
-  if !haskey(primitive, :yscale)
-    primitive[:yscale] = float32(1 / yn)
-  end
-  merge!(customattributes, primitive)
   
+  merge!(customattributes, primitive)
   customattributes[:projection]     = camera.projection
   customattributes[:view]           = camera.view
   customattributes[:normalmatrix]   = camera.normalmatrix
@@ -85,19 +80,21 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
       customattributes[key] = value #todo: check for unsupported types
     end
   end
-  
+  if !haskey(primitive, :xscale)
+    customattributes[:xscale] = float32(1 / xn)
+  end
+  if !haskey(primitive, :yscale)
+    customattributes[:yscale] = float32(1 / yn)
+  end
   customattributes[:griddimensions] = Vec2(xn,yn)
-  
-  
-
   fragdatalocation = [(0, "fragment_color"),(1, "fragment_groupid")]
   program = TemplateProgram(
     joinpath(shaderdir, "surface.vert"), joinpath(shaderdir, "phongblinn.frag"), 
     view=customview, attributes=customattributes, fragdatalocation=fragdatalocation
   )
 
-  obj     = instancedobject(customattributes, program, (xn-1)*(yn-1), primitive[:drawingmode])
-  prerender!(obj, glEnable, GL_DEPTH_TEST, glDepthFunc, GL_LEQUAL, glDisable, GL_CULL_FACE, enabletransparency)
+  obj = instancedobject(customattributes, program, (xn-1)*(yn-1), primitive[:drawingmode])
+  prerender!(obj, glEnable, GL_DEPTH_TEST, glDepthFunc, GL_LESS, glDisable, GL_CULL_FACE, enabletransparency)
   obj
 end
 

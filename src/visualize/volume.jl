@@ -54,12 +54,12 @@ end
 
 function genuvwcube(x, y, z, fb, camera, screen)
   v, uvw, indexes = gencube(x,y,z)
-  cubeobj = RenderObject([
+  cubeobj = RenderObject(@compat(Dict(
     :vertex         => GLBuffer(v, 3),
     :uvw            => GLBuffer(uvw, 3),
     :indexes        => indexbuffer(indexes),
     :projectionview => camera.projectionview
-  ], uvwshader)
+  )), uvwshader)
 
   frontface = Texture(Vec4, [screen.area.value.w, screen.area.value.h])
   backface  = Texture(Vec4, [screen.area.value.w, screen.area.value.h])
