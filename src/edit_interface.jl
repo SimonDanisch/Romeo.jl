@@ -11,10 +11,9 @@ edit(text::Texture{GLGlyph{Uint16}, 4, 2}, obj, style=Style(:Default); customiza
 
 MATRIX_EDITING_DEFAULTS = @compat(Dict(
 :Default => @compat(Dict(
-	:offset           => Vec2(1.0, 1.5), #Multiplicator for advance, newline
+	:offset          => Vec2(1.5, 1.5), #Multiplicator for advance, newline
 	:backgroundcolor => rgba(0.9, 0.9, 0.9, 1.0),
 	:color           => rgba(0,0,0,1),
-	:gap             => Vec3(10, 10, 0),
 	:maxdigits       => 5f0,
 	:maxlength       => 10f0, 
 	:model           => eye(Mat4),
