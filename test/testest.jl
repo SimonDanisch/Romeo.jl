@@ -1,7 +1,9 @@
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow
 
 
-obj = edit(Texture(Float32[1 2 3 4; 5 6 7 8; 9 10 11 12], keepinram=true))
+obj = visualize(readall(open("testest.jl")), screen=Romeo.ROOT_SCREEN, model=eye(Mat4)*translationmatrix(0f0,800f0,0f0))
+edit(obj[:text], obj)
+
 push!(Romeo.ROOT_SCREEN.renderlist, obj)
 
 while Romeo.ROOT_SCREEN.inputs[:open].value
