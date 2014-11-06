@@ -14,6 +14,8 @@ function haschanged(v0, selection)
 end
 
 function edit(style::Style{:Default}, textGPU::Texture{GLGlyph{Uint16}, 4, 2}, obj::RenderObject, custumization::Dict{Symbol, Any})
+    try 
+
   screen = custumization[:screen]
   specialkeys = filteritems(screen.inputs[:buttonspressed], [GLFW.KEY_ENTER, GLFW.KEY_BACKSPACE], IntSet())
 
@@ -27,6 +29,11 @@ function edit(style::Style{:Default}, textGPU::Texture{GLGlyph{Uint16}, 4, 2}, o
   v00       = (obj, obj.alluniforms[:textlength], textGPU, text, leftclick_selection.value, leftclick_selection.value)
 
   testinput = foldl(edit_text, v00, leftclick_selection, screen.inputs[:unicodeinput], specialkeys)
+   catch ex
+      println(ex)
+      Base.show_backtrace(STDERR, catch_backtrace())
+      rethrow(ex)
+    end
 end
 
 function edit_text(v0, selection1, unicode_keys, special_keys)
@@ -57,27 +64,19 @@ function edit_text(v0, selection1, unicode_keys, special_keys)
     v1 = (obj, textlength, textGPU, text0, selection0 + Vector2(0,1), selection1)
   end
   if changed
-    try 
       update_glyphpositions!(textGPU)
-    catch ex
-      println(ex)
-      Base.show_backtrace(STDERR, catch_backtrace())
-      rethrow(ex)
-    end
-    #=
+    
     if textlength > length(text0) || length(text0) % 1024 != 0
       newlength = 1024 - rem(length(text0)+1024, 1024)
       text0     = [text0, Array(GLGlyph{Uint16}, newlength)]
       resize!(textGPU, [1024, div(length(text0),1024)])
     end
     textGPU[1:0, 1:0] = reshape(text0, 1024, div(length(text0),1024))
-    =#
     obj[:postrender, renderinstanced] = (obj.vertexarray, textlength)
+   
   end
   return v1
 end
-
-
 
 
 # Filters a signal. If any of the items is in the signal, the signal is returned.

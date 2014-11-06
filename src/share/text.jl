@@ -28,7 +28,7 @@ end
 function update_glyphpositions!{T}(text_array::AbstractArray{GLGlyph{T}, 2}, start=1, stop=length(text_array))
   line = text_array[start].line
   row  = text_array[start].row
-  for i=1:stop-1
+  for i=1:stop
     glyph = text_array[i].glyph
     setindex1D!(text_array, T[line, row], i, 2:3)
     if glyph == '\n'
@@ -53,7 +53,7 @@ function update_glyphpositions!{T}(text_array::Texture{GLGlyph{T}, 4, 2}, start=
       row += 1
     end
   end
-  text_array[1:end] = textarray
+  text_array[1:end, 1:end] = textarray
 end
 function makedisplayable(text::String)
   result = map(collect(text)) do x

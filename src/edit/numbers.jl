@@ -1,0 +1,95 @@
+
+function edit{T <: Union(AbstractFixedVector, Real)}(style::Style{:Default}, numbertex::Texture{T, 1, 2}, customization::Dict{Symbol,Any})
+
+  backgroundcolor = customization[:backgroundcolor] 
+  screen          = customization[:screen] 
+  camera          = screen.orthographiccam
+  color           = customization[:color] 
+  gap             = customization[:gap] 
+  maxdigits       = customization[:maxdigits] 
+  maxlength       = customization[:maxlength] 
+  model           = customization[:model] 
+  font            = customization[:font] 
+
+  numbers         = data(numbertex) # get data from texture/video memory
+  text            = Array(GLGlyph{Uint16}, int(size(numbers,1)*maxdigits), size(numbers, 2))
+
+  fill!(text, GLGlyph()) # Fill text array with blanks, as we don't need all of them
+
+  # handle real values 
+  Base.stride(x::Real, i)       = 1
+  # remove f0 
+  makestring(x::Integer)        = string(int(x))
+  makestring(x::FloatingPoint)  = string(float64(x))
+  makestring{T}(x::Vector1{T})  = string(float64(x[1]))
+  makestring{T}(x::Vector1{T}, maxlen) = makestring(float64(x[1]), maxlen)
+
+  makestring(x::Integer, maxlen) = begin
+    tmp = string(int(x))
+    len = length(tmp)
+    if len > maxlen
+        tmp = tmp[1:maxlen]
+    elseif len < maxlen
+      tmp = rpad(tmp, maxlen, " ")
+    end
+    tmp
+  end
+  makestring(x::FloatingPoint, maxlen) = begin
+    tmp = string(float64(x))
+    len = length(tmp)
+    if len > maxlen
+        tmp = tmp[1:maxlen]
+    elseif len < maxlen
+      tmp = rpad(tmp, maxlen, "0")
+    end
+    tmp
+  end
+  textgpu     = Texture(text)
+  customization[:style_group] = Texture([color])
+  customization[:textlength]  = length(textgpu)
+  obj         = visualize(style, textgpu, customization)
+
+  startposition   = Uint16[0,0]
+  positionrunner  = startposition
+
+  maxlength = 5
+  for i=1:size(numbers,1)
+    for j=1:size(numbers, 2)
+      number = numbers[i,j]
+      i3 = ((i-1)*maxlength) + 1
+      textgpu[i3:i3+maxlength, j:j]   = GLGlyph{Uint16}[GLGlyph(c, (positionrunner + ((k-1)))..., 0) for (k,c) in enumerate(makestring(number, maxlength))]
+      positionrunner += [0,1] 
+    end
+    positionrunner = startposition + i*(maxlength + ([1,0]))
+  end
+  selectiondata = lift(first, SELECTION[:mouse_hover])
+  # We allocated more space on the gpu then needed (length(numbers)*maxdigits)
+  # So we need to update the render method, to render only length(numbers) * maxlength
+  obj[:postrender, renderinstanced] = (obj.vertexarray, length(textgpu))
+  # We allocated more space on the gpu then needed (length(numbers)*maxdigits)
+  # So we need to update the render method, to render only length(numbers) * maxlength
+  # ([numbers], zero(eltype(numbers)), -1, -1, -1, Vector2(0.0))
+  foldl(([numbers], zero(eltype(numbers)), -1, -1, -1, Vector2(0.0)), screen.inputs[:mouseposition], screen.inputs[:mousebuttonspressed], selectiondata) do v0, mposition, mbuttons, selection
+    numbers0, value0, inumbers0, igpu0, mbutton0, mposition0 = v0
+
+    # if over a number           && nothing selected &&         only           left mousebutton clicked
+    if selection[1][1] == obj.id && inumbers0 == -1 && length(mbuttons) == 1 && in(0, mbuttons)
+      iorigin   = selection[1][2]
+      inumbers  = div(iorigin, maxlength) + 1
+      igpu      = int((iorigin - (iorigin%maxlength)) + 1)
+      return (numbers0, numbers0[inumbers], inumbers, igpu, 0, mposition)
+    end
+    # if a number is selected && previous click was left && still only left button ist clicked
+    if inumbers0 > 0 && mbutton0 == 0 && length(mbuttons) == 1 && in(0, mbuttons) 
+      xdiff                    = mposition[1] - mposition0[1]
+      numbers0[inumbers0]      = value0 + (float32(xdiff)/ 50.0f0)
+      numbertex[inumbers0]     = Vec1(numbers0[inumbers0][1])
+      textgpu[igpu0:maxlength] = GLGlyph{Uint8}[GLGlyph(uint8(c)) for c in makestring(numbers0[inumbers0], maxlength)]
+
+      return (numbers0, value0, inumbers0, igpu0, 0, mposition0)
+    end
+    return (numbers0, zero(eltype(numbers0)), -1, -1, -1, Vector2(0.0))
+  end
+
+  obj
+end

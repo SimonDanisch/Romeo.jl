@@ -1,11 +1,11 @@
-immutable LOL
-    x::Float32
-    y::Float32
-    z::Float32
+using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow
+
+
+obj = edit(Texture(rand(Float32, 4,4), keepinram=true))
+push!(Romeo.ROOT_SCREEN.renderlist, obj)
+
+while Romeo.ROOT_SCREEN.inputs[:open].value
+    Romeo.renderloop(Romeo.ROOT_SCREEN)
+end 
+GLFW.Terminate()
 end
-
-Base.start(x::LOL) = 1
-Base.next(x::LOL, state::Integer) = (getfield(x, state), state+1)
-Base.done(x::LOL, state) = state > length(names(LOL))
-
-println(LOL(1,2,3)...)
