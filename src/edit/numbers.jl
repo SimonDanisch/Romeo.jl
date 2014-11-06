@@ -56,7 +56,7 @@ function edit{T <: Union(AbstractFixedVector, Real)}(style::Style{:Default}, num
     for j=1:size(numbers, 2)
       number = numbers[i,j]
       i3 = ((i-1)*maxlength) + 1
-      textgpu[i3:i3+maxlength, j:j] = GLGlyph{Uint16}[GLGlyph(c, positionrunner[1], positionrunner[2]+k-1, 0) for (k,c) in enumerate(makestring(number, maxlength))]
+      textgpu[i3:i3+maxlength-1, j:j] = GLGlyph{Uint16}[GLGlyph(c, positionrunner[1], positionrunner[2]+k-1, 0) for (k,c) in enumerate(makestring(number, maxlength))]
       positionrunner += [0, maxlength+1]
     end
     positionrunner = startposition + [i,0]
@@ -74,7 +74,7 @@ function edit{T <: Union(AbstractFixedVector, Real)}(style::Style{:Default}, num
     if selection[1] == obj.id && inumbers0 == -1 && length(mbuttons) == 1 && in(0, mbuttons)
       iorigin   = selection[2]
       inumbers  = div(iorigin, maxlength) + 1
-      igpu      = int((iorigin - (iorigin%maxlength)) + 1)
+      igpu      = int((iorigin - (iorigin%maxlength)) + 1) # get the first index of the number
       return (numbers0, numbers0[inumbers], inumbers, igpu, 0, mposition)
     end
     # if a number is selected && previous click was left && still only left button ist clicked
@@ -82,8 +82,10 @@ function edit{T <: Union(AbstractFixedVector, Real)}(style::Style{:Default}, num
       xdiff                    = mposition[1] - mposition0[1]
       numbers0[inumbers0]      = value0 + (float32(xdiff)/ 50.0f0)
       numbertex[inumbers0]     = numbers0[inumbers0]
+      a = mod(inumbers0-1, size(numbers0, 1))
+      b = div(inumbers0-1, size(numbers0, 1))
       for (k,c) in enumerate(makestring(numbers0[inumbers0], maxlength))
-        setindex1D!(textgpu, uint16(c), igpu0+k-1,1)
+        textgpu[igpu0+k-1] = GLGlyph(c, a, (b-1)+b*maxlength+k, 0)
       end
       return (numbers0, value0, inumbers0, igpu0, 0, mposition0)
     end

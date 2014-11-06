@@ -4,7 +4,7 @@ local color_chooser_shader = TemplateProgram(
   fragdatalocation=[(0, "fragment_color"), (1, "fragment_groupid")]
 )
 
-local quad = genquad(Vec3(0, 0, 0), Vec3(100, 0, 0), Vec3(0, 100, 0))
+local quad = genquad(Vec3(0, 0, 0), Vec3(200, 0, 0), Vec3(0, 200, 0))
 
 #GLPlot.toopengl{T <: AbstractRGB}(colorinput::Input{T}) = toopengl(lift(x->AlphaColorValue(x, one(T)), RGBA{T}, colorinput))
 

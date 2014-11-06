@@ -149,8 +149,8 @@ mat4 getmodelmatrix(vec3 xyz, vec3 scale)
 void main(){
     vec3 xyz, scale, normal, vert;
     int index   = gl_InstanceID;
-    ivec2 ij    = ivec2((index / int(griddimensions.x-1)), (index % int(griddimensions.x-1)));
-    vec2 uv     = (vec2(ij)+offset) / (griddimensions);
+    ivec2 ij    = ivec2(index / 10, index % 10);
+    vec2 uv     = (vec2(ij)+offset) / vec2(10,10);
 
     xyz.x       = fetch1stvalue(uv.x, x);
     xyz.y       = fetch1stvalue(uv.y, y);
@@ -158,7 +158,7 @@ void main(){
 
     scale.x     = fetch1stvalue(uv, xscale);
     scale.y     = fetch1stvalue(uv, yscale);
-    scale.z     = fetch1stvalue(uv, zscale);
+    scale.z     = fetch1stvalue(ij, zscale);
     
 
     normal      = getnormal(z, uv, normal_vector);
