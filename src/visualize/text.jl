@@ -9,7 +9,7 @@ function visualize(style::Style{:Default}, text::String, data::Dict{Symbol, Any}
   data[:style_group]  = Texture([data[:color]])
   data[:textlength]   = length(text) # needs to get remembered, as glypharray is usually bigger than the text
   data[:lines]        = count(x->x=='\n', text) 
-  textGPU             = Texture(glypharray, keepinram=true)
+  textGPU             = Texture(glypharray)
   # To make things simple for now, checks if the texture is too big for the GPU are done by 'Texture' and an error gets thrown there.
   return visualize(style, textGPU, data)
 end

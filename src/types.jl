@@ -33,6 +33,10 @@ Base.eltype{T}(::GLGlyph{T})                   = T
 Base.eltype{T}(::Type{GLGlyph{T}})             = T
 Base.size{T}(::GLGlyph{T})                     = (4,)
 
+Base.start{T}(::GLGlyph{T})                    = 1
+Base.next{T}(x::GLGlyph{T}, state::Integer)    = (getfield(x, state), state+1)
+Base.done{T}(x::GLGlyph{T}, state::Integer)    = state > 4
+
 import Base: (+)
 
 function (+){T}(a::Array{GLGlyph{T}, 1}, b::GLGlyph{T})

@@ -1,3 +1,6 @@
+Base.utf16(glypharray::Array{GLGlyph{Uint16}}) = utf16(Uint16[c.glyph for c in glypharray])
+Base.utf8(glypharray::Array{GLGlyph{Uint16}})  = utf8(Uint8[uint8(c.glyph) for c in glypharray])
+
 function escape_regex(x::String)
   result = ""
   for elem in x
@@ -25,17 +28,17 @@ function update_groups!{T}(textGPU::Texture{GLGlyph{T}, 4, 2}, regexs::Dict{T, R
   end
 end
 
-function update_glyphpositions!{T}(text_array::AbstractArray{GLGlyph{T}, 2}, start=1, stop=length(text_array))
+function update_glyphpositions!{T}(text_array::AbstractArray{GLGlyph{T}}, start=1, stop=length(text_array))
   line = text_array[start].line
   row  = text_array[start].row
   for i=1:stop
     glyph = text_array[i].glyph
     setindex1D!(text_array, T[line, row], i, 2:3)
     if glyph == '\n'
-      row = 0
-      line += 1
+      row = zero(T)
+      line += one(T)
     else
-      row += 1
+      row += one(T)
     end
   end
 end
@@ -71,7 +74,7 @@ function toglypharray(text::String, tab=3)
   #@assert is_valid_utf16(text) # future support for utf16
   text = makedisplayable(text)
   #Allocate some more memory, to reduce growing the texture residing on VRAM
-  texturesize = (div(length(text),     1024) + 1) # a texture size of 1024 should be supported on every GPU
+  texturesize = div(length(text),     1024)+1 # a texture size of 1024 should be supported on every GPU
   text_array  = Array(GLGlyph{Uint16}, 1024, texturesize)
   setindex1D!(text_array, 1, 1, 2) # set first line
   setindex1D!(text_array, 0, 1, 3) # set first row
