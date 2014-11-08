@@ -41,15 +41,13 @@ objy, inpy = edit(Input(0.01f0), model=trans4, screen=screen2)
 objxr, inpxrange = edit(Input(Vec2(-1,1)), model=trans5, screen=screen2)
 objyr, inpyrange = edit(Input(Vec2(-1,1)), model=trans6, screen=screen2)
 
-#lift(println,inpxrange )
 
-
-obj1 = visualize(readall(open("../src/visualize_interface.jl")), screen=screen1, model=trans1)
+obj1 = visualize("haaaaaaaallooo lol \n", screen=screen1, model=trans1)
 obj2 = visualize(rgba(1.0, 0.2, 0.1,1.0), screen=screen2, model=trans1)
 obj3 = visualize(Float32[ 0f0  for i=0:10, j=0:10], :zscale, color = obj2[:color], xscale=inpx, yscale=inpy, x=inpxrange, y=inpyrange, primitive=CUBE(), screen=screen3)
 obj4,_ = edit(obj3[:zscale], screen=screen2, model=trans2)
 
-edit(obj1[:text], obj1)
+text = edit(obj1[:text], obj1)
 
 push!(screen1.renderlist, obj1)
 push!(screen2.renderlist, obj2)

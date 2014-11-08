@@ -1,5 +1,4 @@
 
-edit(text::Texture{GLGlyph{Uint16}, 4, 2}, obj::RenderObject, style=Style(:Default); customization...) = edit(style, text, obj, mergedefault!(style, TEXT_EDIT_DEFAULTS, customization))
 
 function filtereselection(v0, selection, buttons)
   if !isempty(buttons) && first(buttons) == 0  # if any button is pressed && its the left button
@@ -12,7 +11,10 @@ end
 function haschanged(v0, selection)
   (v0[2] != selection, selection)
 end
-
+function edit(style::Style{:Default}, text::String, custumization::Dict{Symbol, Any})
+  obj = visualize(text, style; custumization...)
+  edit(obj[:text], obj)
+end
 function edit(style::Style{:Default}, textGPU::Texture{GLGlyph{Uint16}, 4, 2}, obj::RenderObject, custumization::Dict{Symbol, Any})
   screen = custumization[:screen]
   specialkeys = filteritems(screen.inputs[:buttonspressed], [GLFW.KEY_LEFT_CONTROL, GLFW.KEY_V, GLFW.KEY_ENTER, GLFW.KEY_BACKSPACE], IntSet())
@@ -24,8 +26,15 @@ function edit(style::Style{:Default}, textGPU::Texture{GLGlyph{Uint16}, 4, 2}, o
   leftclick_selection = foldl(filtereselection, Vector2(-1), keepwhen(changed, Vector2(-1), selectiondata), screen.inputs[:mousebuttonspressed])
 
   glypharray = vec(data(textGPU))
-  v00        = (obj, obj.alluniforms[:textlength], textGPU, glypharray, leftclick_selection.value, leftclick_selection.value)
-  testinput = foldl(edit_text, v00, leftclick_selection, screen.inputs[:unicodeinput], specialkeys)
+  changed    = false
+  v00        = (obj, obj.alluniforms[:textlength], textGPU, glypharray, leftclick_selection.value, leftclick_selection.value, changed)
+  output     = foldl(edit_text, v00, leftclick_selection, screen.inputs[:unicodeinput], specialkeys)
+  textsignal = lift(filter(v00, output) do x
+    x[end] # <-has changed
+  end) do x
+    utf16(x[4][1:x[2]]) #x[4] <- glypharray, x[2] <- textlength
+  end
+  return (obj, textsignal)
 end
 function pressed{T<:Integer}(keys::Vector{T}, keyset)
     length(keyset) == length(keys) && all(keys) do x
@@ -34,10 +43,10 @@ function pressed{T<:Integer}(keys::Vector{T}, keyset)
 end
 function edit_text(v0, selection1, unicode_keys, special_keys)
     # selection0 tracks, where the carsor is after a new character addition, selection10 tracks the old selection
-    obj, textlength, textGPU, glypharray, selection0, selection10 = v0
+    obj, textlength, textGPU, glypharray, selection0, selection10, changed = v0
     # to compare it to the newly selected mouse position
     if selection10 != selection1
-        return (obj, textlength, textGPU, glypharray, selection1, selection1)
+        return (obj, textlength, textGPU, glypharray, selection1, selection1, false)
     elseif selection0[1]==obj.id && selection0[2] != -1 && (!isempty(special_keys) || !isempty(unicode_keys))# something will get edited
         inserted_text = []
         itl = 0
@@ -74,9 +83,9 @@ function edit_text(v0, selection1, unicode_keys, special_keys)
             end
             obj[:postrender, renderinstanced] = (obj.vertexarray, textlength)
         end
-        return (obj, textlength, textGPU, glypharray, selection0, selection1)
+        return (obj, textlength, textGPU, glypharray, selection0, selection1, true)
     end
-    return (obj, textlength, textGPU, glypharray, selection0, selection1)
+    return (obj, textlength, textGPU, glypharray, selection0, selection1, false)
 end
 
 

@@ -33,3 +33,7 @@ function visualize(::Style{:Default}, text::Texture{GLGlyph{Uint16}, 4, 2}, data
   prerender!(obj, enabletransparency, glDisable, GL_DEPTH_TEST, glDisable, GL_CULL_FACE,)
   return obj
 end
+
+function textboundingbox(obj::RenderObject)
+
+end
