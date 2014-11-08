@@ -62,7 +62,9 @@ function makedisplayable(text::String)
   result = map(collect(text)) do x
     str = string(x)
     if !is_valid_utf8(str)
-      return utf8([char(1)]) # replace with something that yields a missing symbol
+      return utf8([one(Uint8)]) # replace with something that yields a missing symbol
+    elseif str == "\r"
+      return "\n"
     else
       return str == "\t" ? utf8(" "^tab) : utf8(str) # also replace tabs
     end

@@ -1,8 +1,7 @@
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow
 
 
-obj = visualize(readall(open("testest.jl")), screen=Romeo.ROOT_SCREEN, model=eye(Mat4)*translationmatrix(Vec3(0f0,800f0,0f0)))
-edit(obj[:text], obj)
+obj, inp = edit(Input(Vec4(0)))
 
 push!(Romeo.ROOT_SCREEN.renderlist, obj)
 

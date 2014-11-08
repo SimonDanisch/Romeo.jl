@@ -54,7 +54,7 @@ function edit_text(v0, selection1, unicode_keys, special_keys)
                 glypharray = [glypharray[1:selection0[2]], pasted, glypharray[selection0[2]:end]]
                 itl = length(p)
             end
-        elseif !isempty(unicode_keys) && selection0[1] == obj.id && (isempty(special_keys) || IntSet(MOD_SHIFT)==special_keys)# else unicode input must have occured
+        elseif !isempty(unicode_keys) && selection0[1] == obj.id && (isempty(special_keys) || IntSet(GLFW.MOD_SHIFT)==special_keys)# else unicode input must have occured
             insert!(glypharray, selection0[2], GLGlyph(first(unicode_keys), 0,0,0))
             itl = 1
         end
@@ -70,7 +70,7 @@ function edit_text(v0, selection1, unicode_keys, special_keys)
             if remaining < 1
                 textGPU[1:textlength, 1:1] = reshape(glypharray[1:textlength], textlength)
             else
-                textGPU[1:end, 1:remaining] = reshape(glypharray[1:textlength], 1024, remaining)
+                textGPU[1:end, 1:remaining] = reshape(glypharray[1:1024*remaining], 1024, remaining)
             end
             obj[:postrender, renderinstanced] = (obj.vertexarray, textlength)
         end

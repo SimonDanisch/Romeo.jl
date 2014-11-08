@@ -61,7 +61,12 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
   # transform values to OpenGL types, and create the correct keys for the shader view
   xn, yn = (0,0)
   # Depending on what the primitivie is, additional values have to be calculated
-  
+  if !haskey(primitive, :xscale)
+    primitive[:xscale] = float32(1 / xn)
+  end
+  if !haskey(primitive, :yscale)
+    primitive[:yscale] = float32(1 / yn)
+  end
   merge!(customattributes, primitive)
   customattributes[:projection]     = camera.projection
   customattributes[:view]           = camera.view
@@ -80,12 +85,7 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
       customattributes[key] = value #todo: check for unsupported types
     end
   end
-  if !haskey(primitive, :xscale)
-    customattributes[:xscale] = float32(1 / xn)
-  end
-  if !haskey(primitive, :yscale)
-    customattributes[:yscale] = float32(1 / yn)
-  end
+  
   customattributes[:griddimensions] = Vec2(xn,yn)
   fragdatalocation = [(0, "fragment_color"),(1, "fragment_groupid")]
   program = TemplateProgram(

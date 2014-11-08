@@ -28,7 +28,7 @@ windowhints = [
   (GLFW.AUX_BUFFERS, 0)
 ]
 
-const ROOT_SCREEN = createwindow("Romeo", 1000, 800, windowhints=windowhints)
+const ROOT_SCREEN = createwindow("Romeo", 1920, 1280, windowhints=windowhints)
 insert_selectionquery!(:mouse_hover, lift(ROOT_SCREEN.inputs[:mouseposition]) do mpos
   Rectangle(int(mpos[1]), int(mpos[2]), 1,1)
 end)
@@ -59,11 +59,11 @@ glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil[1])
 glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, framebuffsize...)
 glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepthStencil[1])
 
-lift(ROOT_SCREEN.inputs[:framebuffer_size]) do ROOT_SCREEN_size
-  resize!(color, ROOT_SCREEN_size)
-  resize!(stencil, ROOT_SCREEN_size)
+lift(ROOT_SCREEN.inputs[:framebuffer_size]) do window_size
+  resize!(color, window_size)
+  resize!(stencil, window_size)
   glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil[1])
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, (ROOT_SCREEN_size)...)
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, (window_size)...)
 end
 
 
