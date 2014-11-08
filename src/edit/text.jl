@@ -64,7 +64,7 @@ function edit_text(v0, selection1, unicode_keys, special_keys)
             selection0   = Vector2(selection0[1], max(min(newselection, textlength), 0))
             update_glyphpositions!(glypharray)
             if textlength > length(textGPU)
-              resize(textGPU, [size(textGPU,1), size(textGPU,2)*2])
+              resize!(textGPU, [size(textGPU,1), size(textGPU,2)*2])
             end
             remaining = div(textlength, 1024)
             if remaining < 1
