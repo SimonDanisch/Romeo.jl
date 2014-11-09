@@ -59,14 +59,8 @@ function boundingbox(renderobject)
 end
 end
 
-test = rand(Float32, 50,60)
-obj2 = visualize(test)
 
-println(maximum(test))
-println(minimum(test))
 
-println(obj2[:x])
-println(obj2[:y])
 
 boundingbox(obj2)
 GLFW.Terminate()
