@@ -55,18 +55,6 @@ float fetch1stvalue(float position, vec2 range)
     float to    = range.y;
     return from + position * (to - from);
 }
-bool isinbounds(vec2 uv)
-{
-    return (uv.x <= 1.0 && uv.y <= 1.0 && uv.x >= 0.0 && uv.y >= 0.0);
-}
-
-
-vec2 getuv(vec2 texdim, int index, vec2 offset)
-{
-    float u = float((index % int(texdim.x)));
-    float v = float((index / int(texdim.x)));
-    return (vec2(u,v) + offset) / (texdim);
-}
 
 
 mat4 getmodelmatrix(vec3 xyz, vec3 scale)
@@ -91,7 +79,8 @@ void main(){
     scale.x     = fetch1stvalue(uv, xscale);
     scale.y     = fetch1stvalue(uv, yscale);
     scale.z     = fetch1stvalue(ij, zscale);
+
     vert        = {{vertex_calculation}}
-    V           = vec3(model * getmodelmatrix(xyz, scale) * vec4(vert.xyz, 1.0));
+    V           = vec3(33);
     gl_Position = vec4(0,0,0,1);
 }

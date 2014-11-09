@@ -1,4 +1,4 @@
-using GLWindow, ModernGL, GLAbstraction, Romeo, Color, Images
+using GLWindow, ModernGL, GLAbstraction, Romeo, Color, Images, ImmutableArrays
 function genrenderbuffer(format, dimensions, attachment)
     renderbuffer = GLuint[0]
     glGenRenderbuffers(1, renderbuffer)
@@ -12,8 +12,11 @@ local const BOUNDINGBOX_FRAMEBUFFER = glGenFramebuffers()
 glBindFramebuffer(GL_FRAMEBUFFER, BOUNDINGBOX_FRAMEBUFFER)
 framebuffsize = [1,1]
 
-maxbuffer = genrenderbuffer(GL_RGB32F, framebuffsize, GL_COLOR_ATTACHMENT0)
-minbuffer = genrenderbuffer(GL_RGB32F, framebuffsize, GL_COLOR_ATTACHMENT1)
+minbuffer = Texture(Vec4, framebuffsize)
+maxbuffer = Texture(Vec4, framebuffsize)
+glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, minbuffer.id, 0)
+glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, maxbuffer.id, 0)
+println(GLENUM(glCheckFramebufferStatus(GL_FRAMEBUFFER)).name)
 glBindFramebuffer(GL_FRAMEBUFFER, Romeo.RENDER_FRAMEBUFFER)
 
 
@@ -32,35 +35,32 @@ glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
 glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
 
 function boundingbox(renderobject)
-    glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
-    glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
-    glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
     glBindFramebuffer(GL_FRAMEBUFFER, BOUNDINGBOX_FRAMEBUFFER)
-    glDrawBuffers(2, [GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1])
     glViewport(0,0, framebuffsize...)
+    glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE)
+    glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE)
+    glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE)
+    glDrawBuffers(2, [GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1])
     glClear(GL_COLOR_BUFFER_BIT)
 
     glDisable(GL_DEPTH_TEST)
     glDisable(GL_CULL_FACE)
+    glDisable(GL_ALPHA_TEST)
     glEnable(GL_BLEND)
     glBlendFunc(GL_ONE, GL_ONE)
-    glBlendEquation(GL_MAX)
+    glBlendEquation(GL_MIN)
 
     program = renderobject.vertexarraybb.program
     glUseProgram(program.id)
     glBindVertexArray(renderobject.vertexarraybb.id)
     glDrawElements(GL_POINTS, renderobject.vertexarraybb.indexlength, GL_UNSIGNED_INT, GL_NONE)
 
-    glReadBuffer(GL_COLOR_ATTACHMENT0)
-    data = Array(Vec3, framebuffsize...)
-    glReadPixels(0,0,framebuffsize..., GL_RGB, GL_FLOAT, data)
-    println(data)
-    glReadBuffer(GL_COLOR_ATTACHMENT1)
-    glReadPixels(0,0,framebuffsize..., GL_RGB, GL_FLOAT, data)
-    println(data)
-
+    println(data(minbuffer))
+    println(-data(maxbuffer))
     glBindFramebuffer(GL_FRAMEBUFFER, Romeo.RENDER_FRAMEBUFFER)
-
+    glClampColor(GL_CLAMP_VERTEX_COLOR, GL_TRUE)
+    glClampColor(GL_CLAMP_READ_COLOR, GL_TRUE)
+    glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_TRUE)
 end
 end
 
@@ -70,13 +70,25 @@ homedir = Pkg.dir("Romeo", "src", "boundingbox")
 
 bbprogram = TemplateProgram(joinpath(homedir, "shader.vert"), joinpath(shaderdir,"boundingbox", "boundingbox.frag"),fragdatalocation=[(0, "minbuffer"),(1, "maxbuffer")])
 
-indexes = indexbuffer(GLuint[0,1,2])
-v = Float32[0.0,0.9,0.0,
-            2.0,-33,-0.29218,
-            0.66,-0.9, 0.34]
-
+indexes = indexbuffer(GLuint[i=0:49])
+v = Vec3[Vec3(rand(-100f0:100f0), rand(-100f0:100f0), rand(-100f0:100f0))for i=1:50]
+println(v)
+function Base.max{T, NDIM}(x::Array{Vector3{T},NDIM})
+    reduce(x) do v0, v1
+        Vector3(v0[1] > v1[1] ? v0[1] : v1[1],
+            v0[2] > v1[2] ? v0[2] : v1[2],
+            v0[3] > v1[3] ? v0[3] : v1[3])
+    end
+end
+function Base.min{T, NDIM}(x::Array{Vector3{T},NDIM})
+    reduce(x) do v0, v1
+        Vector3(v0[1] < v1[1] ? v0[1] : v1[1],
+            v0[2] < v1[2] ? v0[2] : v1[2],
+            v0[3] < v1[3] ? v0[3] : v1[3])
+    end
+end
 const triangle = RenderObject(Dict(
-        :vertex => GLBuffer(v, 3),
+        :vertex => GLBuffer(v),
         :index => indexes
     ),
     bbprogram, bbprogram)
@@ -84,7 +96,8 @@ const triangle = RenderObject(Dict(
 postrender!(triangle, render, triangle.vertexarray)
 
 boundingbox(triangle)
-
+println(min(v))
+println(max(v))
 #=
 glClearColor(0,0,0,0)
 while Romeo.ROOT_SCREEN.inputs[:open].value

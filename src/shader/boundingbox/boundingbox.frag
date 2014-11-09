@@ -2,11 +2,11 @@
 
 {{in}} vec3 V;
 
-{{out}} vec3 minbuffer;
-{{out}} vec3 maxbuffer;
+{{out}} vec4 minbuffer;
+{{out}} vec4 maxbuffer;
 
 void main()
 {
-	minbuffer = -V;
-	maxbuffer = V;
+	minbuffer = vec4(V,0);
+	maxbuffer = vec4(-V,0);
 }
