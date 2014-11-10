@@ -28,4 +28,13 @@ MATRIX_EDITING_DEFAULTS = @compat(Dict(
 # Low level text rendering for one line text
 # Low level text rendering for multiple line text
 edit{T <: Union(AbstractFixedVector, Real)}(numbers::Texture{T, 1, 2}, style=Style(:Default); customization...) = edit(style, numbers, mergedefault!(style, MATRIX_EDITING_DEFAULTS, customization))
-edit{T <: Union(AbstractVector, Real)}(numbers::Input{T}, style=Style(:Default); customization...) = edit(style, numbers, mergedefault!(style, MATRIX_EDITING_DEFAULTS, customization))
+edit{T <: Union(AbstractVector, Real)}(numbers::Input{T}, style=Style(:Default); customization...) = edit(numbers.value, style; customizaton...)
+edit{T <: Union(AbstractVector, Real)}(numbers::T, style=Style(:Default); customization...) = edit(style, numbers, mergedefault!(style, MATRIX_EDITING_DEFAULTS, customization))
+
+
+RENDEROBJECT_DEFAULTS = @compat Dict{Symbol, Any}(
+:Default => @compat Dict{Symbol, Any}(
+  :model           => eye(Mat4),
+  :screen          => ROOT_SCREEN
+))
+edit(obj::RenderObject, style=Style(:Default); customizations...) = edit(style, obj, mergedefault!(style, RENDEROBJECT_DEFAULTS, customizations))

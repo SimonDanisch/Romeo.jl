@@ -4,7 +4,7 @@ local color_chooser_shader = TemplateProgram(
   fragdatalocation=[(0, "fragment_color"), (1, "fragment_groupid")]
 )
 
-local quad = genquad(Vec3(0, 0, 0), Vec3(200, 0, 0), Vec3(0, 200, 0))
+local COLOR_QUAD = genquad(Vec3(0, 0, 0), Vec3(1, 0, 0), Vec3(0, 1, 0))
 
 #GLPlot.toopengl{T <: AbstractRGB}(colorinput::Input{T}) = toopengl(lift(x->AlphaColorValue(x, one(T)), RGBA{T}, colorinput))
 
@@ -13,16 +13,16 @@ function visualize{X <: AbstractAlphaColorValue}(style::Style, color::X, data)
   camera       = screen.orthographiccam
 
   rdata = merge(@compat(Dict(
-    :vertex => GLBuffer(quad[1]),
-    :uv     => GLBuffer(quad[2]),
-    :index  => indexbuffer(quad[4]),
+    :vertex => GLBuffer(COLOR_QUAD[1]),
+    :uv     => GLBuffer(COLOR_QUAD[2]),
+    :index  => indexbuffer(COLOR_QUAD[4]),
   )), data)
 
   rdata[:view]       = camera.view
   rdata[:projection] = camera.projection
   rdata[:color]      = color
 
-  obj = RenderObject(rdata, color_chooser_shader)
+  obj = RenderObject(rdata, color_chooser_shader, color_chooser_boundingbox)
 
   prerender!(obj, glEnable, GL_DEPTH_TEST, glDepthFunc, GL_LESS, glDisable, GL_CULL_FACE, enabletransparency)#
   postrender!(obj, render, obj.vertexarray) # Render the vertexarray
@@ -77,5 +77,16 @@ function visualize{X <: AbstractAlphaColorValue}(style::Style, color::X, data)
   obj.uniforms[:brightness_transparency]  = brightness_transparency
 
   return obj
+end
+
+function color_chooser_boundingbox(obj)
+  middle      = obj[:middle]  
+  swatchsize  = obj[:swatchsize]
+  border_size = obj[:border_size]
+  model       = obj[:model]
+  verts       = COLOR_QUAD[1]
+  minv = Vec3(model*Vec4(minimum(verts)...,0f0))
+  maxv = Vec3(model*Vec4(maximum(verts)...,0f0))
+  AABB(minv,maxv)
 end
 end # local begin color chooser

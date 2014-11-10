@@ -20,28 +20,23 @@ println(GLENUM(glCheckFramebufferStatus(GL_FRAMEBUFFER)).name)
 glBindFramebuffer(GL_FRAMEBUFFER, Romeo.RENDER_FRAMEBUFFER)
 
 
-
-
-function lollyy{T, ColorDim, NDim}(t::Texture{T, ColorDim, NDim})
-    result = Array(T, t.dims...)
-    glBindTexture(t.texturetype, t.id)
-    glGetTexImage(t.texturetype, 0, t.format, t.pixeltype, result)
-    return result
-end
-glClearColor(0,0,0,0)
-
-glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
-glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
-glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
+const FLOAT32MIN = -999999999999999999999999f0
 
 function boundingbox(renderobject)
+    renderobject.boundingboxfunc(renderobject)
+end
+
+function boundingbox(renderobject)
+    minbuffer[1:end,1:end] = Vec4[Vec4(FLOAT32MIN) for i=1:framebuffsize[1], j=1:framebuffsize[2]]
+    maxbuffer[1:end,1:end] = Vec4[Vec4(FLOAT32MIN) for i=1:framebuffsize[1], j=1:framebuffsize[2]]
     glBindFramebuffer(GL_FRAMEBUFFER, BOUNDINGBOX_FRAMEBUFFER)
     glViewport(0,0, framebuffsize...)
     glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE)
     glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE)
     glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE)
     glDrawBuffers(2, [GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1])
-    glClear(GL_COLOR_BUFFER_BIT)
+    glClearColor(FLOAT32MIN, FLOAT32MIN, FLOAT32MIN, 0)
+    glClear(GL_COLOR_BUFFER_BIT | GL_COLOR_BUFFER_BIT)
 
     glDisable(GL_DEPTH_TEST)
     glDisable(GL_CULL_FACE)

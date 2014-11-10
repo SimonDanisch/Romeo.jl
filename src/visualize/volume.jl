@@ -1,6 +1,6 @@
 begin
-const local volumeshader = TemplateProgram(joinpath(shaderdir, "simple.vert")     , joinpath(shaderdir, "iso.frag"), fragdatalocation=[(0, "fragment_color"),(1, "fragment_groupid")])
-const local uvwshader    = TemplateProgram(joinpath(shaderdir, "uvwposition.vert"), joinpath(shaderdir, "uvwposition.frag"))
+const local volumeshader   = TemplateProgram(joinpath(shaderdir, "simple.vert")     , joinpath(shaderdir, "iso.frag"), fragdatalocation=[(0, "fragment_color"),(1, "fragment_groupid")])
+const local uvwshader      = TemplateProgram(joinpath(shaderdir, "uvwposition.vert"), joinpath(shaderdir, "uvwposition.frag"))
 const local uvwposition_framebuffer = glGenFramebuffers() 
 const local texparams = [
       (GL_TEXTURE_MIN_FILTER, GL_LINEAR),

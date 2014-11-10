@@ -29,11 +29,30 @@ function visualize(::Style{:Default}, text::Texture{GLGlyph{Uint16}, 4, 2}, data
     Pkg.dir("GLText", "src", "textShader.vert"), Pkg.dir("GLText", "src", "textShader.frag"), 
     view=view, attributes=renderdata, fragdatalocation=[(0, "fragment_color"),(1, "fragment_groupid")]
   )
-  obj = instancedobject(renderdata, shader, data[:textlength])
+  obj = instancedobject(renderdata, data[:textlength], shader, GL_TRIANGLES, textboundingbox)
   prerender!(obj, enabletransparency, glDisable, GL_DEPTH_TEST, glDisable, GL_CULL_FACE,)
   return obj
 end
+function visualize(style::Style{:Default}, text::Vector{GLGlyph{Uint16}}, data::Dict{Symbol, Any})
+  textstride = data[:stride]
+  data[:textlength] = length(text) # remember text
+  if length(text) % textstride != 0
+    append!(text, Array(GLGlyph{Uint16}, textstride-(length(text)%textstride))) # append if can't be reshaped with 1024
+  end
+  # To make things simple for now, checks if the texture is too big for the GPU are done by 'Texture' and an error gets thrown there.
+  return visualize(style, Texture(reshape(text, textstride, div(length(text), textstride))), data)
+end
+function textboundingbox(obj)
+  glypharray  = data(obj[:text]) 
+  advance     = obj[:advance]  
+  newline     = obj[:newline]  
 
-function textboundingbox(obj::RenderObject)
-
+  maxv = Vector3(typemin(Float32))
+  minv = Vector3(typemax(Float32))
+  for elem in glypharray[1:obj.alluniforms[:textlength]]
+    currentpos = elem.row*advance + elem.line*newline
+    maxv = maxper(maxv, currentpos)
+    minv = minper(minv, currentpos)
+  end
+  AABB(minv, maxv)
 end

@@ -149,8 +149,8 @@ mat4 getmodelmatrix(vec3 xyz, vec3 scale)
 void main(){
     vec3 xyz, scale, normal, vert;
     int index   = gl_InstanceID;
-    ivec2 ij    = ivec2(index / 10, index % 10);
-    vec2 uv     = (vec2(ij)+offset) / vec2(10,10);
+    ivec2 ij    = ivec2(index / int(griddimensions.x), index % int(griddimensions.x));
+    vec2 uv     = (vec2(ij)+offset) / griddimensions;
 
     xyz.x       = fetch1stvalue(uv.x, x);
     xyz.y       = fetch1stvalue(uv.y, y);
@@ -166,8 +166,10 @@ void main(){
 
     vert_color  = {{color_calculation}}
 
-    V           = vec3(view * vec4(xyz, 1.0));
+    
     vert        = {{vertex_calculation}}
+    vec4 v      = view * model * getmodelmatrix(xyz, scale) * vec4(vert.xyz, 1.0);
+    V           = vec3(v);
 
-    gl_Position = projection * view * model * getmodelmatrix(xyz, scale) * vec4(vert.xyz, 1.0);
+    gl_Position = projection * v;
 }

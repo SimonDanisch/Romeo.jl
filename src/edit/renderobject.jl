@@ -1,18 +1,34 @@
 
+
 function edit(style::Style, obj::RenderObject, customization::Dict{Symbol,Any})
   screen         = customization[:screen]
 
-  yposition      = lift(x->x.h, screen.area)
-  glypharray     = GLGlyph{Uint16}()
-  visualizations = RenderObjct[]
+  yposition      = float32(screen.area.value.h)
 
+  glypharray     = Array(GLGlyph{Uint16}, 0)
+  visualizations = RenderObject[]
+  xgap = 20f0
+  ygap = 20f0
+  lineheight = 24f0
   for (name,value) in obj.uniforms
-    glypharray = [glypharray, [GLGlyph(c, yposition.value, k, 0) for (c,k) in enumerate(string(name))]]
-    visual, signal = edit(value, style)
-    visual.boundinbbox(visual)
-    
-    obj.uniforms[name] = signal
-    push!(visualizations, visual)
+    try
+      visual, signal     = edit(value, style, screen=screen)
+      append!(glypharray, GLGlyph{Uint16}[GLGlyph(c, int(yposition/24), k, 0) for (k,c) in enumerate(string(name))])
+      yposition          -= lineheight
+      aabb               = visual.boundingbox(visual)
+      println("___________")
+      println(name)
+      println(aabb)
+      println("-------")
+      yposition          += aabb.min[2] - ygap
+      translatm          = translationmatrix(Vec3(xgap,yposition,0))
+      visual[:model]     = visual[:model] * translatm
+      obj.uniforms[name] = signal
+      push!(visualizations, visual)
+    catch e
+    end
   end
-
+  labels = visualize(glypharray, screen=screen)
+  push!(visualizations, labels)
+  visualizations
 end

@@ -13,21 +13,26 @@ println(GLENUM(glCheckFramebufferStatus(GL_FRAMEBUFFER)).name)
 glBindFramebuffer(GL_FRAMEBUFFER, Romeo.RENDER_FRAMEBUFFER)
 
 
-
-
-function lollyy{T, ColorDim, NDim}(t::Texture{T, ColorDim, NDim})
-    result = Array(T, t.dims...)
-    glBindTexture(t.texturetype, t.id)
-    glGetTexImage(t.texturetype, 0, t.format, t.pixeltype, result)
-    return result
+function boundingboxshader(name::String; view::Dict{ASCIIString, ASCIIString} = Dict{ASCIIString, ASCIIString}(), attributes::Dict{Symbol, Any}=Dict{Symbol, Any}())
+    TemplateProgram(
+    joinpath(shaderdir, "boundingbox", name), joinpath(shaderdir, "boundingbox", "boundingbox.frag"), 
+    view=view, attributes=attributes, fragdatalocation=[(0, "minbuffer"),(1, "maxbuffer")]
+  )
 end
-glClearColor(0,0,0,0)
+function boundingboxshader(vert::String, frag::String; view::Dict{ASCIIString, ASCIIString} = Dict{ASCIIString, ASCIIString}(), attributes::Dict{Symbol, Any}=Dict{Symbol, Any}())
+    TemplateProgram(
+    joinpath(shaderdir, "boundingbox", vert), joinpath(shaderdir, "boundingbox", frag), 
+    view=view, attributes=attributes, fragdatalocation=[(0, "minbuffer"),(1, "maxbuffer")]
+  )
+end
 
-glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
-glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
-glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
+function boundingbox(renderobject)
+    renderobject.boundingbox(renderobject)
+end
 
-function boundingbox(renderobject::RenderObject)
+const FLOAT32MIN = -999999999999999999999999f0
+function boundingbox_gpu(renderobject::RenderObject)
+	glClearColor(FLOAT32MIN, FLOAT32MIN, FLOAT32MIN, FLOAT32MIN)
     glBindFramebuffer(GL_FRAMEBUFFER, BOUNDINGBOX_FRAMEBUFFER)
     glViewport(0,0, framebuffsize...)
     glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE)
@@ -41,7 +46,7 @@ function boundingbox(renderobject::RenderObject)
     glDisable(GL_ALPHA_TEST)
     glEnable(GL_BLEND)
     glBlendFunc(GL_ONE, GL_ONE)
-    glBlendEquation(GL_MIN)
+    glBlendEquation(GL_MAX)
 
     program = renderobject.vertexarraybb.program
     glUseProgram(program.id)
@@ -56,8 +61,8 @@ function boundingbox(renderobject::RenderObject)
         error("RenderObject doesn't have a renderfunction. RenderObject: \n", renderobject)
     end
 
-    println(data(minbuffer))
-    println(-data(maxbuffer))
+    println("min: ", -data(minbuffer))
+    println("max: ", data(maxbuffer))
     glBindFramebuffer(GL_FRAMEBUFFER, Romeo.RENDER_FRAMEBUFFER)
     glClampColor(GL_CLAMP_VERTEX_COLOR, GL_TRUE)
     glClampColor(GL_CLAMP_READ_COLOR, GL_TRUE)
@@ -65,12 +70,11 @@ function boundingbox(renderobject::RenderObject)
 end
 end
 
+const testdata = [rgba(0f0,1f0,0f0,1f0) for i=1:9, j=1:11]
+obj = visualize(rgba(0,0,0,1))
+obj1 = visualize("alksjdlaskjdlkasjd\n"^15)
 
-const testdata = rand(-100f0:100, 79,66)
-obj = visualize(testdata)
-
-boundingbox(obj)
-println(maximum(testdata))
-println(minimum(testdata))
+println(boundingbox(obj))
+println(boundingbox(obj1))
 
 GLFW.Terminate()

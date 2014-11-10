@@ -10,13 +10,16 @@ TEXT_DEFAULTS = @compat Dict(
   :newline          => -Vec3(0, getfont().props[1][2], 0),
   :advance          => Vec3(getfont().props[1][1], 0, 0),
   :screen           => ROOT_SCREEN,
-  :font             => getfont()
+  :font             => getfont(),
+  :stride           => 1024
 ))
 
 # High Level text rendering for one line or multi line text, which is decided by searching for the occurence of '\n' in text
-visualize(text::String,                           style=Style(:Default); customization...) = visualize(style, text, mergedefault!(style, TEXT_DEFAULTS, customization))
+visualize(text::String,                           style::Style=Style(:Default); customization...) = visualize(style, text, mergedefault!(style, TEXT_DEFAULTS, customization))
 # Low level text rendering for multiple line text
-visualize(text::Texture{GLGlyph{Uint16}, 4, 2},   style=Style(:Default); customization...) = visualize(style, text, mergedefault!(style, TEXT_DEFAULTS, customization))
+visualize(text::Texture{GLGlyph{Uint16}, 4, 2},   style::Style=Style(:Default); customization...) = visualize(style, text, mergedefault!(style, TEXT_DEFAULTS, customization))
+visualize(text::Vector{GLGlyph{Uint16}},          style::Style=Style(:Default); customization...) = visualize(style, text, mergedefault!(style, TEXT_DEFAULTS, customization))
+visualize(text::Matrix{GLGlyph{Uint16}},          style::Style=Style(:Default); customization...) = visualize(style, text, mergedefault!(style, TEXT_DEFAULTS, customization))
 
 # END Text Rendering
 #################################################################################################################################
@@ -41,9 +44,9 @@ SURFACE_DEFAULTS = @compat Dict(
 begin 
 local PointType = Union(AbstractFixedVector, Real)
 # Visualizes a matrix of 1D Values as a surface, whereas the values get interpreted as z-values
-visualize{T <: PointType}(zpoints::Matrix{T},        attribute = :z,  style=Style(:Default); customization...) = visualize(style, zpoints, attribute, mergedefault!(style, SURFACE_DEFAULTS, customization))
-visualize{T <: PointType}(zpoints::Texture{T, 1, 2}, attribute = :z,  style=Style(:Default); customization...) = visualize(style, zpoints, attribute, mergedefault!(style, SURFACE_DEFAULTS, customization))
-visualize{T <: PointType}(x::Matrix{T}, y::Matrix{T}, z::Matrix{T},   style=Style(:Default); customization...) = visualize(style, zpoints, attribute, mergedefault!(style, SURFACE_DEFAULTS, customization))
+visualize{T <: PointType}(zpoints::Matrix{T},        attribute = :z,  style::Style=Style(:Default); customization...) = visualize(style, zpoints, attribute, mergedefault!(style, SURFACE_DEFAULTS, customization))
+visualize{T <: PointType}(zpoints::Texture{T, 1, 2}, attribute = :z,  style::Style=Style(:Default); customization...) = visualize(style, zpoints, attribute, mergedefault!(style, SURFACE_DEFAULTS, customization))
+visualize{T <: PointType}(x::Matrix{T}, y::Matrix{T}, z::Matrix{T},   style::Style=Style(:Default); customization...) = visualize(style, zpoints, attribute, mergedefault!(style, SURFACE_DEFAULTS, customization))
 end
 # END Surface Rendering
 #################################################################################################################################
@@ -75,7 +78,7 @@ IMAGE_DEFAULTS = @compat(Dict(
 ))))
 begin 
 local PixelType = Union(ColorValue, AbstractAlphaColorValue)
-visualize{T <: PixelType, CDim}(image::Texture{T, CDim, 2}, style=Style(:Default); customization...) = visualize(style, image, mergedefault!(style, IMAGE_DEFAULTS, customization))
+visualize{T <: PixelType, CDim}(image::Texture{T, CDim, 2}, style::Style=Style(:Default); customization...) = visualize(style, image, mergedefault!(style, IMAGE_DEFAULTS, customization))
 end
 
 # END Image Rendering
@@ -97,9 +100,9 @@ VOLUME_DEFAULTS = @compat(Dict(
 ))
 begin 
 local PointType = Union(RGB, Real, RGBA)
-visualize{T <: PointType}(intensities::Array{T, 3},         style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
-visualize{T <: PointType}(intensities::Image{T, 3},         style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
-visualize{T <: PointType}(intensities::Texture{T, 1, 3},    style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
+visualize{T <: PointType}(intensities::Array{T, 3},         style::Style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
+visualize{T <: PointType}(intensities::Image{T, 3},         style::Style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
+visualize{T <: PointType}(intensities::Texture{T, 1, 3},    style::Style=Style(:Default); customization...) = visualize(style, intensities, mergedefault!(style, VOLUME_DEFAULTS, customization))
 end
 # END Volume Rendering
 #################################################################################################################################
@@ -119,10 +122,10 @@ COLOR_DEFAULTS = @compat(Dict(
   :hue_saturation           => Input(false),
   :brightness_transparency  => Input(false),
   :antialiasing_value       => 0.01f0,
-  :model                    => eye(Mat4)
+  :model                    => scalematrix(Vec3(200,200,1))
 ))
 ))
-visualize(color::AbstractAlphaColorValue, style=Style(:Default); customization...) = visualize(style, color, mergedefault!(style, COLOR_DEFAULTS, customization)) 
+visualize(color::AbstractAlphaColorValue, style::Style=Style(:Default); customization...) = visualize(style, color, mergedefault!(style, COLOR_DEFAULTS, customization)) 
 
 # END Color Rendering
 #################################################################################################################################

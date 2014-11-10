@@ -69,18 +69,18 @@ mat4 getmodelmatrix(vec3 xyz, vec3 scale)
 void main(){
     vec3 xyz, scale, normal, vert;
     int index   = gl_InstanceID;
-    ivec2 ij    = ivec2(index / 10, index % 10);
-    vec2 uv     = (vec2(ij)+offset) / vec2(10,10);
+    ivec2 ij    = ivec2(index / int(griddimensions.x), index % int(griddimensions.x));
+    vec2 uv     = (vec2(ij)+offset) / griddimensions;
 
     xyz.x       = fetch1stvalue(uv.x, x);
     xyz.y       = fetch1stvalue(uv.y, y);
-    xyz.z       = fetch1stvalue(uv, z);
+    xyz.z       = fetch1stvalue(ij, z);
 
-    scale.x     = fetch1stvalue(uv, xscale);
-    scale.y     = fetch1stvalue(uv, yscale);
+    scale.x     = fetch1stvalue(ij, xscale);
+    scale.y     = fetch1stvalue(ij, yscale);
     scale.z     = fetch1stvalue(ij, zscale);
 
     vert        = {{vertex_calculation}}
-    V           = vec3(33);
+    V           = xyz;
     gl_Position = vec4(0,0,0,1);
 }

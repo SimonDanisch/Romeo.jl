@@ -92,11 +92,7 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
     joinpath(shaderdir, "surface.vert"), joinpath(shaderdir, "phongblinn.frag"), 
     view=customview, attributes=customattributes, fragdatalocation=fragdatalocation
   )
-  bbprogram = TemplateProgram(
-    joinpath(shaderdir, "boundingbox","surface.vert"), joinpath(shaderdir, "boundingbox", "boundingbox.frag"), 
-    view=customview, attributes=customattributes, fragdatalocation=[(0, "minbuffer"),(1, "maxbuffer")]
-  )
-  obj = instancedobject(customattributes, (xn-1)*(yn-1), program, bbprogram, primitive[:drawingmode])
+  obj = instancedobject(customattributes, (xn)*(yn), program, primitive[:drawingmode])
   prerender!(obj, glEnable, GL_DEPTH_TEST, glDepthFunc, GL_LESS, glDisable, GL_CULL_FACE, enabletransparency)
   obj
 end

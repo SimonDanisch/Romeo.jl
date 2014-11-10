@@ -92,7 +92,7 @@ function edit{T <: Union(AbstractFixedVector, Real)}(style::Style{:Default}, num
     return (numbers0, zero(eltype(numbers0)), -1, -1, -1, Vector2(0.0))
   end
 
-  obj, lift(first, number_lift)
+  obj, numbertex
 end
 
 
@@ -122,7 +122,8 @@ makestring(x::FloatingPoint, maxlen) = begin
   tmp
 end
 
-function edit{T <: Union(AbstractVector, Real)}(style::Style, number_input::Input{T}, customization::Dict{Symbol,Any})
+
+function edit{T <: Union(AbstractVector, Real)}(style::Style, numbers::T, customization::Dict{Symbol,Any})
 
   backgroundcolor = customization[:backgroundcolor] 
   screen          = customization[:screen] 
@@ -133,7 +134,6 @@ function edit{T <: Union(AbstractVector, Real)}(style::Style, number_input::Inpu
   model           = customization[:model]
   font            = customization[:font] 
 
-  numbers = number_input.value
   if ndims(numbers) == 2
     xn, yn = size(numbers)
   elseif ndims(numbers) == 1 || ndims(numbers) == 0
