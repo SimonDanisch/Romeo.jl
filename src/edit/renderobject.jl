@@ -16,12 +16,10 @@ function edit(style::Style, obj::RenderObject, customization::Dict{Symbol,Any})
       append!(glypharray, GLGlyph{Uint16}[GLGlyph(c, int(yposition/24), k, 0) for (k,c) in enumerate(string(name))])
       yposition          -= lineheight
       aabb               = visual.boundingbox(visual)
-      println("___________")
-      println(name)
-      println(aabb)
-      println("-------")
-      yposition          += aabb.min[2] - ygap
+      println(name, ": ", aabb.min[2])
       translatm          = translationmatrix(Vec3(xgap,yposition,0))
+      yposition          += aabb.min[2] - ygap
+
       visual[:model]     = visual[:model] * translatm
       obj.uniforms[name] = signal
       push!(visualizations, visual)

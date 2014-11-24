@@ -76,7 +76,7 @@ function visualize{X <: AbstractAlphaColorValue}(style::Style, color::X, data)
   obj.uniforms[:hue_saturation]           = hue_saturation
   obj.uniforms[:brightness_transparency]  = brightness_transparency
 
-  return obj
+  return obj, color1
 end
 
 function color_chooser_boundingbox(obj)
