@@ -37,8 +37,8 @@ trans6 = transl(1000)
 
 
 
-obj1 = visualize("haaaaaaaallooo lol \n", screen=screen1, model=trans1)
-obj3 = visualize(Float32[ (sin(i)*cos(j))/4f0 for i=0:10, j=0:10], screen=screen3)
+obj1 = visualize(foldl((v0,x) -> v0*randstring(rand(20:50))*"\n", "", 1:50), screen=screen1, model=trans1)
+obj3 = visualize(Float32[(sin(i)*cos(j))/4f0 for i=0:10, j=0:10], screen=screen3)
 obj = edit(obj3, screen=screen2)
 text = edit(obj1[:text], obj1)
 
@@ -46,9 +46,10 @@ text = edit(obj1[:text], obj1)
 push!(screen1.renderlist, obj1)
 append!(screen2.renderlist, obj)
 push!(screen3.renderlist, obj3)
+glClearColor(0,0,0,0)
 
 while Romeo.ROOT_SCREEN.inputs[:open].value
     Romeo.renderloop(Romeo.ROOT_SCREEN)
     sleep(0.0001)
-end 
+end
 GLFW.Terminate()

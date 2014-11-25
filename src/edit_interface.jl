@@ -42,20 +42,4 @@ edit(obj::RenderObject, style=Style(:Default); customizations...) = edit(style, 
 
 #################################################################################################################################
 # Color Editing:
-COLOR_DEFAULTS = @compat(Dict(
-:Default => @compat(Dict(
-  :screen                   => ROOT_SCREEN,
-  :middle                   => Vec2(0.5),
-
-  :swatchsize               => 0.1f0,
-  :border_color             => rgba(1, 1, 0.99, 1),
-  :border_size              => 0.02f0,
-
-  :hover                    => Input(false),
-  :hue_saturation           => Input(false),
-  :brightness_transparency  => Input(false),
-  :antialiasing_value       => 0.01f0,
-  :model                    => scalematrix(Vec3(200,200,1))
-))
-))
-edit(color::AbstractAlphaColorValue, style::Style=Style(:Default); customization...) = visualize(style, color, mergedefault!(style, COLOR_DEFAULTS, customization)) 
+edit(color::AbstractAlphaColorValue, style::Style=Style(:Default); customization...) = visualize(color, style; customization...) 

@@ -5,28 +5,31 @@ function edit(style::Style, obj::RenderObject, customization::Dict{Symbol,Any})
 
   yposition      = float32(screen.area.value.h)
 
-  glypharray     = Array(GLGlyph{Uint16}, 0)
+  glypharray     = Array(Romeo.GLGlyph{Uint16}, 0)
   visualizations = RenderObject[]
-  xgap = 20f0
+  xgap = 60f0
   ygap = 20f0
   lineheight = 24f0
+  currentline = 0
+  aabb = AABB(Vec3(0), Vec3(0))
+  i = 0
   for (name,value) in obj.uniforms
-    try
-      visual, signal     = edit(value, style, screen=screen)
-      append!(glypharray, GLGlyph{Uint16}[GLGlyph(c, int(yposition/24), k, 0) for (k,c) in enumerate(string(name))])
-      yposition          -= lineheight
-      aabb               = visual.boundingbox(visual)
-      println(name, ": ", aabb.min[2])
-      translatm          = translationmatrix(Vec3(xgap,yposition,0))
-      yposition          += aabb.min[2] - ygap
+    if method_exists(edit, (typeof(value),))
+        currentline       += int(abs(aabb.min[2])/lineheight) + i
+        yposition         -= lineheight*2
+        i = 3
+        append!(glypharray, Romeo.GLGlyph{Uint16}[Romeo.GLGlyph(c, currentline, k, 0) for (k,c) in enumerate(string(name))])
+        visual, signal     = Romeo.edit(value, style, screen=screen)
+        translatm          = translationmatrix(Vec3(xgap, yposition,0))
+        visual[:model]     = translatm * visual[:model]
+        obj.uniforms[name] = signal
 
-      visual[:model]     = visual[:model] * translatm
-      obj.uniforms[name] = signal
-      push!(visualizations, visual)
-    catch e
+        aabb               = visual.boundingbox(visual)
+        yposition          += aabb.min[2] - lineheight
+        push!(visualizations, visual)
     end
   end
-  labels = visualize(glypharray, screen=screen)
+  labels = visualize(glypharray, screen=screen, model=translationmatrix(Vec3(30, float32(screen.area.value.h), 0)))
   push!(visualizations, labels)
   visualizations
 end

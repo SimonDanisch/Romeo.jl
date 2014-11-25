@@ -39,6 +39,7 @@ function visualize(style::Style{:Default}, text::Vector{GLGlyph{Uint16}}, data::
   if length(text) % textstride != 0
     append!(text, Array(GLGlyph{Uint16}, textstride-(length(text)%textstride))) # append if can't be reshaped with 1024
   end
+  data[:style_group]  = Texture([data[:color]])
   # To make things simple for now, checks if the texture is too big for the GPU are done by 'Texture' and an error gets thrown there.
   return visualize(style, Texture(reshape(text, textstride, div(length(text), textstride))), data)
 end

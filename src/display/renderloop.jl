@@ -28,7 +28,7 @@ windowhints = [
   (GLFW.AUX_BUFFERS, 0)
 ]
 
-const ROOT_SCREEN = createwindow("Romeo", 1920, 1280, windowhints=windowhints, debugging=true)
+const ROOT_SCREEN = createwindow("Romeo", 1920, 1280, windowhints=windowhints, debugging=false)
 insert_selectionquery!(:mouse_hover, lift(ROOT_SCREEN.inputs[:mouseposition]) do mpos
   Rectangle(int(mpos[1]), int(mpos[2]), 1,1)
 end)
@@ -82,6 +82,12 @@ function renderloop(ROOT_SCREEN)
   if !isempty(SELECTION_QUERIES)
     glReadBuffer(GL_COLOR_ATTACHMENT1)
     for (key, value) in SELECTION_QUERIES
+      if value.w < 1 || value.w > 5000
+        println(value.w)
+      end
+      if value.h < 1 || value.h > 5000
+        println(value.h)
+      end
       const data = Array(Vector2{Uint16}, value.w, value.h)
       glReadPixels(value.x, value.y, value.w, value.h, stencil.format, stencil.pixeltype, data)
       push!(SELECTION[key], convert(Matrix{Vector2{Int}}, data))
@@ -99,16 +105,4 @@ function renderloop(ROOT_SCREEN)
   GLFW.PollEvents()
 end
 
-
-glClearColor(39.0/255.0, 40.0/255.0, 34.0/255.0, 1.0)
-
-if isinteractive()
-@async begin 
-  while ROOT_SCREEN.inputs[:open].value
-    renderloop(ROOT_SCREEN)
-  end 
-  GLFW.Terminate()
-end
-else
-
-end
+glClearColor(0, 0, 0, 0)
