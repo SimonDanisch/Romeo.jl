@@ -1,0 +1,39 @@
+
+signal (11): Segmentation fault
+unknown function (ip: -1720693570)
+unknown function (ip: -1720688670)
+unknown function (ip: -1720720555)
+unknown function (ip: -1728934657)
+unknown function (ip: -1728930935)
+unknown function (ip: -1728819949)
+unknown function (ip: -1728819251)
+unknown function (ip: -1728818802)
+jl_trampoline at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+jl_apply_generic at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+anonymous at /home/s/.julia/v0.4/Romeo/src/visualize/color.jl:51
+jl_f_apply at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+anonymous at /home/s/.julia/v0.4/Reactive/src/Reactive.jl:323
+jl_f_apply at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+update at /home/s/.julia/v0.4/Reactive/src/Reactive.jl:85
+jlcall_update;44913 at  (unknown line)
+jl_apply_generic at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+push! at /home/s/.julia/v0.4/Reactive/src/Reactive.jl:245
+renderloop at /home/s/.julia/v0.4/Romeo/src/display/renderloop.jl:93
+anonymous at no file:47
+unknown function (ip: -1728692196)
+unknown function (ip: -1728689603)
+jl_load at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+include at ./boot.jl:242
+jl_apply_generic at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+include_from_node1 at loading.jl:128
+jl_apply_generic at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+process_options at ./client.jl:300
+_start at ./client.jl:382
+_start_3B_4033 at /usr/bin/../lib/x86_64-linux-gnu/julia/sys.so (unknown line)
+jl_apply_generic at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+unknown function (ip: 4200623)
+julia_trampoline at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+unknown function (ip: 4199613)
+__libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
+unknown function (ip: 4199667)
+unknown function (ip: 0)

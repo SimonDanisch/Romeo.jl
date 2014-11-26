@@ -1,10 +1,5 @@
-using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow
+using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
 
-N       = 128
-volume  = Float32[sin(x / 12f0)+sin(y / 12f0)+sin(z / 12f0) for x=1:N, y=1:N, z=1:N]
-max     = maximum(volume)
-min     = minimum(volume)
-volume  = (volume .- min) ./ (max .- min)
 
 area1 = lift(Romeo.ROOT_SCREEN.area) do x
 	Rectangle(0,0,div(x.w,7)*3, x.h)
@@ -27,7 +22,7 @@ end
 transl(offset) = lift(w_height) do x
 translationmatrix(Vec3(30,x-offset,0))
 end
-trans1 = transl(200)
+trans1 = transl(30)
 trans2 = transl(250)
 
 trans3 = transl(700)
@@ -37,10 +32,10 @@ trans6 = transl(1000)
 
 
 
-obj1 = visualize(foldl((v0,x) -> v0*randstring(rand(20:50))*"\n", "", 1:50), screen=screen1, model=trans1)
-obj3 = visualize(Float32[(sin(i)*cos(j))/4f0 for i=0:10, j=0:10], screen=screen3)
+obj1 = visualize(readall(open("runtests.jl")), model=trans1, screen=screen1)
+obj3 = visualize(Float32[0f0 for i=1:10, j=1:10], :zscale, primitive=CUBE(), screen=screen3)
 obj = edit(obj3, screen=screen2)
-text = edit(obj1[:text], obj1)
+#text = edit(obj1[:text], obj1)
 
 
 push!(screen1.renderlist, obj1)
@@ -54,17 +49,3 @@ while Romeo.ROOT_SCREEN.inputs[:open].value
 end
 GLFW.Terminate()
 
-
-#=
-Float32[0.0f0,-72.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
-Float32[0.0f0,0.0f0,0.0f0],     Float32[48.0f0,0.0f0,0.0f0])
-Float32[0.0f0,-360.0f0,0.0f0],  Float32[768.0f0,0.0f0,0.0f0])
-Float32[0.0f0,0.0f0,0.0f0],     Float32[48.0f0,0.0f0,0.0f0])
-Float32[0.0f0,0.0f0,0.0f0],     Float32[48.0f0,0.0f0,0.0f0])
-Float32[0.0f0,-36.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
-Float32[0.0f0,0.0f0,0.0f0],     Float32[48.0f0,0.0f0,0.0f0])
-Float32[0.0f0,-36.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
-Float32[0.0f0,0.0f0,0.0f0],     Float32[200.0f0,200.0f0,0.0f0])
-Float32[0.0f0,-72.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
-Float32[0.0f0,-36.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
-=#

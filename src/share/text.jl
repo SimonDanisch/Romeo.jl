@@ -58,7 +58,7 @@ function update_glyphpositions!{T}(text_array::Texture{GLGlyph{T}, 4, 2}, start=
   end
   text_array[1:end, 1:end] = textarray
 end
-function makedisplayable(text::String)
+function makedisplayable(text::String, tab=3)
   result = map(collect(text)) do x
     str = string(x)
     if !is_valid_utf8(str)
@@ -74,7 +74,7 @@ end
 
 function toglypharray(text::String, tab=3)
   #@assert is_valid_utf16(text) # future support for utf16
-  text = makedisplayable(text)
+  text = makedisplayable(text,tab)
   #Allocate some more memory, to reduce growing the texture residing on VRAM
   texturesize = div(length(text),     1024)+1 # a texture size of 1024 should be supported on every GPU
   text_array  = Array(GLGlyph{Uint16}, 1024, texturesize)
