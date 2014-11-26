@@ -7,19 +7,19 @@ min     = minimum(volume)
 volume  = (volume .- min) ./ (max .- min)
 
 area1 = lift(Romeo.ROOT_SCREEN.area) do x
-	Rectangle(0,0,div(x.w,4), x.h)
+	Rectangle(0,0,div(x.w,7)*3, x.h)
 end
 area2 = lift(Romeo.ROOT_SCREEN.area) do x
-	Rectangle(div(x.w,4),0,div(x.w,4), x.h)
+	Rectangle(div(x.w,7)*3,0,div(x.w,7)*3, x.h)
 end
 area3 = lift(Romeo.ROOT_SCREEN.area) do x
-	Rectangle(div(x.w,4)*2,0,div(x.w,2), x.h)
+	Rectangle(div(x.w,7)*6,0,div(x.w,7), x.h)
 end
 
 
 screen1 = Screen(Romeo.ROOT_SCREEN, area=area1)
-screen2 = Screen(Romeo.ROOT_SCREEN, area=area2)
-screen3 = Screen(Romeo.ROOT_SCREEN, area=area3)
+screen3 = Screen(Romeo.ROOT_SCREEN, area=area2)
+screen2 = Screen(Romeo.ROOT_SCREEN, area=area3)
 
 w_height = lift(Romeo.ROOT_SCREEN.area) do x
 	x.h
@@ -53,3 +53,18 @@ while Romeo.ROOT_SCREEN.inputs[:open].value
     sleep(0.0001)
 end
 GLFW.Terminate()
+
+
+#=
+Float32[0.0f0,-72.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
+Float32[0.0f0,0.0f0,0.0f0],     Float32[48.0f0,0.0f0,0.0f0])
+Float32[0.0f0,-360.0f0,0.0f0],  Float32[768.0f0,0.0f0,0.0f0])
+Float32[0.0f0,0.0f0,0.0f0],     Float32[48.0f0,0.0f0,0.0f0])
+Float32[0.0f0,0.0f0,0.0f0],     Float32[48.0f0,0.0f0,0.0f0])
+Float32[0.0f0,-36.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
+Float32[0.0f0,0.0f0,0.0f0],     Float32[48.0f0,0.0f0,0.0f0])
+Float32[0.0f0,-36.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
+Float32[0.0f0,0.0f0,0.0f0],     Float32[200.0f0,200.0f0,0.0f0])
+Float32[0.0f0,-72.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
+Float32[0.0f0,-36.0f0,0.0f0],   Float32[48.0f0,0.0f0,0.0f0])
+=#
