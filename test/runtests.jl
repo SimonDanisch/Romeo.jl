@@ -1,47 +1,73 @@
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
-
-
-area1 = lift(Romeo.ROOT_SCREEN.area) do x
-	Rectangle(0,0,div(x.w,7)*3, x.h)
-end
-area2 = lift(Romeo.ROOT_SCREEN.area) do x
-	Rectangle(div(x.w,7)*3,0,div(x.w,7)*3, x.h)
-end
-area3 = lift(Romeo.ROOT_SCREEN.area) do x
-	Rectangle(div(x.w,7)*6,0,div(x.w,7), x.h)
+function clear!(x::Vector{RenderObject})
+    while !isempty(x)
+        value = pop!(x)
+        delete!(value)
+    end
 end
 
+function init_romeo()
+    sourcecode_area = lift(Romeo.ROOT_SCREEN.area) do x
+    	Rectangle(0, 0, div(x.w, 7)*3, x.h)
+    end
+    visualize_area = lift(Romeo.ROOT_SCREEN.area) do x
+        Rectangle(div(x.w,7)*3, 0, div(x.w, 7)*3, x.h)
+    end
+    search_area = lift(visualize_area) do x
+        Rectangle(x.x, x.y, x.w, div(x.h,10))
+    end
+    edit_area = lift(Romeo.ROOT_SCREEN.area) do x
+    	Rectangle(div(x.w, 7)*6, 0, div(x.w, 7), x.h)
+    end
 
-screen1 = Screen(Romeo.ROOT_SCREEN, area=area1)
-screen3 = Screen(Romeo.ROOT_SCREEN, area=area2)
-screen2 = Screen(Romeo.ROOT_SCREEN, area=area3)
 
-w_height = lift(Romeo.ROOT_SCREEN.area) do x
-	x.h
+
+    sourcecode_screen   = Screen(Romeo.ROOT_SCREEN, area=sourcecode_area)
+    visualize_screen    = Screen(Romeo.ROOT_SCREEN, area=visualize_area)
+    search_screen       = Screen(visualize_screen,  area=search_area)
+    edit_screen         = Screen(Romeo.ROOT_SCREEN, area=edit_area)
+
+    w_height = lift(Romeo.ROOT_SCREEN.area) do x
+    	x.h
+    end
+    source_offset = lift(w_height) do x
+        translationmatrix(Vec3(30,x-30,0))
+    end
+    w_height_search = lift(search_screen.area) do x
+        x.h
+    end
+    search_offset = lift(w_height_search) do x
+        translationmatrix(Vec3(30,x-30,0))
+    end
+
+    searchinput = Input("barplot")
+
+    const sourcecode  = visualize(readall(open("runtests.jl")), model=source_offset, screen=sourcecode_screen)
+    search      = visualize("barplot", model=search_offset, color=rgba(0.9,0,0.2,1), screen=search_screen)
+    barplot     = visualize(Float32[0f0 for i=1:12, j=1:10], :zscale, primitive=CUBE(), screen=visualize_screen)
+    edit_obj    = edit(barplot, screen=edit_screen)
+    viz, source_text = edit(sourcecode[:text], sourcecode)
+    viz, search_text = edit(search[:text], search)
+
+    lift(search_text) do x
+        s = symbol(x)
+        if isdefined(s)
+            value = eval(Main, s)
+            if applicable(visualize, value)
+                clear!(visualize_screen.renderlist)
+                obj = visualize(value)
+                push!(visualize_screen.renderlist, obj)
+            end
+        end
+    end
+    push!(sourcecode_screen.renderlist, sourcecode)
+    append!(edit_screen.renderlist, edit_obj)
+    push!(visualize_screen.renderlist, barplot)
+    push!(search_screen.renderlist, search)
+    glClearColor(0,0,0,0)
 end
-transl(offset) = lift(w_height) do x
-translationmatrix(Vec3(30,x-offset,0))
-end
-trans1 = transl(30)
-trans2 = transl(250)
 
-trans3 = transl(700)
-trans4 = transl(800)
-trans5 = transl(900)
-trans6 = transl(1000)
-
-
-
-obj1 = visualize(readall(open("runtests.jl")), model=trans1, screen=screen1)
-obj3 = visualize(Float32[0f0 for i=1:10, j=1:10], :zscale, primitive=CUBE(), screen=screen3)
-obj = edit(obj3, screen=screen2)
-#text = edit(obj1[:text], obj1)
-
-
-push!(screen1.renderlist, obj1)
-append!(screen2.renderlist, obj)
-push!(screen3.renderlist, obj3)
-glClearColor(0,0,0,0)
+init_romeo()
 
 while Romeo.ROOT_SCREEN.inputs[:open].value
     Romeo.renderloop(Romeo.ROOT_SCREEN)

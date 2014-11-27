@@ -11,6 +11,7 @@ function edit{T <: Union(AbstractFixedVector, Real)}(style::Style{:Default}, num
   font            = customization[:font] 
 
   numbers         = data(numbertex) # get data from texture/video memory
+  println(numbers)
   text            = Array(GLGlyph{Uint16}, int(size(numbers,1)*maxdigits), size(numbers, 2))
 
   fill!(text, GLGlyph()) # Fill text array with blanks, as we don't need all of them

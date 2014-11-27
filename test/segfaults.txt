@@ -37,3 +37,49 @@ unknown function (ip: 4199613)
 __libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
 unknown function (ip: 4199667)
 unknown function (ip: 0)
+
+
+#####################################################
+
+
+signal (11): Segmentation fault
+unknown function (ip: 1122230961)
+unknown function (ip: 1122232664)
+unknown function (ip: 1122574765)
+unknown function (ip: 1122801109)
+unknown function (ip: 1122801085)
+unknown function (ip: 1121167247)
+unknown function (ip: 1121168103)
+unknown function (ip: 1120948173)
+unknown function (ip: 1121172426)
+unknown function (ip: 1120662286)
+unknown function (ip: 1123218814)
+unknown function (ip: 1122807779)
+unknown function (ip: 1167633055)
+glXDestroyContext at /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 (unknown line)
+unknown function (ip: 1176369924)
+unknown function (ip: 1176362879)
+glfwDestroyWindow at /home/s/.julia/v0.4/GLFW/deps/usr64/lib/libglfw.so (unknown line)
+glfwTerminate at /home/s/.julia/v0.4/GLFW/deps/usr64/lib/libglfw.so (unknown line)
+Terminate at /home/s/.julia/v0.4/GLFW/src/glfw3.jl:327
+jlcall_Terminate;45259 at  (unknown line)
+jl_apply_generic at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+unknown function (ip: 1410851832)
+unknown function (ip: 1410849135)
+unknown function (ip: 1410920266)
+unknown function (ip: 1410923069)
+jl_load at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+include at ./boot.jl:242
+jl_apply_generic at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+include_from_node1 at loading.jl:128
+jl_apply_generic at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+process_options at ./client.jl:300
+_start at ./client.jl:382
+_start_3B_4042 at /usr/bin/../lib/x86_64-linux-gnu/julia/sys.so (unknown line)
+jl_apply_generic at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+unknown function (ip: 4200623)
+julia_trampoline at /usr/bin/../lib/x86_64-linux-gnu/julia/libjulia.so (unknown line)
+unknown function (ip: 4199613)
+__libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
+unknown function (ip: 4199667)
+unknown function (ip: 0)

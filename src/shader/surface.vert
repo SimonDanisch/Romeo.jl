@@ -158,7 +158,7 @@ void main(){
 
     scale.x     = fetch1stvalue(uv, xscale);
     scale.y     = fetch1stvalue(uv, yscale);
-    scale.z     = fetch1stvalue(uv, zscale);
+    scale.z     = fetch1stvalue(ij, zscale);
     
 
     normal      = getnormal(z, uv, normal_vector);

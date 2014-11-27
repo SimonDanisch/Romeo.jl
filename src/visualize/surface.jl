@@ -69,7 +69,10 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
 
   for (key, value) in data
     if isa(value, Matrix)
-      customattributes[key] = Texture(value, keepinram=true)
+      t = Texture(value, keepinram=true)
+      println(t.data)
+      customattributes[key] = t
+
       xn, yn = size(value)
     elseif isa(value, ASCIIString)
       customview[string(key)*"_calculation"] = value
@@ -86,7 +89,7 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
   if !haskey(primitive, :yscale)
     customattributes[:yscale] = float32(1 / yn)
   end
-  customattributes[:griddimensions] = Vec2(xn,yn)
+  customattributes[:griddimensions] = Vec2(yn,xn)
   fragdatalocation = [(0, "fragment_color"),(1, "fragment_groupid")]
   program = TemplateProgram(
     joinpath(shaderdir, "surface.vert"), joinpath(shaderdir, "phongblinn.frag"), 
