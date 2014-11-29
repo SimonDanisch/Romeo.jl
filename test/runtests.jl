@@ -5,7 +5,7 @@ function clear!(x::Vector{RenderObject})
         delete!(value)
     end
 end
-
+global gaggaaa = Texture("pic.jpg")
 function init_romeo()
     sourcecode_area = lift(Romeo.ROOT_SCREEN.area) do x
     	Rectangle(0, 0, div(x.w, 7)*3, x.h)
@@ -19,7 +19,6 @@ function init_romeo()
     edit_area = lift(Romeo.ROOT_SCREEN.area) do x
     	Rectangle(div(x.w, 7)*6, 0, div(x.w, 7), x.h)
     end
-
 
 
     sourcecode_screen   = Screen(Romeo.ROOT_SCREEN, area=sourcecode_area)
@@ -42,15 +41,15 @@ function init_romeo()
 
     searchinput = Input("barplot")
 
-    const sourcecode  = visualize(readall(open("runtests.jl")), model=source_offset, screen=sourcecode_screen)
-    search      = visualize("barplot", model=search_offset, color=rgba(0.9,0,0.2,1), screen=search_screen)
-    barplot     = visualize(Float32[0f0 for i=1:12, j=1:10], :zscale, primitive=CUBE(), screen=visualize_screen)
+    const sourcecode  = visualize("barplot = [(sin(i)+cos(j))/4 for i=1:12, j=1:10]", model=source_offset, screen=sourcecode_screen)
+    search      = visualize("barplot\n", model=search_offset, color=rgba(0.9,0,0.2,1), screen=search_screen)
+    barplot     = visualize(Float32[(sin(i)+cos(j))/4f0 for i=1:12, j=1:10], :zscale, primitive=CUBE(), screen=visualize_screen)
     edit_obj    = edit(barplot, screen=edit_screen)
     viz, source_text = edit(sourcecode[:text], sourcecode)
     viz, search_text = edit(search[:text], search)
 
     lift(search_text) do x
-        s = symbol(x)
+        s = symbol(strip(x))
         if isdefined(s)
             value = eval(Main, s)
             if applicable(visualize, value)
@@ -59,6 +58,7 @@ function init_romeo()
                 push!(visualize_screen.renderlist, obj)
             end
         end
+        nothing
     end
     push!(sourcecode_screen.renderlist, sourcecode)
     append!(edit_screen.renderlist, edit_obj)

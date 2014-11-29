@@ -2,9 +2,9 @@
 
 function filtereselection(v0, selection, buttons)
   if !isempty(buttons) && first(buttons) == 0  # if any button is pressed && its the left button
-    selection #return index
+    selection #return diffed index
   else
-    v0
+    Vector2(-1)
   end
 end
 
@@ -24,10 +24,9 @@ function edit(style::Style{:Default}, textGPU::Texture{GLGlyph{Uint16}, 4, 2}, o
   changed = lift(first, foldl(haschanged, (true, selectiondata.value), selectiondata))
 
   leftclick_selection = foldl(filtereselection, Vector2(-1), keepwhen(changed, Vector2(-1), selectiondata), screen.inputs[:mousebuttonspressed])
-
   glypharray = vec(data(textGPU))
   changed    = false
-  v00        = (obj, obj.alluniforms[:textlength], textGPU, glypharray, leftclick_selection.value, leftclick_selection.value, changed)
+  v00        = (obj, obj.alluniforms[:textlength], textGPU, glypharray, leftclick_selection.value, changed)
   output     = foldl(edit_text, v00, leftclick_selection, screen.inputs[:unicodeinput], specialkeys)
   textsignal = lift(filter(v00, output) do x
     x[end] # <-has changed
@@ -43,34 +42,43 @@ function pressed{T<:Integer}(keys::Vector{T}, keyset)
 end
 function edit_text(v0, selection1, unicode_keys, special_keys)
     # selection0 tracks, where the carsor is after a new character addition, selection10 tracks the old selection
-    obj, textlength, textGPU, glypharray, selection0, selection10, changed = v0
-    # to compare it to the newly selected mouse position
-    if selection10 != selection1
-        return (obj, textlength, textGPU, glypharray, selection1, selection1, false)
-    elseif selection0[1]==obj.id && selection0[2] != -1 && (!isempty(special_keys) || !isempty(unicode_keys))# something will get edited
-        inserted_text = []
-        itl = 0
+    obj, textlength, textGPU, glypharray, selection0, changed = v0
+    selected_object, selected_index = selection0
+    selected_index += 1
+    chars_added = 0
+    edit_inbound = selected_index<=textlength+1 && selected_index>0 && selected_object == obj.id
+    if selection1 != Vector2(-1) # if a new index was selected update selection
+        return (obj, textlength, textGPU, glypharray, selection1, false)
+    elseif edit_inbound && (!isempty(special_keys) || !isempty(unicode_keys))# something will get edited
         if !isempty(special_keys) && isempty(unicode_keys)
-            if in(GLFW.KEY_BACKSPACE, special_keys)
-                splice!(glypharray, selection0[2])
-                itl = -1
+            if in(GLFW.KEY_BACKSPACE, special_keys) && selected_index>1
+                splice!(glypharray, selected_index-1)
+                chars_added = -1
             elseif in(GLFW.KEY_ENTER, special_keys)
-                insert!(glypharray, selection0[2], GLGlyph('\n', 0,0,0))
-                itl = 1
+                insert!(glypharray, selected_index, GLGlyph('\n', 0,0,0))
+                chars_added = 1
             elseif pressed([GLFW.KEY_LEFT_CONTROL, GLFW.KEY_V], special_keys)
                 p = clipboard()
                 pasted = [GLGlyph(c,0,0,0) for c in p]
-                glypharray = [glypharray[1:selection0[2]], pasted, glypharray[selection0[2]:end]]
-                itl = length(p)
+                if selected_index == 1
+                  glypharray = [pasted, glypharray]
+                elseif selected_index == textlength+1
+                  glypharray = [glypharray, pasted]
+                elseif selected_index>1 && selected_index>=textlength
+                  glypharray = [sub(glypharray, 1:selected_index), pasted, sub(glypharray, selected_index:length(glypharray))]
+                else
+                  error("invalid text cursor index. Index: ", selected_index)
+                end
+                chars_added = length(p)
             end
-        elseif !isempty(unicode_keys) && selection0[1] == obj.id && (isempty(special_keys) || IntSet(GLFW.MOD_SHIFT)==special_keys)# else unicode input must have occured
-            insert!(glypharray, selection0[2], GLGlyph(first(unicode_keys), 0,0,0))
-            itl = 1
+        elseif edit_inbound && !isempty(unicode_keys) && (isempty(special_keys) || IntSet(GLFW.MOD_SHIFT)==special_keys)# else unicode input must have occured
+            insert!(glypharray, selected_index, GLGlyph(first(unicode_keys), 0,0,0))
+            chars_added = 1
         end
-        if itl != 0
-            textlength  += itl
-            newselection = itl + selection0[2]
-            selection0   = Vector2(selection0[1], max(min(newselection, textlength), 0))
+        if chars_added != 0
+            textlength  += chars_added
+            newselection = chars_added + selected_index
+            selection0   = Vector2(selected_object, max(min(newselection, textlength+1), 1)-1)
             update_glyphpositions!(glypharray)
             if textlength > length(textGPU)
               resize!(textGPU, [size(textGPU,1), size(textGPU,2)*2])
@@ -83,9 +91,9 @@ function edit_text(v0, selection1, unicode_keys, special_keys)
             end
             obj[:postrender, renderinstanced] = (obj.vertexarray, textlength)
         end
-        return (obj, textlength, textGPU, glypharray, selection0, selection1, true)
+        return (obj, textlength, textGPU, glypharray, selection0, true)
     end
-    return (obj, textlength, textGPU, glypharray, selection0, selection1, false)
+    return (obj, textlength, textGPU, glypharray, selection0, false)
 end
 
 

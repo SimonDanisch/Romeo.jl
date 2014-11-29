@@ -25,7 +25,9 @@ function edit(style::Style, obj::RenderObject, customization::Dict{Symbol,Any})
         translatm          = translationmatrix(Vec3(xgap - aabb.min[1], yposition - aabb.max[2], 0))
         visual[:model]     = translatm * visual[:model]
         obj.uniforms[name] = signal
-
+        if name == :xscale
+          println(aabb)
+        end
         yposition          -= abs(aabb.max[2]-aabb.min[2]) + lineheight
         push!(visualizations, visual)
     end

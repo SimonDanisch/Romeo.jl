@@ -50,10 +50,13 @@ function textboundingbox(obj)
 
   maxv = Vector3(typemin(Float32))
   minv = Vector3(typemax(Float32))
+  glyphbox = Vec3(12,24,0)
   for elem in glypharray[1:obj.alluniforms[:textlength]]
+    
     currentpos = elem.row*advance + elem.line*newline
-    maxv = maxper(maxv, currentpos)
+
+    maxv = maxper(maxv, currentpos + glyphbox)
     minv = minper(minv, currentpos)
   end
-  AABB(minv, maxv)
+  AABB(minv+newline, maxv)
 end
