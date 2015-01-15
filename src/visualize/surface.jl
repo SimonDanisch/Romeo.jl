@@ -70,9 +70,7 @@ function surf(::Style{:Default}, data::Dict{Symbol, Any})
   for (key, value) in data
     if isa(value, Matrix)
       t = Texture(value, keepinram=true)
-      println(t.data)
       customattributes[key] = t
-
       xn, yn = size(value)
     elseif isa(value, ASCIIString)
       customview[string(key)*"_calculation"] = value

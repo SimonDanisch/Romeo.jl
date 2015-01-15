@@ -83,3 +83,59 @@ unknown function (ip: 4199613)
 __libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
 unknown function (ip: 4199667)
 unknown function (ip: 0)
+
+#####################################################################
+#####################################################################
+#####################################################################
+#####################################################################
+15 Januar
+
+Please submit a bug report with steps to reproduce this fault, and any error messages that follow (in their entirety). Thanks.
+Exception: EXCEPTION_ACCESS_VIOLATION at 0x7ffdc0da7142 -- RegisterProcTableCallback at C:\WINDOWS\SYSTEM32\ig75icd64.dll (unknown line)
+RegisterProcTableCallback at C:\WINDOWS\SYSTEM32\ig75icd64.dll (unknown line)
+RegisterProcTableCallback at C:\WINDOWS\SYSTEM32\ig75icd64.dll (unknown line)
+DrvSetLayerPaletteEntries at C:\WINDOWS\SYSTEM32\ig75icd64.dll (unknown line)
+DrvSetLayerPaletteEntries at C:\WINDOWS\SYSTEM32\ig75icd64.dll (unknown line)
+DrvSetLayerPaletteEntries at C:\WINDOWS\SYSTEM32\ig75icd64.dll (unknown line)
+DrvSetLayerPaletteEntries at C:\WINDOWS\SYSTEM32\ig75icd64.dll (unknown line)
+glDrawElementsInstanced at C:\Users\Sim\.julia\v0.4\ModernGL\src\glFunctions.jl:79
+renderinstanced at C:\Users\Sim\.julia\v0.4\GLAbstraction\src\GLRender.jl:32
+jlcall_renderinstanced_45711 at  (unknown line)
+jl_apply_generic at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libjulia.dll (unknown line)
+jl_f_apply at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libjulia.dll (unknown line)
+render at C:\Users\Sim\.julia\v0.4\GLAbstraction\src\GLRender.jl:18
+render at C:\Users\Sim\.julia\v0.4\GLAbstraction\src\GLRender.jl:4
+render at C:\Users\Sim\.julia\v0.4\GLAbstraction\src\GLRender.jl:4
+render at C:\Users\Sim\.julia\v0.4\GLAbstraction\src\GLRender.jl:4
+renderloop at C:\Users\Sim\.julia\v0.4\Romeo\src\display\renderloop.jl:79
+anonymous at no file:96
+jl_toplevel_eval at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libjulia.dll (unknown line)
+jl_parse_eval_all at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libjulia.dll (unknown line)
+jl_load at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libjulia.dll (unknown line)
+include at no file (unknown line)
+unknown function (ip: 13825344)
+unknown function (ip: 1)
+unknown function (ip: 57091472)
+unknown function (ip: 57031024)
+unknown function (ip: 1)
+unknown function (ip: 13825344)
+unknown function (ip: 13824736)
+jl_apply_generic at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libjulia.dll (unknown line)
+include_from_node1 at loading.jl:128
+jl_apply_generic at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libjulia.dll (unknown line)
+process_options at no file (unknown line)
+unknown function (ip: 13825808)
+jl_array_grow_end at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libjulia.dll (unknown line)
+unknown function (ip: 1)
+unknown function (ip: 13826848)
+_start at no file (unknown line)
+unknown function (ip: 143458304)
+unknown function (ip: 32768)
+unknown function (ip: 15)
+unknown function (ip: 2)
+unknown function (ip: 1)
+unknown function (ip: 98554560)
+unknown function (ip: 144506880)
+pcre_jit_stack_alloc at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libpcre.DLL (unknown line)
+pcre_jit_stack_alloc at C:\Users\Sim\AppData\Local\Julia-0.4.0-dev\bin\libpcre.DLL (unknown line)
+[Finished in 49.6s]

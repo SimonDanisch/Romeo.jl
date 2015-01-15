@@ -1,3 +1,7 @@
+visualize(x; customizations...) = visualize(string(x); customizations...)
+visualize(x::Function; customizations...) = visualize(methods(x); customizations...)
+
+
 #################################################################################################################################
 #Text Rendering:
 TEXT_DEFAULTS = @compat Dict(
@@ -77,7 +81,7 @@ IMAGE_DEFAULTS = @compat(Dict(
     :model          => eye(Mat4),
 ))))
 begin 
-local PixelType = Union(ColorValue, AbstractAlphaColorValue)
+local PixelType = Union(ColorValue, AbstractAlphaColorValue, Images.ColorTypes.AlphaColor)
 visualize{T <: PixelType, CDim}(image::Texture{T, CDim, 2}, style::Style=Style(:Default); customization...) = visualize(style, image, mergedefault!(style, IMAGE_DEFAULTS, customization))
 end
 
