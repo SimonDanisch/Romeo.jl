@@ -2,10 +2,12 @@ using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
 function clear!(x::Vector{RenderObject})
     while !isempty(x)
         value = pop!(x)
-        delete!(value)
+        #delete!(value)
     end
 end
 global gaggaaa = Texture("pic.jpg")
+global const VISUALIZE_CACHE = Dict{Symbol, RenderObject}()
+
 function init_romeo()
     sourcecode_area = lift(Romeo.ROOT_SCREEN.area) do x
     	Rectangle(0, 0, div(x.w, 7)*3, x.h)
@@ -41,32 +43,39 @@ function init_romeo()
 
     searchinput = Input("barplot")
 
-    const sourcecode  = visualize("barplot = [(sin(i)+cos(j))/4 for i=1:12, j=1:10]", model=source_offset, screen=sourcecode_screen)
-    search      = visualize("barplot\n", model=search_offset, color=rgba(0.9,0,0.2,1), screen=search_screen)
-    barplot     = visualize(Float32[(sin(i)+cos(j))/4f0 for i=1:12, j=1:10], :zscale, primitive=CUBE(), screen=visualize_screen)
-    edit_obj    = edit(barplot, screen=edit_screen)
-    viz, source_text = edit(sourcecode[:text], sourcecode)
-    viz, search_text = edit(search[:text], search)
-
+    const sourcecode    = visualize("barplot = [(sin(i)+cos(j))/4 for i=1:12, j=1:10]", model=source_offset, screen=sourcecode_screen)
+    search              = visualize("barplot\n", model=search_offset, color=rgba(0.9,0,0.2,1), screen=search_screen)
+    barplot             = visualize(Float32[(sin(i)+cos(j))/4f0 for i=1:12, j=1:10], :zscale, primitive=CUBE(), screen=visualize_screen)
+    edit_obj            = edit(barplot, screen=edit_screen)
+    viz, source_text    = edit(sourcecode[:text], sourcecode)
+    viz, search_text    = edit(search[:text], search)
+    
     lift(search_text) do x
-        s = symbol(strip(x))
-        if isdefined(s)
-            value = eval(Main, s)
-            if applicable(visualize, value)
-                clear!(visualize_screen.renderlist)
-                obj = visualize(value)
-                push!(visualize_screen.renderlist, obj)
-            end
-        end
-        nothing
+        #visualize_variable(x, Main, visualize_screen, VISUALIZE_CACHE)
     end
+
     push!(sourcecode_screen.renderlist, sourcecode)
     append!(edit_screen.renderlist, edit_obj)
     push!(visualize_screen.renderlist, barplot)
     push!(search_screen.renderlist, search)
     glClearColor(0,0,0,0)
 end
-
+function visualize_variable(var::AbstractString, m::Module, screen::Screen, viz_cache::Dict{Symbol, RenderObject})
+    visualize_variable(symbol(strip(var)), m, screen, viz_cache)
+end
+function visualize_variable(var::Symbol, m::Module, screen::Screen, viz_cache::Dict{Symbol, RenderObject})
+    if isdefined(var)
+        value = eval(Main, var)
+        if applicable(visualize, value) 
+            obj = get(viz_cache, var, visualize(value))
+            clear!(screen.renderlist)
+            push!(screen.renderlist, obj)
+        end
+    else
+        delete!(viz_cache, var)
+    end
+    nothing
+end
 init_romeo()
 
 while Romeo.ROOT_SCREEN.inputs[:open].value
