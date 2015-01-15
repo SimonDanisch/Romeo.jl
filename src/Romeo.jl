@@ -13,7 +13,7 @@ using Compat
 using Color
 using FixedPointNumbers
 import Mustache
- 
+
 const sourcedir = Pkg.dir("Romeo", "src")
 const shaderdir = joinpath(sourcedir, "shader")
 

@@ -17,7 +17,7 @@ function edit(style::Style{:Default}, text::String, custumization::Dict{Symbol, 
 end
 function edit(style::Style{:Default}, textGPU::Texture{GLGlyph{Uint16}, 4, 2}, obj::RenderObject, custumization::Dict{Symbol, Any})
   screen = custumization[:screen]
-  specialkeys = filteritems(screen.inputs[:buttonspressed], [GLFW.KEY_LEFT_CONTROL, GLFW.KEY_V, GLFW.KEY_ENTER, GLFW.KEY_BACKSPACE], IntSet())
+  specialkeys = filteritems(screen.inputs[:buttonspressed], [GLFW.KEY_LEFT_CONTROL, GLFW.KEY_ENTER, GLFW.KEY_BACKSPACE], IntSet())
 
   selectiondata = lift(first, SELECTION[:mouse_hover])
   # Filter out the selected index,
@@ -49,7 +49,7 @@ function edit_text(v0, selection1, unicode_keys, special_keys)
     edit_inbound = selected_index<=textlength+1 && selected_index>0 && selected_object == obj.id
     if selection1 != Vector2(-1) # if a new index was selected update selection
         return (obj, textlength, textGPU, glypharray, selection1, false)
-    elseif edit_inbound && (!isempty(special_keys) || !isempty(unicode_keys))# something will get edited
+    elseif edit_inbound && !(!isempty(unicode_keys) && IntSet(GLFW.MOD_SHIFT)==special_keys) && (!isempty(special_keys) || !isempty(unicode_keys))# something will get edited
         if !isempty(special_keys) && isempty(unicode_keys)
             if in(GLFW.KEY_BACKSPACE, special_keys) && selected_index>1
                 splice!(glypharray, selected_index-1)
