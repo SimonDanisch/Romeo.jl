@@ -1,6 +1,5 @@
 # Romeo
-
-[![Build Status](https://travis-ci.org/SimonDanisch/Romeo.jl.svg?branch=master)](https://travis-ci.org/SimonDanisch/Romeo.jl)
+Romeo is an interactive scripting environment, in which you can execute Julia scripts and edit the variables in 3D.
 
 Screenshot:
 ![Screenshot](test/screenshot.png)
