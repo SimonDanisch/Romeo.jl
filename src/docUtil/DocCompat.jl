@@ -7,7 +7,7 @@
 # This code is (vaguely) inspired by base/docs.jl
 #
 
-module ALDoc
+module DocCompat
 
 export doc, @doc
 
@@ -46,10 +46,10 @@ macro doc (args...)
 end
 
 
-end # module ALDoc
+end # module DocCompat
 
 if isless(VersionNumber(0,4),VERSION)
     using Base.doc
 else
-    using ALDoc
+    using DocCompat
 end
