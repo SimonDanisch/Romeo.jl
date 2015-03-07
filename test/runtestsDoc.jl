@@ -41,6 +41,8 @@ global MemRefs = Any[]
 		    visualize_screen
 		    search_screen
 		    edit_screen
+                    These are defined in .julia/v0.3/GLWindow/src/reactglfw.jl
+                    List of exposed signals https://github.com/JuliaGL/GLWindow.jl
 
           Other Inputs : searchinput
 
@@ -100,14 +102,22 @@ function init_romeo()
            prerender!(x::GLAbstraction.RenderObject,fs...)
                    at /home/alain/.julia/v0.4/GLAbstraction/src/GLTypes.jl:262
     ==#
-    visualize("barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n",
-              model=source_offset, screen=sourcecode_screen)
+    visualize("bbarplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n",
+              model=source_offset, screen=sourcecode_screen,
+              backgroundcolor=rgba(0.5,0.0,0.0,0.1)) # Not seen
     
-    const sourcecode  =  visualize("barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n", model=source_offset, screen=sourcecode_screen)
+    const sourcecode  =  visualize("barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n",
+                                   model=source_offset,
+                                   screen=sourcecode_screen,
+                                   backgroundcolor=rgba(0.5,0.2,0.2,1.0)) # Pink Seen
     barplot           = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 for i=1:10, j=1:10]
-    visualize("barplot\n", model=search_offset, color=rgba(0.9,0,0.2,1), screen=search_screen)
+    visualize("barplot\n", model=search_offset, color=rgba(1.0,0.0,0.0,1),
+              screen=search_screen,
+               backgroundcolor=rgba(0.2,1,0.2,1)) #OK Green not seen
     
-    search            =  visualize("barplot\n", model=search_offset, color=rgba(0.9,0,0.2,1), screen=search_screen)
+    search            =  visualize("bbarplot\n", model=search_offset, color=rgba(0.9,0,0.2,1),
+                                   screen=search_screen,
+                                   backgroundcolor=rgba(0.0,0.0,1,1)) # HUM  BLUE
 
     #== Field editing in sub windows
     ==#
