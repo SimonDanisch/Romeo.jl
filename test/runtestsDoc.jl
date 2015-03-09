@@ -29,6 +29,42 @@ function dropequal(a::Signal)
 end
 global MemRefs = Any[]
 
+@doc """ Convenience function, ensures that we can force conversion of coordinates
+         to Float32.
+     """ ->
+function RectangleC{T1<:Number, T2<:Number, T3<:Number, T4<:Number }(x::T1,y::T2,w::T3,h::T4)
+         xx=convert(Float32,x)
+         yy=convert(Float32,y)
+         ww=convert(Float32,w)
+         hh=convert(Float32,h)
+         Rectangle(xx,yy,ww,hh)
+     end
+
+@doc """ Convenience function, ensures that we can force conversion of coordinates
+         to Int64. We do this in view of the declaration(s) for  OrthographicCamera
+	 (excerpt):
+
+         OrthographicCamera{T}(window_size::Signal{Vector4{Int64}},
+                              view::Signal{Matrix4x4{T}},
+                              projection::Signal{Matrix4x4{T}},
+                              projectionview::Signal{Matrix4x4{T}})
+     """ ->
+function RectangleI{T1<:Number, T2<:Number, T3<:Number, T4<:Number }(x::T1,y::T2,w::T3,h::T4)
+             xx=int64(x)  # we use int64 to truncate a floating point if needed
+             yy=int64(y)  # whereas convert would give InexactErrors for non integer values
+             ww=int64(w)
+             hh=int64(h)
+             Rectangle(xx,yy,ww,hh)
+     end
+
+
+@doc """ Convenience function, ensures that we do not have typing
+         problems when entering Rectangles
+     """ ->
+     function GLAbstraction.Rectangle{T<:Number}(x::T,y::T,w::T,h::T)
+          RectangleC(x,y,w,h)
+     end
+         
 @doc """  Performs a number of initializations to set up the romeo
 	  frames and related signals.
 
@@ -58,16 +94,19 @@ function init_romeo()
     #==   Define screen areas (can we color code the background for debug?
     ==#
     sourcecode_area = lift(Romeo.ROOT_SCREEN.area) do x
-    	Rectangle(0, 0, div(x.w, 7)*3, x.h)
+    	RectangleI(0.0, 0.0, x.w*0.4, x.h)
     end
     visualize_area = lift(Romeo.ROOT_SCREEN.area) do x
-        Rectangle(div(x.w,7)*3, 0, div(x.w, 7)*3, x.h)
+        RectangleI(x.w*0.4, 0.0, x.w*0.6, x.h)
     end
     search_area = lift(visualize_area) do x
-        Rectangle(x.x, x.y, x.w, div(x.h,10))
+        RectangleI(x.x, x.y, x.w, x.h*0.1)
     end
     edit_area = lift(Romeo.ROOT_SCREEN.area) do x
-    	Rectangle(div(x.w, 7)*6, 0, div(x.w, 7), x.h)
+    	RectangleI(x.w*0.6, 0.0, x.w*0.4, x.h)
+    end
+    plot_area = lift(Romeo.ROOT_SCREEN.area) do x
+    	RectangleI(x.w*0.6, 0.0, x.w*0.4, x.h)
     end
 
 
@@ -75,6 +114,7 @@ function init_romeo()
     visualize_screen    = Screen(Romeo.ROOT_SCREEN, area=visualize_area)
     search_screen       = Screen(visualize_screen,  area=search_area)
     edit_screen         = Screen(Romeo.ROOT_SCREEN, area=edit_area)
+    plot_screen         = Screen(Romeo.ROOT_SCREEN, area=plot_area)
 
     
     w_height = lift(Romeo.ROOT_SCREEN.area) do x
@@ -102,7 +142,8 @@ function init_romeo()
            prerender!(x::GLAbstraction.RenderObject,fs...)
                    at /home/alain/.julia/v0.4/GLAbstraction/src/GLTypes.jl:262
     ==#
-    visualize("bbarplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n",
+
+              visualize("bbarplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n",
               model=source_offset, screen=sourcecode_screen,
               backgroundcolor=rgba(0.5,0.0,0.0,0.1)) # Not seen
     
@@ -119,6 +160,16 @@ function init_romeo()
                                    screen=search_screen,
                                    backgroundcolor=rgba(0.0,0.0,1,1)) # HUM  BLUE
 
+    #== Add a screen, from example testest.jl
+        This kind of works (surface is shown), but we have NO mouse effects;
+        this does not perturb editing below.
+        => Probably pushed onto the wrong renderlist
+    ==#
+    obj = visualize(Float32[rand(Float32)  for i=0:10, j=0:10],
+                    color = rgba(1.0,0.0,0.0,0.4),
+                    screen=plot_screen) 
+    push!(Romeo.ROOT_SCREEN.renderlist, obj) #may be a bit simplistic
+               
     #== Field editing in sub windows
     ==#
     viz, source_text  = edit(sourcecode[:text], sourcecode)
