@@ -1,6 +1,9 @@
 # Romeo
 Romeo is an interactive scripting environment, in which you can execute Julia scripts and edit the variables in 3D.
 
+#### Attention: 
+This is only a prototype, probably not functional on you platform...Development is currently on hold
+
 Screenshot:
 ![Screenshot](test/screenshot.png)
 Current functionality:
