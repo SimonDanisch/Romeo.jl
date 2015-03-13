@@ -1,3 +1,7 @@
+#== Tests for a weird behaviour related to printing in catch block related to
+    signals (Reactive) when used with Romeo
+==#
+
 # Added: for documenting, and redirecting streams while debugging
 using DocCompat
 using ManipStreams
@@ -28,6 +32,8 @@ function dropequal(a::Signal)
     is_equal = foldl((false, a.value), a)  do v0, v1
                          (v0[2] == v1, v1)
                       end
+    ####  ERROR: syntax: invalid "do" syntax
+
     dropwhen(lift(first, is_equal), a.value, a)
 end
 
@@ -86,22 +92,6 @@ global MemRefs = Any[]
                     These are defined in .julia/v0.3/GLWindow/src/reactglfw.jl
                     List of exposed signals https://github.com/JuliaGL/GLWindow.jl
 
-
-	          names(some_screen)
-			11-element Array{Symbol,1}:
-			 :id          ::  Symbol   
-			 :area        ::  Rectangle        
-			 :parent      ::  Screen
-			 :children    ::  Array{Screen,1}  
-			 :inputs      ::  Dict{Symbol,Any}  
-			 :renderlist  ::  Array{RenderObject,1} 
-			 :hidden         :: Input{Bool}
-			 :hasfocus       :: Input{Bool}
-			 :perspectivecam    :: PerspectiveCamera{Float32}
-			 :orthographiccam   :: OrthographicCamera{Float32}
-			 :nativewindow   :: Window(Romeo)  -> ref (here points to ROOT_SCREEN)
-
-
           Other Inputs : searchinput
 
           Visualize interfaces: (see Romeo/src/visualize_interface.jl)
@@ -110,7 +100,6 @@ global MemRefs = Any[]
            		prerender!(x::GLAbstraction.RenderObject,fs...)
                    	at /home/alain/.julia/v0.4/GLAbstraction/src/GLTypes.jl:262
 
-To be continued...
      """  -> 
 function init_romeo()
     #==   Define screen areas (can we color code the background for debug?
@@ -160,7 +149,12 @@ function init_romeo()
     searchinput = Input("barplot")
 
     #== Assess the method visualize which is used
+        @which output: (interactive)
+        visualize(text::AbstractString) at .julia/v0.4/Romeo/src/visualize_interface.jl:22
+        visualize(text::String, style::Style=Style(:Default); customization...)
+            = visualize(style, text, mergedefault!(style, TEXT_DEFAULTS, customization))
         For all visualize methods, the real effector is
+           1 method for generic function "prerender!":
            prerender!(x::GLAbstraction.RenderObject,fs...)
                    at /home/alain/.julia/v0.4/GLAbstraction/src/GLTypes.jl:262
     ==#
@@ -193,12 +187,12 @@ function init_romeo()
     obj = visualize(Float32[rand(Float32)  for i=0:50, j=0:50],
                     color = rgba(1.0,0.0,0.0,0.4),
                     screen=plot_screen)
-    push!(Romeo.ROOT_SCREEN.renderlist, obj) 
+    push!(Romeo.ROOT_SCREEN.renderlist, obj) #may be a bit simplistic
 
                
     #   Show the cat (gaga)           
     obj1 = visualize( gaggaaa , screen=img_screen)
-    push!(Romeo.ROOT_SCREEN.renderlist, obj1)
+    push!(Romeo.ROOT_SCREEN.renderlist, obj1) #may be a bit simplistic
 
 
                
@@ -206,6 +200,7 @@ function init_romeo()
     ==#
     viz, source_text  = edit(sourcecode[:text], sourcecode)
     viz, search_text  = edit(search[:text], search)
+
 
 
     #==  Processing of events/signals
@@ -221,6 +216,7 @@ function init_romeo()
         if seval
             #  CTL-ENTER: go parse (otherwise simply text editing, enter means new line)
             expr = parse(strip(source), raise=false)
+            println("Parsed")
             if expr.head != :error
                 try
                     eval(Main, expr)
@@ -231,6 +227,7 @@ function init_romeo()
                 end
             else
                 println("Parsed head shows error,\n\tsource=$source")
+                #println(expr)
             end
         end
         nothing
@@ -251,20 +248,10 @@ function init_romeo()
                 clear!(edit_screen.renderlist)
                 push!(MemRefs, value)
                 obj     = visualize(value, screen=visualize_screen)
-#==
-         Here, when errors are done internally, and the catch clause uses
-         println, we endup in recursive attempts to call push! (not reproduced
-         in a simple context using Reactive
-
-
- in push! at /home/alain/.julia/v0.3/Reactive/src/Reactive.jl:216
- in update at /home/alain/.julia/v0.3/Reactive/src/timing.jl:11
-                          ... deleted entries ---
- in push! at /home/alain/.julia/v0.3/Reactive/src/Reactive.jl:245
- in key_pressed at /home/alain/.julia/v0.3/GLWindow/src/reactglfw.jl:232                                                                
-                                                                
- ERROR: push! called when another signal is still updating.
-
+#==          This try/catch block causes reentry in push while signal is being updated
+             which is not permitted (provided the error in Romeo/visualize/color.jl remains)
+             Output shown at bottom
+==#                
                 try
                      objedit = edit(obj,        screen=edit_screen)
                 catch e
@@ -277,8 +264,7 @@ function init_romeo()
                     rethrow()
                     return nothing
                 end
-==#
-                objedit = edit(obj,        screen=edit_screen)
+
                 push!(visualize_screen.renderlist, obj)
                 append!(edit_screen.renderlist, objedit)
             end
@@ -304,6 +290,31 @@ init_romeo()
         global ROOT_SCREEN                defined at: ./display/renderloop.jl
 ==#    
 while Romeo.ROOT_SCREEN.inputs[:open].value
+#==
+        print ( "In while loop, inputs[:open].value =")
+        print (  Romeo.ROOT_SCREEN.inputs)
+        print ("\n")
+     In while loop, inputs[:open].value = Dict{Symbol,Any}
+          (:hasfocus       =>[Reactive.Input{Bool}] true,
+           :insidewindow   =>[Reactive.Input{Bool}] false,
+           :scroll_x       =>[Reactive.Input{Int64}] 0,
+           :windowposition =>[Reactive.Input{ImmutableArrays.Vector2{Int64}}] [1219,297],
+           :scroll_y       =>[Reactive.Input{Int64}] 0,
+           :framebuffer_size=>[Reactive.Input{ImmutableArrays.Vector2{Int64}}] [1156,535],
+           :mousereleased   =>[Reactive.Input{Int64}] 0,
+           :buttonreleased  =>[Reactive.Input{Int64}] 341,
+           :open=>[Reactive.Input{Bool}] true,
+           :mousebuttonspressed=>[Reactive.Input{IntSet}] IntSet([]),
+           :mouseposition_glfw_coordinates=>[Reactive.Input{ImmutableArrays.Vector2{Float64}}]
+           	[11.6854248046875,197.15802001953125],
+           :unicodeinput=>[Reactive.Input{Array{Char,1}}] Char[],
+           :mouseposition=>[Reactive.Lift{ImmutableArrays.Vector2{Float64}}]
+                      [11.6854248046875,337.84197998046875],
+           :mousedown=>[Reactive.Input{Int64}] 0,
+           :window_size=>[Reactive.Input{ImmutableArrays.Vector4{Int64}}] [0,0,1156,535],
+           :buttondown=>[Reactive.Input{Int64}] 67,
+           :buttonspressed=>[Reactive.Input{IntSet}] IntSet([]))
+    ==#
 
     #this deals with double buffering and calls render
     Romeo.renderloop(Romeo.ROOT_SCREEN)
@@ -318,17 +329,39 @@ close(ns)
 
 
 #==
-    Current issues: (3/13/2015)
-       1) positionning on the Window of Screen areas defined with rectangles
-          How should we initialize areas (sourcecode_area and the others)
-          To begin with: a) ensure the mouse actions for moving a plot is on same area
-          as the graph.
-                         b) understand how the frustum parameters are set and initialized
-              
-       2) effect of lift operation, seems that the signals available on ROOT_SCREEN are
-          made available for events on the smaller area. Do we have focusing in 
-          correspondance with the bounding box of area? 
-       4) use of signals / mouse actions to orient the drawing in plot_screen (seems to work,
-          if mouse on right of screen)
-       5) run time compile error diagnostics I had circumvent (related to typing of QQUAD)
+    Weird output when error catch block prints:
+
+ in push! at /home/alain/.julia/v0.3/Reactive/src/Reactive.jl:216
+ in update at /home/alain/.julia/v0.3/Reactive/src/timing.jl:11
+ in _uv_hook_asynccb at stream.jl:489
+ in process_events at ./stream.jl:537
+ in wait at ./task.jl:273
+ in stream_wait at ./stream.jl:263
+ in write at ./stream.jl:789
+ in print at ./ascii.jl:93
+ in print at string.jl:4
+ in println at string.jl:5
+ in println at string.jl:8
+ in anonymous at /home/alain/src/Julia/Romeo.jl/test/runtestsDoc.jl:268
+ in update at /home/alain/.julia/v0.3/Reactive/src/Reactive.jl:85
+ in push! at /home/alain/.julia/v0.3/Reactive/src/Reactive.jl:245
+ in key_pressed at /home/alain/.julia/v0.3/GLWindow/src/reactglfw.jl:232
+ in renderloop at /home/alain/.julia/v0.3/Romeo/src/display/renderloop.jl:105
+ in anonymous at no file:327
+ in include at ./boot.jl:245
+ in include_from_node1 at loading.jl:128
+ in process_options at ./client.jl:285
+ in _start at ./client.jl:354
+
+ERROR: push! called when another signal is still updating.
+ in push! at /home/alain/.julia/v0.3/Reactive/src/Reactive.jl:271
+ in key_pressed at /home/alain/.julia/v0.3/GLWindow/src/reactglfw.jl:232
+ in renderloop at /home/alain/.julia/v0.3/Romeo/src/display/renderloop.jl:105
+ in anonymous at no file:327
+ in include at ./boot.jl:245
+ in include_from_node1 at loading.jl:128
+ in process_options at ./client.jl:285
+ in _start at ./client.jl:354
+while loading /home/alain/src/Julia/Romeo.jl/test/runtestsDoc.jl, in expression starting on line 299 
+
 ==#

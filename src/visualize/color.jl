@@ -79,14 +79,46 @@ function visualize{X <: AbstractAlphaColorValue}(style::Style, color::X, data)
   return obj, color1
 end
 
+    
 function color_chooser_boundingbox(obj)
   middle      = obj[:middle]  
   swatchsize  = obj[:swatchsize]
   border_size = obj[:border_size]
   model       = obj[:model]
   verts       = COLOR_QUAD[1]
+
+#==
+  Original code:
   minv = Vec3(model*Vec4(minimum(verts)...,0f0))
   maxv = Vec3(model*Vec4(maximum(verts)...,0f0))
+
+  This is the  first attempt, to correct this,but ERROR with *
+  minv = Vec3( model * convert(Array, Vec4( minimum(verts)*ones(Float32, 3)..., 0f0 ) ))
+  maxv = Vec3( model * convert(Array, Vec4( maximum(verts)*ones(Float32, 3)..., 0f0 ) ) )
+  ## ERROR: `Vector3{Float32}` has no method matching Vector3{Float32}(::Vector4{Float32})
+
+  Then we got (with still different code based on minimum and maximum):
+  ERROR: error compiling color_chooser_boundingbox: too many parameters for type Vector3
+
+  So now, use an hopefully compilable inner function   (to be checked)
+==#
+
+  function minmaxAdhoc(a)
+    min = a[1][1]
+    max  = a[1][1]
+    for i = 1:4
+        for j = 1:3
+            xx =  a[i][j]
+            min= min <= xx ? min :xx
+            max= max <= xx ? xx  : max
+        end
+     end
+    (min,max)                    
+  end
+  minX, maxX = minmaxAdhoc(verts)
+  minv = Vec3(minX, minX, minX)
+  maxv = Vec3(maxX, maxX, maxX)
+    
   AABB(minv,maxv)
 end
 end # local begin color chooser
