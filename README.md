@@ -23,3 +23,23 @@ Screenshot:
     <TD>3/13/2015
     <TD>ERROR: error compiling color_chooser_boundingbox: too many parameters for type Vector3
 </TABLE>
+
+
+### Integration of upstream changes (in  <A HREF="https://github.com/SimonDanisch/Romeo.jl">https://github.com/SimonDanisch/Romeo.jl</A>):
+
+<TABLE>
+<TR> 
+     <TD>Id
+     <TD>Date
+     <TD>Issues
+     <TD>Description
+<TR> 
+     <TD>ae1799a
+     <TD> Fri Mar 13 21:26:21 
+     <TD> Error in tests
+     <TD>hunt_seg2.jl:
+         ERROR: Ufixed8 not defined
+         <BR>hunt_seg.jl:
+         ERROR: syntax: extra token "map" after end of expression
+         <BR> Behaviour much improved in runtest.jl (mouse and parameter entry grid functionnal)
+</TABLE>
