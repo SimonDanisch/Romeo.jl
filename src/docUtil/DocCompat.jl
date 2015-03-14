@@ -12,7 +12,6 @@ module DocCompat
 export doc, @doc
 
 if isless(VERSION, VersionNumber(0,4))
-
      using Base.Meta
 
      macro doc_str(x)
@@ -48,8 +47,6 @@ if isless(VERSION, VersionNumber(0,4))
      end
 else   # Version >= 0.4
      using Base.doc
-     #doc    = Base.doc 
-     #@doc   = Base.@doc
 end   
 
 end # module DocCompat

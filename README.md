@@ -35,11 +35,26 @@ Screenshot:
      <TD>Description
 <TR> 
      <TD>ae1799a
-     <TD> Fri Mar 13 21:26:21 
+     <TD> Fri Mar 13 21:26:21 2015
      <TD> Error in tests
      <TD>hunt_seg2.jl:
          ERROR: Ufixed8 not defined
          <BR>hunt_seg.jl:
          ERROR: syntax: extra token "map" after end of expression
          <BR> Behaviour much improved in runtest.jl (mouse and parameter entry grid functionnal)
+</TABLE>
+
+### Use of Julia 0.4 (master)
+<TABLE>
+<TR> 
+     <TD>Id
+     <TD>Date
+     <TD>Issues
+     <TD>Description
+<TR> 
+     <TD>julia 0.4.0-dev+3814<BR>GLAbstraction commit=98cafb4aae3
+     <TD>Mar 14 2015
+     <TD>failure to load GLAbstraction
+     <TD>LoadError: UndefVarError: ColorValue not defined. <BR> This is independent of
+     Romeo.
 </TABLE>
