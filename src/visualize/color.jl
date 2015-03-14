@@ -85,8 +85,8 @@ function color_chooser_boundingbox(obj)
   border_size = obj[:border_size]
   model       = obj[:model]
   verts       = COLOR_QUAD[1]
-  minv = Vec3(model*Vec4(minimum(verts)...,0f0))
-  maxv = Vec3(model*Vec4(maximum(verts)...,0f0))
-  AABB(minv,maxv)
+  minv = model*Vec4(minimum(verts)...,0f0)
+  maxv = model*Vec4(maximum(verts)...,0f0)
+  AABB(Vec3(minv[1:3]), Vec3(maxv[1:3]))
 end
 end # local begin color chooser
