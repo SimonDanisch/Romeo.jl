@@ -98,7 +98,7 @@ function renderloop(ROOT_SCREEN)
   glBindFramebuffer(GL_READ_FRAMEBUFFER, RENDER_FRAMEBUFFER)
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
   glClear(GL_COLOR_BUFFER_BIT)
-
+  glDisable(GL_SCISSOR_TEST)
   ROOT_SCREEN_size = ROOT_SCREEN.inputs[:framebuffer_size].value
   glBlitFramebuffer(0,0, ROOT_SCREEN_size..., 0,0, ROOT_SCREEN_size..., GL_COLOR_BUFFER_BIT, GL_LINEAR)
   GLFW.SwapBuffers(ROOT_SCREEN.nativewindow)

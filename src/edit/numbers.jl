@@ -68,7 +68,7 @@ function edit{T <: Union(AbstractFixedVector, Real)}(style::Style{:Default}, num
   # We allocated more space on the gpu then needed (length(numbers)*maxdigits)
   # So we need to update the render method, to render only length(numbers) * maxlength
   # ([numbers], zero(eltype(numbers)), -1, -1, -1, Vector2(0.0))
-  number_lift = foldl(([numbers], zero(eltype(numbers)), -1, -1, -1, Vector2(0.0)), screen.inputs[:mouseposition], screen.inputs[:mousebuttonspressed], selectiondata) do v0, mposition, mbuttons, selection
+  number_lift = foldl(([numbers;], zero(eltype(numbers)), -1, -1, -1, Vector2(0.0)), screen.inputs[:mouseposition], screen.inputs[:mousebuttonspressed], selectiondata) do v0, mposition, mbuttons, selection
     numbers0, value0, inumbers0, igpu0, mbutton0, mposition0 = v0
     # if over a number           && nothing selected &&         only           left mousebutton clicked
     if selection[1] == obj.id && inumbers0 == -1 && length(mbuttons) == 1 && in(0, mbuttons)
@@ -170,26 +170,26 @@ function edit{T <: Union(AbstractVector, Real)}(style::Style, numbers::T, custom
   # We allocated more space on the gpu then needed (length(numbers)*maxdigits)
   # So we need to update the render method, to render only length(numbers) * maxlength
   # ([numbers], zero(eltype(numbers)), -1, -1, -1, Vector2(0.0))
-  number_lift = foldl(([numbers], zero(eltype(numbers)), -1, -1, -1, Vector2(0.0)), screen.inputs[:mouseposition], screen.inputs[:mousebuttonspressed], selectiondata) do v0, mposition, mbuttons, selection
-    numbers0, value0, inumbers0, igpu0, mbutton0, mposition0 = v0
+  number_lift = foldl(([numbers;], zero(eltype(numbers)), -1, -1, -1, Vector2(0.0)), screen.inputs[:mouseposition], screen.inputs[:mousebuttonspressed], selectiondata) do v0, mposition, mbuttons, selection
+    numbers0, value0, inumbers0::Int, igpu0, mbutton0, mposition0 = v0
     # if over a number           && nothing selected &&         only           left mousebutton clicked
-    if selection[1] == obj.id && inumbers0 == -1 && length(mbuttons) == 1 && in(0, mbuttons)
+    if selection[1] == obj.id && inumbers0::Int == -1 && length(mbuttons) == 1 && in(0, mbuttons)
       iorigin   = selection[2]
       inumbers  = div(iorigin, maxlength) + 1
       igpu      = int((iorigin - (iorigin%maxlength)) + 1) # get the first index of the number
       return (numbers0, numbers0[inumbers], inumbers, igpu, 0, mposition)
     end
     # if a number is selected && previous click was left && still only left button ist clicked
-    if inumbers0 > 0 && mbutton0 == 0 && length(mbuttons) == 1 && in(0, mbuttons) 
+    if inumbers0::Int > 0 && mbutton0 == 0 && length(mbuttons) == 1 && in(0, mbuttons) 
       xdiff                    = mposition[1] - mposition0[1]
-      numbers0[inumbers0]      = value0 + (float32(xdiff)/ 50.0f0)
+      numbers0[inumbers0::Int]      = value0 + (float32(xdiff)/ 50.0f0)
       #numbertex[inumbers0]     = numbers0[inumbers0]
-      a = mod(inumbers0-1, size(numbers0, 1))
-      b = div(inumbers0-1, size(numbers0, 1))
-      for (k,c) in enumerate(makestring(numbers0[inumbers0], maxlength))
+      a = mod(inumbers0::Int-1, size(numbers0::Int, 1))
+      b = div(inumbers0::Int-1, size(numbers0::Int, 1))
+      for (k,c) in enumerate(makestring(numbers0[inumbers0::Int], maxlength))
         textgpu[igpu0+k-1] = GLGlyph(c, a, (b-1)+b*maxlength+k, 0)
       end
-      return (numbers0, value0, inumbers0, igpu0, 0, mposition0)
+      return (numbers0, value0, inumbers0::Int, igpu0, 0, mposition0)
     end
     return (numbers0, zero(eltype(numbers0)), -1, -1, -1, Vector2(0.0))
   end
