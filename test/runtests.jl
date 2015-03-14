@@ -41,6 +41,7 @@ global MemRefs = Any[]
 To be continued...
      """  -> 
 function init_romeo()
+
     sourcecode_area = lift(Romeo.ROOT_SCREEN.area) do x
     	Rectangle(0, 0, div(x.w, 7)*3, x.h)
     end
@@ -76,11 +77,11 @@ function init_romeo()
     searchinput = Input("barplot")
 
     const sourcecode  = visualize("barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n", model=source_offset, screen=sourcecode_screen)
-    barplot           = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 for i=1:10, j=1:10]
+    global const barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 for i=1:10, j=1:10]
     search            = visualize("barplot\n", model=search_offset, color=rgba(0.9,0,0.2,1), screen=search_screen)
 
-    viz, source_text  = edit(sourcecode[:text], sourcecode)
-    viz, search_text  = edit(search[:text], search)
+    viz, source_text = edit(sourcecode[:text], sourcecode)
+    viz, search_text = edit(search[:text], search)
 
     should_eval = dropequal(lift(Romeo.ROOT_SCREEN.inputs[:buttonspressed]) do keyset
         keyset == IntSet(GLFW.KEY_ENTER, GLFW.KEY_LEFT_CONTROL)
