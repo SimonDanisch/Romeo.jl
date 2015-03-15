@@ -13,15 +13,15 @@ Screenshot:
 <TR><TD>ISSUES
     <TD>Date
     <TD>Description
-<TR><TD>Position window areas
-    <TD>3/13/2015
-    <TD>Need more precise specs on positionning of graphics and mouse focus
-<TR><TD>Signals
-    <TD>3/13/2015
-    <TD>Are signals focused when entered via lift operation?
-<TR><TD>Compiler
-    <TD>3/13/2015
-    <TD>ERROR: error compiling color_chooser_boundingbox: too many parameters for type Vector3
+<TR><TD>
+    <TD>
+    <TD>
+<TR><TD>
+    <TD>
+    <TD>
+<TR><TD>
+    <TD>
+    <TD>
 </TABLE>
 
 
@@ -34,14 +34,11 @@ Screenshot:
      <TD>Issues
      <TD>Description
 <TR> 
-     <TD>ae1799a
-     <TD> Fri Mar 13 21:26:21 2015
-     <TD> Error in tests
-     <TD>hunt_seg2.jl:
-         ERROR: Ufixed8 not defined
-         <BR>hunt_seg.jl:
-         ERROR: syntax: extra token "map" after end of expression
-         <BR> Behaviour much improved in runtest.jl (mouse and parameter entry grid functionnal)
+     <TD>b1fe8580618ec94
+     <TD>Sat Mar 14 12:31:48 2015
+     <TD>
+     <TD>Example simple_display_grid.jl clarifies screen positionning, 
+         signal.
 </TABLE>
 
 ### Use of Julia 0.4 (master)
@@ -52,9 +49,10 @@ Screenshot:
      <TD>Issues
      <TD>Description
 <TR> 
-     <TD>julia 0.4.0-dev+3814<BR>GLAbstraction commit=98cafb4aae3
-     <TD>Mar 14 2015
-     <TD>failure to load GLAbstraction
-     <TD>LoadError: UndefVarError: ColorValue not defined. <BR> This is independent of
-     Romeo.
+     <TD> Version 0.4.0-dev+3821 commit 8a777c274cdd1e77
+     <TD> Sat Mar 14 16:15:30 2015
+     <TD> Rebuild from source tree
+     <TD> Full rebuild was needed, Romeo examples under Julia 0.4. 
+          Moving to Julia 0.4 for future devs using Romeo.
 </TABLE>
+
