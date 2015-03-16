@@ -5,8 +5,14 @@ The original page for Romeo is <A HREF="https://github.com/SimonDanisch/Romeo.jl
 # Romeo
 Romeo is an interactive scripting environment, in which you can execute Julia scripts and edit the variables in 3D.
 
-Screenshot:
-![Screenshot](test/CaptureJulia.png) shows current state of my development based on Romeo.jl
+Screenshots  shows current state of my development based on Romeo.jl
+<TABLE>
+<TR>
+    <TD><IMG SRC="test/CaptureJulia.png" WIDTH=120>
+    <TD><IMG SRC="test/ScreenShot315.png" WIDTH=120>
+</TABLE>
+
+
 
 ### The following issues concern my own development
 <TABLE>
