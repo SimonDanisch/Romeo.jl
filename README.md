@@ -52,7 +52,7 @@ Screenshot:
      <TD> Version 0.4.0-dev+3821 commit 8a777c274cdd1e77
      <TD> Sat Mar 14 16:15:30 2015
      <TD> Rebuild from source tree
-     <TD> Full rebuild was needed, Romeo examples under Julia 0.4. 
+     <TD> Full rebuild was needed, Romeo examples now run under Julia 0.4. 
           Moving to Julia 0.4 for future devs using Romeo.
 </TABLE>
 
