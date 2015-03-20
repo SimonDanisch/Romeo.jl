@@ -1,14 +1,21 @@
-# --line 7504 --  -- from : "BigData.pamphlet"  
+# --line 8382 --  -- from : "BigData.pamphlet"  
 using DocCompat
+
+# try to avoid the numerous "deprecated warnings/messages"
+using ManipStreams
+(os,ns) =  redirectNewFWrite("/tmp/julia.redirected")
 
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
 using ImmutableArrays
     #  Loading GLFW opens the window
+using GLPlot      # this will provide some default constructed objets from
+                  # GLPlot; unclear whether we want to keep the stuff
+                  # global ocamera,pcamera
 using Compat
 include("../src/docUtil/RomeoLib.jl")
 
 
-# --line 7516 --  -- from : "BigData.pamphlet"  
+# --line 8401 --  -- from : "BigData.pamphlet"  
 function mkSubScrGeom()
     ## Build subscreens, use of screen_height_width permits to
     ## adapt subscreen dimensions to changes in  root window  size
@@ -18,7 +25,81 @@ function mkSubScrGeom()
             prepSubscreen( Vector([4,1]), Vector([1,4]))
     end
 end
-# --line 7530 --  -- from : "BigData.pamphlet"  
+
+# --line 5437 --  -- from : "BigData.pamphlet"  
+# for now, we found a ready made cube
+function mkCubeShape()
+     vertices, uv, indexes = gencube(1,1,1)
+     return ( vertices, uv, indexes)
+end
+# --line 5445 --  -- from : "BigData.pamphlet"  
+# For now this is is inspired by grid.jl
+@doc """
+      Create a RenderObject containing Cube(s)
+      WARNING:in this design we return an incomplete RenderObject, mvp missing!!
+""" ->
+function mkCube()
+	global gridshader
+
+        v,uv,i =mkCubeShape()
+        println("In mkCube : ",  typeof(v), "\t", typeof(uv), "\t", typeof(i) )
+        println("\tv=$v")
+        println("\tuv=$uv")
+        println("\ti=$i")
+
+        robj = RenderObject(@compat(Dict(
+                        :vertexes                => GLBuffer(v,3),
+                        :indexes                  => indexbuffer(i),
+                        :fg_color                 => Float32[0.1,.1,.1, 1.0],
+                        :bg_color                 => Input(Vec4(0.3, 0.3, 1, 0.5)),
+                        # try to do without camera, so that this is an incomplete RenderObject
+                        :mvp                        => nothing
+                )), gridshader)        
+
+#        prerender!(robj, glDisable, GL_DEPTH_TEST, glDisable, GL_CULL_FACE, enabletransparency)
+#        postrender!(robj, render, robj.vertexarray)
+        return TBCompleted(robj,nothing)
+end
+
+
+# --line 5477 --  -- from : "BigData.pamphlet"  
+function mkCube(screen,camera)
+	global gridshader
+
+        v,uv,i =mkCubeShape()
+        println("In mkCube : ",  typeof(v), "\t", typeof(uv), "\t", typeof(i) )
+        println("\tv=$v")
+        println("\tuv=$uv")
+        println("\ti=$i")
+
+        robj = RenderObject(@compat(Dict(
+                 :vertexes                => GLBuffer(v,3),
+                 :indexes                 => indexbuffer(i),
+                 :fg_color                => Float32[0.1,.1,.1, 1.0],
+                 :bg_color                => Input(Vec4(0.3, 0.3, 1, 0.5)),
+                 :mvp                     => camera.projectionview
+                            
+                )), gridshader)        
+
+        prerender!(robj, glDisable, GL_DEPTH_TEST, glDisable, GL_CULL_FACE, enabletransparency)
+        postrender!(robj, render, robj.vertexarray)
+        return robj
+end
+
+
+function initgrid()  
+   sourcedir = "/home/alain/julia.d/v0.4/Romeo/src"
+   shaderdir = joinpath(sourcedir, "shader")
+   global gridshader
+   gridshader = TemplateProgram( joinpath(shaderdir,"grid.vert"),
+ 			 			  joinpath(shaderdir,"grid.frag"))
+end
+
+# adds initgrid on the list of things to be done by init_glutils in GLAbstraction/GLInit
+# so this is done while "compiling"
+init_after_context_creation(initgrid)
+
+# --line 8420 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with the various
         render objects that we wish to show. 
@@ -38,11 +119,11 @@ function init_graph_grid(onlyImg::Bool)
             # color = rgba(1.0,0.0,0.0,0.4) )
             #  notice that the visualize act is done in init_romeo()
 
-   # volume : try with a cube (need to figure out how to make this)
-   vol =  Texture("pic.jpg")
    # put cats all over the place!!!
    pic = Texture("pic.jpg")
 
+   # volume : try with a cube (need to figure out how to make this)
+   vol =  mkCube()
 
             # rows go from bottom to top, columns from left to right on screen
    vizObjArray[1,1] = pic
@@ -57,11 +138,12 @@ function init_graph_grid(onlyImg::Bool)
    return vizObjArray
 end  
 
-# --line 7572 --  -- from : "BigData.pamphlet"  
+# --line 8462 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options
      """ ->
 function realMain(onlyImg::Bool)
+   init_glutils()
 
    vizObjArray = init_graph_grid(onlyImg)
    subScreenGeom = mkSubScrGeom()
@@ -69,7 +151,23 @@ function realMain(onlyImg::Bool)
    interact_loop()
 end
 
-# --line 7586 --  -- from : "BigData.pamphlet"  
+
+# --line 8478 --  -- from : "BigData.pamphlet"  
+@doc """
+       Does the real work, simple variant
+     """ ->
+function realMainSimple(onlyImg::Bool)
+   init_glutils()   # defined in GLAbstraction/GLInit
+                    # in practice loads registerd shaders
+
+   renderObjFn = (sc,cam) -> mkCube(sc,cam) # this is a function object, since
+                                  # we cannot evaluate before we know the screen 
+   init_romeo_single(renderObjFn)
+
+   interact_loop()
+end
+
+# --line 8496 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the command line.
 using ArgParse
 
@@ -79,6 +177,9 @@ function main(args)
        "--img","-i"   
                help="Use image instead of other graphics/scenes"
                action = :store_true
+       "--cube", "-c"
+               help="Test with a single cube in root window/screen"
+               action = :store_true
      end    
 
      s.epilog = """
@@ -86,8 +187,13 @@ function main(args)
      """
     parsed_args = parse_args(s) # the result is a Dict{String,Any}
 
-    onlyImg     = parsed_args["img"]
-    realMain(onlyImg)
+    onlyImg        = parsed_args["img"]
+    cubeSingle     = parsed_args["cube"]
+    cubeSingle ?   realMainSimple(onlyImg) : realMain(onlyImg)    
 end
 
 main(ARGS)
+
+restoreErrStream(os)
+close(ns)
+
