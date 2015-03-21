@@ -28,7 +28,9 @@ windowhints = [
   (GLFW.AUX_BUFFERS, 0)
 ]
 
-const ROOT_SCREEN = createwindow("Romeo", 1920, 1280, windowhints=windowhints, debugging=false)
+const ROOT_SCREEN = createwindow("Romeo", 1920, 1280, windowhints=windowhints, debugging=true)
+# Can we make such selections later or dependent on parameters available at
+# load time?? Debugging sets GLFW debugging, whatever this achieves.
 insert_selectionquery!(:mouse_hover, lift(ROOT_SCREEN.inputs[:mouseposition]) do mpos
   Rectangle(int(mpos[1]), int(mpos[2]), 1,1)
 end)

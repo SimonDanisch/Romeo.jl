@@ -1,4 +1,4 @@
-# --line 7972 --  -- from : "BigData.pamphlet"  
+# --line 8041 --  -- from : "BigData.pamphlet"  
 # This will move to a library
 @doc """   Empty the vector of renderers passed in argument, 
            and delete individually    each element.
@@ -9,7 +9,7 @@ function clear!(x::Vector{RenderObject})
         delete!(value)
     end
 end
-# --line 7985 --  -- from : "BigData.pamphlet"  
+# --line 8054 --  -- from : "BigData.pamphlet"  
 @doc """   Drop repeated signals
      """   ->
 function dropequal(a::Signal)
@@ -18,7 +18,7 @@ function dropequal(a::Signal)
     end
     dropwhen(lift(first, is_equal), a.value, a)
 end
-# --line 7997 --  -- from : "BigData.pamphlet"  
+# --line 8066 --  -- from : "BigData.pamphlet"  
 # here we deal with subscreens
 
 @doc """
@@ -33,7 +33,7 @@ type SubScreen{T <: Number}
     w::T
     h::T      
 end
-# --line 8014 --  -- from : "BigData.pamphlet"  
+# --line 8083 --  -- from : "BigData.pamphlet"  
 @doc """ 
          prepare an array of SubScreen{Float}, each with position(x,y) and 
          width(w,h). The arguments are two vectors indicating the relative
@@ -58,7 +58,7 @@ function prepSubscreen{T}(colwRel::Vector{T},linehRel::Vector{T})
     end
     return ret
 end
-# --line 8041 --  -- from : "BigData.pamphlet"  
+# --line 8110 --  -- from : "BigData.pamphlet"  
 @doc """
          Returns a Rectangle based on:
          Arg. 1:  a SubScreen for proportions 
@@ -71,7 +71,7 @@ function RectangleProp(ssc,x)
 end
 
 
-# --line 8057 --  -- from : "BigData.pamphlet"  
+# --line 8126 --  -- from : "BigData.pamphlet"  
 function completeRObj(vol, screen)
       println("in CompleteRObj vol=$vol\n screen=$screen")
       if isa(vol, Dict) && haskey(vol,:render) && isa( vol[:render], NotComplete)
@@ -106,7 +106,7 @@ end
 
 
 
-# --line 8094 --  -- from : "BigData.pamphlet"  
+# --line 8163 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations
           It uses the global vizObjArray which is an array of RenderObjects
           that corresponds to the geometric grid built locally in subScreenGeom
@@ -153,7 +153,7 @@ end
 
 
 
-# --line 8144 --  -- from : "BigData.pamphlet"  
+# --line 8213 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations in order to display a
 	  single render object in the root window. It is also
           a debugging tool for render objects.
@@ -197,11 +197,22 @@ function init_romeo_single(roFunc)
 
     println("RenderObject=",vo)
     viz = visualize(vo)   # normally roFunc sets the screen 
-    push!( screen.renderlist, viz)
     chkDump(viz)
+
+    wp1 = which( push!, ( typeof(screen.renderlist), typeof(viz)))
+    wp2 = which(  push!, ( typeof(screen.renderlist), typeof(viz)))
+    println("Which push! (1) returns $wp1")
+    println("Which push! (2) returns $wp2")
+
+    push!( screen.renderlist, viz)
+    push!( root_screen.renderlist, viz)
+
+    println("screen=$screen\nEnd of screen\n\tshould be child of ROOT_SCREEN")
+    println("root_screen=$root_screen\n")
+    
 end
 
-# --line 8290 --  -- from : "BigData.pamphlet"  
+# --line 8370 --  -- from : "BigData.pamphlet"  
 function interact_loop()
    while Romeo.ROOT_SCREEN.inputs[:open].value
       glEnable(GL_SCISSOR_TEST)
@@ -210,7 +221,7 @@ function interact_loop()
    end
    GLFW.Terminate()
 end
-# --line 8301 --  -- from : "BigData.pamphlet"  
+# --line 8405 --  -- from : "BigData.pamphlet"  
 abstract NotComplete
 
 @doc """
@@ -233,7 +244,7 @@ type TBCompleted{T} <: NotComplete
      what::T
      func::Union(Function,Void)
 end
-# --line 8327 --  -- from : "BigData.pamphlet"  
+# --line 8431 --  -- from : "BigData.pamphlet"  
 # here we have our debug subsection
 
 function unitCube{T<:Number}(zero::T)
@@ -269,7 +280,7 @@ function chkDump(r::RenderObject)
          println("No projection or projectionview in uniforms")
     end
 end
-# --line 8365 --  -- from : "BigData.pamphlet"  
+# --line 8469 --  -- from : "BigData.pamphlet"  
 function chkDump(d::Dict{Symbol,Any})
     println("In  chkDump(d::Dict{Symbol,Any})\n")
     for (k,v) in d

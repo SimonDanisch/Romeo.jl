@@ -14,10 +14,16 @@ $(DOCUTILDIR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl
 
 .PHONY: run runSingle progs
 
-progs: RomeoVolume.jl $(DOCUTILDIR)/RomeoLib.jl
+progs :  RomeoVolume.jl $(DOCUTILDIR)/RomeoLib.jl
 
-run:  RomeoVolume.jl $(DOCUTILDIR)/RomeoLib.jl
+run:         progs 
 	Julia4 RomeoVolume.jl
 
-runSingle:   RomeoVolume.jl $(DOCUTILDIR)/RomeoLib.jl
+runSingle:   progs 
 	Julia4 RomeoVolume.jl --cube
+
+runSingleD:  progs 
+	Julia4 RomeoVolume.jl --cube --debug=60
+
+runSingleDI:  progs 
+	Julia4 RomeoVolume.jl --cube --Img --debug=60
