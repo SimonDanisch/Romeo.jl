@@ -23,7 +23,7 @@ runSingle:   progs
 	Julia4 RomeoVolume.jl --cube
 
 runSingleD:  progs 
-	Julia4 RomeoVolume.jl --cube --debug=60
+	Julia4 RomeoVolume.jl --cube --debug=61
 
 runSingleDI:  progs 
-	Julia4 RomeoVolume.jl --cube --Img --debug=60
+	Julia4 RomeoVolume.jl --cube --Img --debug=61
