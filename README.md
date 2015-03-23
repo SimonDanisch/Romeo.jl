@@ -19,9 +19,12 @@ Screenshots  shows current state of my development based on Romeo.jl
 <TR><TD>ISSUES
     <TD>Date
     <TD>Description
-<TR><TD>
-    <TD>
-    <TD>
+<TR><TD>Too permissive CTOR
+    <TD>Sun Mar 22 2015
+    <TD>In <CODE>./src/visualize_interface.jl</CODE> 
+        ```visualize(x; customizations...) = visualize(string(x); customizations...)```
+        implies stringification of any <CODE>x</CODE> for which no specialized version
+        of  <CODE>visualize</CODE> exists. In many cases this brings silent failure.
 <TR><TD>
     <TD>
     <TD>
@@ -42,9 +45,10 @@ Screenshots  shows current state of my development based on Romeo.jl
 <TR> 
      <TD>b1fe8580618ec94
      <TD>Sat Mar 14 12:31:48 2015
-     <TD>
+     <TD>Closed
      <TD>Example simple_display_grid.jl clarifies screen positionning, 
-         signal.
+         signal. Shows capacity of synchronized signals in several subscreen,
+         for instance ensure similar rotations upon mouse signal.
 </TABLE>
 
 ### Use of Julia 0.4 (master)

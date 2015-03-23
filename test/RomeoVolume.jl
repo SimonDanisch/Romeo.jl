@@ -1,4 +1,4 @@
-# --line 8760 --  -- from : "BigData.pamphlet"  
+# --line 8808 --  -- from : "BigData.pamphlet"  
 using DocCompat
 
 # try to avoid the numerous "deprecated warnings/messages"
@@ -8,14 +8,12 @@ using ManipStreams
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
 using ImmutableArrays
     #  Loading GLFW opens the window
-using GLPlot      # this will provide some default constructed objets from
-                  # GLPlot; unclear whether we want to keep the stuff
-                  # global ocamera,pcamera
 using Compat
+
 include("../src/docUtil/RomeoLib.jl")
 
 
-# --line 8779 --  -- from : "BigData.pamphlet"  
+# --line 8825 --  -- from : "BigData.pamphlet"  
 function mkSubScrGeom()
     ## Build subscreens, use of screen_height_width permits to
     ## adapt subscreen dimensions to changes in  root window  size
@@ -26,49 +24,21 @@ function mkSubScrGeom()
     end
 end
 
-# --line 5498 --  -- from : "BigData.pamphlet"  
+# --line 5521 --  -- from : "BigData.pamphlet"  
 # for now, we found a ready made cube
 function mkCubeShape()
      vertices, uv, indexes = gencube(1,1,1)
      return ( vertices, uv, indexes)
 end
-# --line 5506 --  -- from : "BigData.pamphlet"  
-# For now this is is inspired by grid.jl
+# --line 5529 --  -- from : "BigData.pamphlet"  
+# inline shader construction in the same style e as oglExample2.jl
+# (snippets provided  by S.Danisch)
 @doc """
       Create a RenderObject containing Cube(s)
       WARNING:in this design we return an incomplete RenderObject, mvp missing!!
 """ ->
 function mkCube()
-	global gridshader
-
-        v,uv,i =mkCubeShape()
-        println("In mkCube() : ",  typeof(v), "\t", typeof(uv), "\t", typeof(i) )
-        println("       type gridshader=\t", typeof(gridshader))
-        println("\tv=$v")
-        println("\tuv=$uv")
-        println("\ti=$i")
-        println("\tshader=$gridshader\n+++  End of mkCube output +++\n")
-
-        robj = RenderObject(@compat(Dict(
-                        :vertexes                => GLBuffer(v,3),
-                        :indexes                  => indexbuffer(i),
-                        :fg_color                 => Float32[0.1,.1,.1, 1.0],
-                        :bg_color                 => Input(Vec4(0.3, 0.3, 1, 0.5)),
-                        # try to do without camera, so that this is an incomplete RenderObject
-                        :mvp                        => nothing
-                )), gridshader)        
-
-#        prerender!(robj, glDisable, GL_DEPTH_TEST, glDisable, GL_CULL_FACE, enabletransparency)
-#        postrender!(robj, render, robj.vertexarray)
-        return TBCompleted(robj,nothing)
-end
-
-# --line 5539 --  -- from : "BigData.pamphlet"  
-# inline shader construction in the same style e as oglExample2.jl
-# (snippets provided  by S.Danisch)
-
-function mkCube(screen,camera)
-# --line 5601 --  -- from : "BigData.pamphlet"  
+# --line 5639 --  -- from : "BigData.pamphlet"  
 cubeVert="""
 {{GLSL_VERSION}}
 
@@ -84,7 +54,7 @@ void main(){
    	gl_Position = projectionview * vec4(vertex, 1.0);
 }
 """
-# --line 5619 --  -- from : "BigData.pamphlet"  
+# --line 5657 --  -- from : "BigData.pamphlet"  
 cubeFrag="""
 {{GLSL_VERSION}}
 
@@ -96,7 +66,7 @@ void main(){
    	frag_color = vec4(vert_color, 1); // put in transparency
 }
 """
-# --line 5633 --  -- from : "BigData.pamphlet"  
+# --line 5671 --  -- from : "BigData.pamphlet"  
 cubeLineVert="""
 {{GLSL_VERSION}}
 
@@ -108,7 +78,7 @@ void main(){
    	gl_Position = projectionview * vec4(vertex, 1.0);
 }
 """
-# --line 5647 --  -- from : "BigData.pamphlet"  
+# --line 5685 --  -- from : "BigData.pamphlet"  
 cubeLineFrag="""
 {{GLSL_VERSION}}
 
@@ -117,25 +87,109 @@ void main(){
    	frag_color = vec4(0.5,0.5,0.5,1);
 }
 """
-# --line 5550 --  -- from : "BigData.pamphlet"  
+# --line 5543 --  -- from : "BigData.pamphlet"  
         # build the shader from inlined GLSL
 	lineshader 	= TemplateProgram(cubeLineVert, cubeLineFrag, 
                                          "Cube-linevert", "Cube-linefrag")
 	shader 		= TemplateProgram(cubeVert, cubeFrag, "Cube-vert", "Cube-frag")
 
-        println(shader)
-        println(lineshader)
-
-# --line 5561 --  -- from : "BigData.pamphlet"  
+# --line 5551 --  -- from : "BigData.pamphlet"  
         v,uv,i =mkCubeShape()
-
-        println("In mkCube(screen,camera) : v::",  typeof(v), 
-                                "\tuv::", typeof(uv), "\ti::", typeof(i) )
+        
+        println("In mkCube() : ",  typeof(v), "\t", typeof(uv), "\t", typeof(i) )
+        println("       type shaders=\t", typeof(shader),"\t",typeof(lineshader) )
         println("\tv=$v")
         println("\tuv=$uv")
         println("\ti=$i")
-        println("+++  End of mkCube output +++\n")
+        println("\tshader=$shader\n")
+        println("\tlineshader=$lineshader\n+++  End of mkCube output +++\n")
 
+        robj = RenderObject(@compat(Dict(
+                        :vertex                   => GLBuffer(v,3),
+                        :indexes                  => indexbuffer(i),
+                        :color                    => Float32[0.1,.6,.6, 1.0],
+                        :bg_color                 => Input(Vec4(0.3, 0.3, 1, 0.5)),
+                        # try to do without camera, so that this is an incomplete RenderObject
+                        :projectionview           => nothing
+                )), shader)        
+
+        robjl = RenderObject(@compat(Dict(
+                        :vertex                   => GLBuffer(v,3),
+                        :indexes                  => indexbuffer(i),
+                        :color                    => Float32[0.6,.1,.6, 1.0],
+                        :bg_color                 => Input(Vec4(0.3, 0.3, 1, 0.5)),
+                        # try to do without camera, so that this is an incomplete RenderObject
+                        :projectionview           => nothing
+                )), lineshader)        
+
+         return  map ((robj,robjl)) do ro
+                     TBCompleted(ro,nothing)
+                end
+
+end
+
+# --line 5588 --  -- from : "BigData.pamphlet"  
+# inline shader construction in the same style e as oglExample2.jl
+# (snippets provided  by S.Danisch)
+
+function mkCube(screen,camera)
+# --line 5639 --  -- from : "BigData.pamphlet"  
+cubeVert="""
+{{GLSL_VERSION}}
+
+{{in}} vec3 vertex;
+{{in}} vec3 color;
+
+{{out}} vec3 vert_color;
+
+uniform mat4 projectionview;
+
+void main(){
+	vert_color = color;
+   	gl_Position = projectionview * vec4(vertex, 1.0);
+}
+"""
+# --line 5657 --  -- from : "BigData.pamphlet"  
+cubeFrag="""
+{{GLSL_VERSION}}
+
+
+{{in}} vec3 vert_color; // gets automatically interpolated per fragment (fragment--> pixel)
+
+{{out}} vec4 frag_color;
+void main(){
+   	frag_color = vec4(vert_color, 1); // put in transparency
+}
+"""
+# --line 5671 --  -- from : "BigData.pamphlet"  
+cubeLineVert="""
+{{GLSL_VERSION}}
+
+{{in}} vec3 vertex;
+
+uniform mat4 projectionview;
+
+void main(){
+   	gl_Position = projectionview * vec4(vertex, 1.0);
+}
+"""
+# --line 5685 --  -- from : "BigData.pamphlet"  
+cubeLineFrag="""
+{{GLSL_VERSION}}
+
+{{out}} vec4 frag_color;
+void main(){
+   	frag_color = vec4(0.5,0.5,0.5,1);
+}
+"""
+# --line 5599 --  -- from : "BigData.pamphlet"  
+        # build the shader from inlined GLSL
+	lineshader 	= TemplateProgram(cubeLineVert, cubeLineFrag, 
+                                         "Cube-linevert", "Cube-linefrag")
+	shader 		= TemplateProgram(cubeVert, cubeFrag, "Cube-vert", "Cube-frag")
+
+# --line 5607 --  -- from : "BigData.pamphlet"  
+        v,uv,i =mkCubeShape()
         robj = RenderObject(@compat(Dict(
                  :vertex                  => GLBuffer(v,3),
                  :indexes                 => indexbuffer(i),
@@ -158,13 +212,13 @@ void main(){
         prerender!(robjl, glDisable, GL_DEPTH_TEST, glDisable, GL_CULL_FACE, enabletransparency)
         postrender!(robjl, render, robjl.vertexarray, GL_LINES)
 
-        chkDump(robj,true)
-        chkDump(robjl,true)
+        #chkDump(robj,true)
+        #chkDump(robjl,true)
 
         return (robj,robjl)
 end
 
-# --line 8798 --  -- from : "BigData.pamphlet"  
+# --line 8844 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with the various
         render objects that we wish to show. 
@@ -203,7 +257,7 @@ function init_graph_grid(onlyImg::Bool)
    return vizObjArray
 end  
 
-# --line 8840 --  -- from : "BigData.pamphlet"  
+# --line 8886 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options
      """ ->
@@ -217,7 +271,7 @@ function realMain(onlyImg::Bool)
 end
 
 
-# --line 8856 --  -- from : "BigData.pamphlet"  
+# --line 8902 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, simple variant
      """ ->
@@ -243,7 +297,7 @@ function realMainSimple(onlyImg::Bool)
    interact_loop()
 end
 
-# --line 8885 --  -- from : "BigData.pamphlet"  
+# --line 8931 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the command line.
 using ArgParse
 

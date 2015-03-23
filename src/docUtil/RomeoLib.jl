@@ -1,4 +1,4 @@
-# --line 8287 --  -- from : "BigData.pamphlet"  
+# --line 8330 --  -- from : "BigData.pamphlet"  
 # This will move to a library
 @doc """   Empty the vector of renderers passed in argument, 
            and delete individually    each element.
@@ -9,7 +9,7 @@ function clear!(x::Vector{RenderObject})
         delete!(value)
     end
 end
-# --line 8300 --  -- from : "BigData.pamphlet"  
+# --line 8343 --  -- from : "BigData.pamphlet"  
 @doc """   Drop repeated signals
      """   ->
 function dropequal(a::Signal)
@@ -18,7 +18,7 @@ function dropequal(a::Signal)
     end
     dropwhen(lift(first, is_equal), a.value, a)
 end
-# --line 8312 --  -- from : "BigData.pamphlet"  
+# --line 8355 --  -- from : "BigData.pamphlet"  
 # here we deal with subscreens
 
 @doc """
@@ -33,7 +33,7 @@ type SubScreen{T <: Number}
     w::T
     h::T      
 end
-# --line 8329 --  -- from : "BigData.pamphlet"  
+# --line 8372 --  -- from : "BigData.pamphlet"  
 @doc """ 
          prepare an array of SubScreen{Float}, each with position(x,y) and 
          width(w,h). The arguments are two vectors indicating the relative
@@ -58,7 +58,7 @@ function prepSubscreen{T}(colwRel::Vector{T},linehRel::Vector{T})
     end
     return ret
 end
-# --line 8356 --  -- from : "BigData.pamphlet"  
+# --line 8399 --  -- from : "BigData.pamphlet"  
 @doc """
          Returns a Rectangle based on:
          Arg. 1:  a SubScreen for proportions 
@@ -71,17 +71,25 @@ function RectangleProp(ssc,x)
 end
 
 
-# --line 8372 --  -- from : "BigData.pamphlet"  
-function completeRObj(vol, screen)
+# --line 8415 --  -- from : "BigData.pamphlet"  
+function completeRObj{V}(vols::(V...), screen, camera)
+     map (vols) do vol
+         completeRObj(vol, screen, camera)
+     end
+end
+
+function completeRObj(vol, screen, camera)
       println("in CompleteRObj vol=$vol\n screen=$screen")
       if isa(vol, Dict) && haskey(vol,:render) && isa( vol[:render], NotComplete)
           println("Found incomplete vol=$vol")
           robj=vol[:render].what
           if (isa(vol[:render].func,Void))
              # Need to equip this with a camera
-             if ( robj.uniforms[:mvp] == nothing)
-                println("Using perspective camera", screen.perspectivecam)
-                robj.uniforms[:mvp] = screen.perspectivecam.projectionview
+             #####  getfield: expected DataType, 
+             #####  got (GLAbstraction.RenderObject,GLAbstraction.RenderObject)
+             if ( robj.uniforms[:projectionview] == nothing)
+                println("Using camera", camera)
+                robj.uniforms[:projectionview] = camera.projectionview 
              end    
 
              vol[:render]=robj
@@ -106,7 +114,7 @@ end
 
 
 
-# --line 8409 --  -- from : "BigData.pamphlet"  
+# --line 8460 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations
           It uses the global vizObjArray which is an array of RenderObjects
           that corresponds to the geometric grid built locally in subScreenGeom
@@ -134,9 +142,24 @@ function init_romeo(subScreenGeom, vizObjArray)
 
    # Equip each subscreen with a RenderObject 
    # Take into account incomplete RenderObjects (e.g. missing camera)
+
+   #### TBD WILL NEED TO BE ADAPTED   TO SUBSCREENS
+   root_area = Romeo.ROOT_SCREEN.area
+   root_inputs =  Romeo.ROOT_SCREEN.inputs
+   screenarea= root_area ## QUICK AND WRONG
+   camera_input=copy(root_inputs)
+   camera_input[:window_size] = lift(x->Vector4(x.x, x.y, x.w, x.h), screenarea)
+   eyepos = Vec3(2, 2, 2)
+   centerScene= Vec3(0.0)
+   pcam = PerspectiveCamera(camera_input,eyepos ,  centerScene)
+   ocam=  OrthographicCamera(camera_input)
+   camera = pcam
+
    for i = 1:size(screenGrid,1), j = 1:size(screenGrid,2)
        scr = screenGrid[i,j]
-       vo  = completeRObj( vizObjArray[i,j], scr )
+       vo  = completeRObj( vizObjArray[i,j], scr,camera )
+       println("We need to visualize and add screen def to this!")
+       println("vo=$vo\nscr=$scr\ncamera=$camera")
        viz = if ! isa(vo,Dict)
            visualize(vo, screen= scr)
        else
@@ -149,11 +172,13 @@ function init_romeo(subScreenGeom, vizObjArray)
        chkDump(viz,true) #debug (may be make this parameterized)
 
    end
+   #println ("Lets have a look")
+   #error ("Lets have a look")
 end
 
 
 
-# --line 8459 --  -- from : "BigData.pamphlet"  
+# --line 8527 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations in order to display a
 	  single render object in the root window. It is also
           a debugging tool for render objects.
@@ -191,45 +216,25 @@ function init_romeo_single(roFunc)
     vo  = roFunc(screen, pcam )
 
     # roFunc may return single objects or Tuples of such
-    function registerRo (vo)
-        println("In RegisterRo")
-        viz = if isa(vo,RenderObject)
-           vo
-        else
-        chkDump(vo,true)
-        wv1 = which( visualize,(typeof(vo),))
-        println("Which visualize  returns $wv1")
-
-        visualize(vo)   # normally roFunc sets the screen 
-        end
-
-        chkDump(viz,true)
-        wp1 = which( push!, ( typeof(screen.renderlist), typeof(viz)))
-        wp2 = which(  push!, ( typeof(root_screen.renderlist), typeof(viz)))
-        println("Which push! (1) returns $wp1")
-        println("Which push! (2) returns $wp2")
-
+    function registerRo (viz::RenderObject)
+        #in this case calling visualize result in an error (stringification)
         push!( screen.renderlist, viz)
         push!( root_screen.renderlist, viz)
-        println("+++ Exit RegisterRo\n")
     end
-
-    if isa(vo,Tuple)
-       for v in vo
+    function registerRo (viz::Tuple)
+       for v in viz
            registerRo (v)
        end
-    elseif isa(vo,RenderObject)
-       registerRo (vo)
-    else
-       throw("Unexpected type, only RenderObjects or Tuples accepted")
     end
+
+    registerRo (vo)
 
     println("screen=$screen\nEnd of screen\n\tshould be child of ROOT_SCREEN")
     println("root_screen=$root_screen\nEnd of root screen\n")
     
 end
 
-# --line 8633 --  -- from : "BigData.pamphlet"  
+# --line 8681 --  -- from : "BigData.pamphlet"  
 function interact_loop()
    while Romeo.ROOT_SCREEN.inputs[:open].value
       glEnable(GL_SCISSOR_TEST)
@@ -238,7 +243,7 @@ function interact_loop()
    end
    GLFW.Terminate()
 end
-# --line 8668 --  -- from : "BigData.pamphlet"  
+# --line 8716 --  -- from : "BigData.pamphlet"  
 abstract NotComplete
 
 @doc """
@@ -261,7 +266,7 @@ type TBCompleted{T} <: NotComplete
      what::T
      func::Union(Function,Void)
 end
-# --line 8694 --  -- from : "BigData.pamphlet"  
+# --line 8742 --  -- from : "BigData.pamphlet"  
 # here we have our debug subsection
 
 function unitCube{T<:Number}(zero::T)
@@ -308,7 +313,7 @@ function chkDump(r::RenderObject,more::Bool=false)
 
     println("+++  End chkDump output  +++\n")
 end
-# --line 8743 --  -- from : "BigData.pamphlet"  
+# --line 8791 --  -- from : "BigData.pamphlet"  
 function chkDump(d::Dict{Symbol,Any},more::Bool=false)
     println("In  chkDump(d::Dict{Symbol,Any})\n")
     for (k,v) in d
