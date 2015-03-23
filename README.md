@@ -8,8 +8,8 @@ Romeo is an interactive scripting environment, in which you can execute Julia sc
 Screenshots  shows current state of my development based on Romeo.jl
 <TABLE>
 <TR>
-    <TD><IMG SRC="test/CaptureJulia.png" WIDTH=300>
     <TD><IMG SRC="test/ScreenShot315.png" WIDTH=300>
+    <TD><IMG SRC="test/ScreenShot323.png" WIDTH=300>
 </TABLE>
 
 
@@ -19,12 +19,9 @@ Screenshots  shows current state of my development based on Romeo.jl
 <TR><TD>ISSUES
     <TD>Date
     <TD>Description
-<TR><TD>Too permissive CTOR
-    <TD>Sun Mar 22 2015
-    <TD>In <CODE>./src/visualize_interface.jl</CODE> 
-        ```visualize(x; customizations...) = visualize(string(x); customizations...)```
-        implies stringification of any <CODE>x</CODE> for which no specialized version
-        of  <CODE>visualize</CODE> exists. In many cases this brings silent failure.
+<TR><TD>
+    <TD>
+    <TD>
 <TR><TD>
     <TD>
     <TD>
