@@ -1,4 +1,4 @@
-# --line 8808 --  -- from : "BigData.pamphlet"  
+# --line 8847 --  -- from : "BigData.pamphlet"  
 using DocCompat
 
 # try to avoid the numerous "deprecated warnings/messages"
@@ -13,7 +13,7 @@ using Compat
 include("../src/docUtil/RomeoLib.jl")
 
 
-# --line 8825 --  -- from : "BigData.pamphlet"  
+# --line 8864 --  -- from : "BigData.pamphlet"  
 function mkSubScrGeom()
     ## Build subscreens, use of screen_height_width permits to
     ## adapt subscreen dimensions to changes in  root window  size
@@ -218,7 +218,7 @@ void main(){
         return (robj,robjl)
 end
 
-# --line 8844 --  -- from : "BigData.pamphlet"  
+# --line 8883 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with the various
         render objects that we wish to show. 
@@ -257,7 +257,7 @@ function init_graph_grid(onlyImg::Bool)
    return vizObjArray
 end  
 
-# --line 8886 --  -- from : "BigData.pamphlet"  
+# --line 8925 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options
      """ ->
@@ -271,7 +271,7 @@ function realMain(onlyImg::Bool)
 end
 
 
-# --line 8902 --  -- from : "BigData.pamphlet"  
+# --line 8941 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, simple variant
      """ ->
@@ -297,7 +297,7 @@ function realMainSimple(onlyImg::Bool)
    interact_loop()
 end
 
-# --line 8931 --  -- from : "BigData.pamphlet"  
+# --line 8970 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the command line.
 using ArgParse
 

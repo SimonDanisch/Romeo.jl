@@ -78,12 +78,10 @@ function completeRObj{V}(vols::(V...), screen, camera)
      end
 end
 
-function completeRObj(vol, screen, camera)
-      println("in CompleteRObj vol=$vol\n screen=$screen")
-      if isa(vol, Dict) && haskey(vol,:render) && isa( vol[:render], NotComplete)
-          println("Found incomplete vol=$vol")
-          robj=vol[:render].what
-          if (isa(vol[:render].func,Void))
+### Inner function for completeROb 
+function  _completeRObjInner(robjNC,screen, camera)
+          robj= robjNC.what
+          if (isa(robjNC.func,Void))
              # Need to equip this with a camera
              #####  getfield: expected DataType, 
              #####  got (GLAbstraction.RenderObject,GLAbstraction.RenderObject)
@@ -91,30 +89,52 @@ function completeRObj(vol, screen, camera)
                 println("Using camera", camera)
                 robj.uniforms[:projectionview] = camera.projectionview 
              end    
-
-             vol[:render]=robj
-             println("Before pre/post render, vol=")
-             println(vol)
-
-             prerender!(robj, glDisable, GL_DEPTH_TEST, glDisable, 
-	              GL_CULL_FACE, enabletransparency)
-             postrender!(robj, render, robj.vertexarray)
-
-             println("returning vol=")
-             println(vol)
-             println("++++++    THIS WAS IT +++++\n")
-             chkDump(vol,true) #debug (may be make this parameterized)
-             return vol
           else
              Error("Wait a bit.... this is not an incomplete RenderObject ")
           end
+
+
+          println("Before pre/post render, robj=")
+          println(robj)
+
+          prerender!(robj, glDisable, GL_DEPTH_TEST, glDisable, 
+	              GL_CULL_FACE, enabletransparency)
+          postrender!(robj, render, robj.vertexarray)
+
+          println("returning robj=")
+          println(robj)
+          println("++++++    THIS WAS IT +++++\n")
+          return robj
+end
+###
+
+function completeRObj(vol, screen, camera)
+      println("in CompleteRObj vol=$vol\n screen=$screen")
+      if isa(vol, Dict) && haskey(vol,:render) 
+        if isa( vol[:render], NotComplete)
+            println("Found incomplete vol=$vol")
+            vor = vol[:render]
+            vol[:render]=   _completeRObjInner(vor,screen, camera)
+            chkDump(vol,true) #debug (may be make this parameterized)
+            return vol
+        else 
+          vor = vol[:render]
+          println("vol[:render] has type",typeof(vor))
+          if isa(vor,((TBCompleted{GLAbstraction.RenderObject}...)))
+             vol[:render]= map (vor) do robj
+                      _completeRObjInner(robj,screen, camera)
+                 end
+          else
+             println("Found a vor with type:", typeof(vor),"keeping vol with type:", typeof(vol))
+          end
+        end
       end
       return vol
 end
 
 
 
-# --line 8460 --  -- from : "BigData.pamphlet"  
+# --line 8480 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations
           It uses the global vizObjArray which is an array of RenderObjects
           that corresponds to the geometric grid built locally in subScreenGeom
@@ -144,32 +164,46 @@ function init_romeo(subScreenGeom, vizObjArray)
    # Take into account incomplete RenderObjects (e.g. missing camera)
 
    #### TBD WILL NEED TO BE ADAPTED   TO SUBSCREENS
-   root_area = Romeo.ROOT_SCREEN.area
-   root_inputs =  Romeo.ROOT_SCREEN.inputs
-   screenarea= root_area ## QUICK AND WRONG
-   camera_input=copy(root_inputs)
-   camera_input[:window_size] = lift(x->Vector4(x.x, x.y, x.w, x.h), screenarea)
-   eyepos = Vec3(2, 2, 2)
-   centerScene= Vec3(0.0)
-   pcam = PerspectiveCamera(camera_input,eyepos ,  centerScene)
-   ocam=  OrthographicCamera(camera_input)
-   camera = pcam
 
    for i = 1:size(screenGrid,1), j = 1:size(screenGrid,2)
        scr = screenGrid[i,j]
+
+       camera_input=copy(scr.inputs)
+       camera_input[:window_size] = lift(x->Vector4(x.x, x.y, x.w, x.h), scr.area)
+
+       eyepos = Vec3(2, 2, 2)
+       centerScene= Vec3(0.0)
+
+       pcam = PerspectiveCamera(camera_input,eyepos ,  centerScene)
+       ocam=  OrthographicCamera(camera_input)
+       camera = pcam
+
+
        vo  = completeRObj( vizObjArray[i,j], scr,camera )
        println("We need to visualize and add screen def to this!")
        println("vo=$vo\nscr=$scr\ncamera=$camera")
        viz = if ! isa(vo,Dict)
-           visualize(vo, screen= scr)
-       else
-           vf = filter((k,val)-> k != :render, vo)
-           vf[:screen] = scr
-           visualize(vo[:render]; vf...)
-       end
+               visualize(vo, screen= scr)
+           else
+              vf = filter((k,val)-> k != :render, vo)
+              vf[:screen] = scr
 
-       push!(scr.renderlist, viz)
+              # do not visualize RenderObjects!
+              if ! isa(vo[:render],RenderObject)
+                 visualize(vo[:render]; vf...)
+              end
+       end
+       tyviz = typeof(viz)
+       println("Before push! typeof(viz)=$tyviz")
        chkDump(viz,true) #debug (may be make this parameterized)
+
+       if isa(viz,(RenderObject...))
+            for v in viz
+                push!(scr.renderlist, v)
+            end
+       else
+            push!(scr.renderlist, viz)
+       end
 
    end
    #println ("Lets have a look")
@@ -178,7 +212,7 @@ end
 
 
 
-# --line 8527 --  -- from : "BigData.pamphlet"  
+# --line 8561 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations in order to display a
 	  single render object in the root window. It is also
           a debugging tool for render objects.
@@ -234,16 +268,16 @@ function init_romeo_single(roFunc)
     
 end
 
-# --line 8681 --  -- from : "BigData.pamphlet"  
+# --line 8715 --  -- from : "BigData.pamphlet"  
 function interact_loop()
    while Romeo.ROOT_SCREEN.inputs[:open].value
       glEnable(GL_SCISSOR_TEST)
       Romeo.renderloop(Romeo.ROOT_SCREEN)
-      sleep(0.01)
+      sleep(0.03)
    end
    GLFW.Terminate()
 end
-# --line 8716 --  -- from : "BigData.pamphlet"  
+# --line 8750 --  -- from : "BigData.pamphlet"  
 abstract NotComplete
 
 @doc """
@@ -266,7 +300,7 @@ type TBCompleted{T} <: NotComplete
      what::T
      func::Union(Function,Void)
 end
-# --line 8742 --  -- from : "BigData.pamphlet"  
+# --line 8776 --  -- from : "BigData.pamphlet"  
 # here we have our debug subsection
 
 function unitCube{T<:Number}(zero::T)
@@ -282,6 +316,11 @@ function unitCube{T<:Number}(zero::T)
 end
 
 #code_native( unitCube, (Int32,))
+function chkDump(tup::(RenderObject...),more::Bool=false)
+     for t in tup
+         chkDump(t,more)
+     end
+end
 
 function chkDump(r::RenderObject,more::Bool=false)
     println("In  chkDump(r::RenderObject)\n\t$r\n")
@@ -313,7 +352,7 @@ function chkDump(r::RenderObject,more::Bool=false)
 
     println("+++  End chkDump output  +++\n")
 end
-# --line 8791 --  -- from : "BigData.pamphlet"  
+# --line 8830 --  -- from : "BigData.pamphlet"  
 function chkDump(d::Dict{Symbol,Any},more::Bool=false)
     println("In  chkDump(d::Dict{Symbol,Any})\n")
     for (k,v) in d

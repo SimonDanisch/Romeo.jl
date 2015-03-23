@@ -19,6 +19,13 @@ progs :  RomeoVolume.jl $(DOCUTILDIR)/RomeoLib.jl
 run:         progs 
 	Julia4 RomeoVolume.jl
 
+runD:         progs 
+	Julia4 RomeoVolume.jl --debug=61
+
+runDI:         progs 
+	Julia4 RomeoVolume.jl --debug=61 -i
+
+
 runSingle:   progs 
 	Julia4 RomeoVolume.jl --cube
 
@@ -26,4 +33,4 @@ runSingleD:  progs
 	Julia4 RomeoVolume.jl --cube --debug=61
 
 runSingleDI:  progs 
-	Julia4 RomeoVolume.jl --cube --Img --debug=61
+	Julia4 RomeoVolume.jl --cube --img --debug=61
