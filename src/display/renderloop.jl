@@ -72,6 +72,7 @@ end
 function renderloop(ROOT_SCREEN)
   global ROOT_SCREEN
   yield() 
+  glDisable(GL_SCISSOR_TEST)
   glBindFramebuffer(GL_FRAMEBUFFER, RENDER_FRAMEBUFFER)
   glDrawBuffers(2, [GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1])
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

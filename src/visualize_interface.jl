@@ -1,5 +1,24 @@
 visualize(x; customizations...) = visualize(string(x); customizations...)
+
+#== Avoid silent stringification of visualization requests applied to RenderObject(s)
+    This is the consequence of the definition on line 1 when no specialized version
+    exists. This is inappropriate for RenderObject... as found when using "raw" OpenGL.
+==#
+visualize(rol::(RenderObject...); customizations...) = map (rol ) do ro
+                           visualize(ro; customizations...)
+                          end
+        
+function visualize(ro::RenderObject; customizations...)
+    # here we would need to inject the customizations in ro if this makes sense
+    # otherwise throw error
+    size(customizations,1)>0  && error("visualize(ro::RenderObject; customizations...): customizations not implemented")
+    return ro
+end
+#==  end additions to avoid silent stringification
+==#
+    
 visualize(x::Function; customizations...) = visualize(methods(x); customizations...)
+
 
 
 #################################################################################################################################

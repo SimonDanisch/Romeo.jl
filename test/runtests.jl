@@ -1,10 +1,18 @@
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
+using DocCompat
+
+#   From behaviour, we understand that loading GLFW opens the window
+
+@doc """   Empty the vector passed in argument, and delete individually
+           each element.
+     """   ->
 function clear!(x::Vector{RenderObject})
     while !isempty(x)
         value = pop!(x)
         delete!(value)
     end
 end
+
 global const gaggaaa = Texture("pic.jpg")
 
 function dropequal(a::Signal)
@@ -15,6 +23,23 @@ function dropequal(a::Signal)
 end
 global MemRefs = Any[]
 
+@doc """  Performs a number of initializations
+          Areas: sourcecode_area
+		 visualize_area
+		 search_area
+		 edit_area
+
+	  Screens:  sourcecode_screen
+		    visualize_screen
+		    search_screen
+		    edit_screen
+
+          Other Inputs : searchinput
+
+          Visualize interfaces: (see Romeo/src/visualize_interface.jl)
+
+To be continued...
+     """  -> 
 function init_romeo()
 
     sourcecode_area = lift(Romeo.ROOT_SCREEN.area) do x

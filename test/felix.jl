@@ -65,10 +65,10 @@ function init_romeo()
 	search_offset = lift(w_height_search) do x
 		translationmatrix(Vec3(30,x-30,0))
 	end
-	D = Dict{Symbol, Any}(
+	D = Dict{Symbol, Any}({
 		:a => Input(1f0),
-		:b => Input(10f0)
-	)
+		:b => Input(10f0)})
+    
 	signals = edit(D, screen=sourcecode_screen)
 	barplot = viz(plot, sin, D[:a], D[:b], screen=visualize_screen)
 
