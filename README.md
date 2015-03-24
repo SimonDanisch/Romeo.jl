@@ -8,8 +8,8 @@ Romeo is an interactive scripting environment, in which you can execute Julia sc
 Screenshots  shows current state of my development based on Romeo.jl
 <TABLE>
 <TR>
-    <TD><IMG SRC="test/ScreenShot315.png" WIDTH=300>
-    <TD><IMG SRC="test/ScreenShot323.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot323.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot324.png" WIDTH=300>
 </TABLE>
 
 
