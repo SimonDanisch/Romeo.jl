@@ -2,27 +2,15 @@ visualize(x; customizations...) = visualize(string(x); customizations...)
 
 #== Avoid silent stringification of visualization requests applied to RenderObject(s)
     This is the consequence of the definition on line 1 when no specialized version
-    exists. This is inappropriate for RenderObject... as found when using "raw" OpenGL.
+    exists. I find this  inappropriate for RenderObject... 
 ==#
 visualize(rol::(RenderObject...); customizations...) = map (rol ) do ro
                            visualize(ro; customizations...)
                           end
         
 function visualize(ro::RenderObject; customizations...)
-    # here we would need to inject the customizations in ro if this makes sense
-    # otherwise throw error. WARNING: this might be inadequate, some of these may
-    # need processing (as shown in visualize/surface)
-    # Maybe a general customization merging tool is needed????
-    if size(customizations,1) > 0
-        println("visualize(ro::RenderObject; customizations...)")
-        println("merging\tcustomizations=$customizations")
-        println("into\tuniforms:\t",ro.uniforms)
-        for pair in customizations
-                    ro.uniforms[pair[1]]= pair[2]
-        end
-        #error("visualize(ro::RenderObject; customizations...): customizations not implemented")
-    end
     return ro
+    # we simply ignore customizations for now.
 end
 #==  end additions to avoid silent stringification
 ==#

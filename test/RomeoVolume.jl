@@ -1,4 +1,4 @@
-# --line 8778 --  -- from : "BigData.pamphlet"  
+# --line 8733 --  -- from : "BigData.pamphlet"  
 using DocCompat
 
 # try to avoid the numerous "deprecated warnings/messages"
@@ -13,7 +13,7 @@ using Compat
 include("../src/docUtil/RomeoLib.jl")
 
 
-# --line 8795 --  -- from : "BigData.pamphlet"  
+# --line 8750 --  -- from : "BigData.pamphlet"  
 function mkSubScrGeom()
     ## Build subscreens, use of screen_height_width permits to
     ## adapt subscreen dimensions to changes in  root window  size
@@ -117,7 +117,7 @@ void main(){
         # TBD LOOK AT THIS
 end
 
-# --line 8814 --  -- from : "BigData.pamphlet"  
+# --line 8769 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with functions taking
         arguments:
@@ -157,25 +157,25 @@ function init_graph_grid(onlyImg::Bool)
    return vizObjArray
 end  
 
-# --line 8857 --  -- from : "BigData.pamphlet"  
+# --line 8812 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options
      """ ->
-function realMain(onlyImg::Bool)
+function realMain(onlyImg::Bool;pcamSel=true)
    init_glutils()
 
    vizObjArray = init_graph_grid(onlyImg)
    subScreenGeom = mkSubScrGeom()
-   init_romeo( subScreenGeom, vizObjArray)
+   init_romeo( subScreenGeom, vizObjArray; pcamSel=pcamSel)
    interact_loop()
 end
 
 
-# --line 8873 --  -- from : "BigData.pamphlet"  
+# --line 8828 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, simple variant
      """ ->
-function realMainSimple(onlyImg::Bool)
+function realMainSimple(onlyImg::Bool; pcamSel=true)
    init_glutils()   # defined in GLAbstraction/GLInit
                     # in practice loads registerd shaders
 
@@ -187,11 +187,11 @@ function realMainSimple(onlyImg::Bool)
                   # we cannot evaluate before we know the screen 
      		  # and we left camera parametrization in init_romeo_single
      end
-   init_romeo_single(renderObjFn)
+   init_romeo_single(renderObjFn; pcamSel=pcamSel )
    interact_loop()
 end
 
-# --line 8896 --  -- from : "BigData.pamphlet"  
+# --line 8851 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the command line.
 using ArgParse
 
@@ -207,6 +207,9 @@ function main(args)
        "--debug","-d"
                help="show debugging output (in particular from GLRender)"
                arg_type = Int
+       "--ortho", "-o"       
+               help ="Use orthographic camera instead of perspective"
+               action = :store_true
      end    
 
      s.epilog = """
@@ -216,6 +219,7 @@ function main(args)
 
     onlyImg        = parsed_args["img"]
     cubeSimple     = parsed_args["cube"]
+    pcamSel        = !parsed_args["ortho"]
 
     if parsed_args["debug"] != nothing
           GLAbstraction.setDebugLevels( true,  parsed_args["debug"])
@@ -223,7 +227,7 @@ function main(args)
     end
 
     ### NOW, run the program 
-    cubeSimple ?   realMainSimple(onlyImg) : realMain(onlyImg)    
+    cubeSimple ?   realMainSimple(onlyImg; pcamSel=pcamSel) : realMain(onlyImg; pcamSel=pcamSel)    
 end
 
 main(ARGS)
