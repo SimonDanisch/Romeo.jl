@@ -5,8 +5,24 @@ The original page for Romeo is <A HREF="https://github.com/SimonDanisch/Romeo.jl
 # Romeo
 Romeo is an interactive scripting environment, in which you can execute Julia scripts and edit the variables in 3D.
 
-Screenshot:
-![Screenshot](test/CaptureJulia.png) shows current state of my development based on Romeo.jl
+Screenshots  shows current state of my development based on Romeo.jl
+<TABLE>
+<TR>
+    <TD><IMG SRC="test/images/ScreenShot328.png" WIDTH=300>
+    <TD><IMG SRC="test/images/screenshot.png" WIDTH=300>
+</TABLE>
+
+The following branches in the Git tree have specific meaning (At least planned):
+<TABLE>
+<TR><TD>master
+    <TD>Eventually corresponds to master on the upstream tree 
+        (S.Danish development)
+<TR><TD>newScrMgr
+    <TD>Manage multiple subscreens, and provide inter-subscreen or interaction
+        related functionality
+</TABLE>
+
+
 
 ### The following issues concern my own development
 <TABLE>
@@ -36,9 +52,10 @@ Screenshot:
 <TR> 
      <TD>b1fe8580618ec94
      <TD>Sat Mar 14 12:31:48 2015
-     <TD>
+     <TD>Closed
      <TD>Example simple_display_grid.jl clarifies screen positionning, 
-         signal.
+         signal. Shows capacity of synchronized signals in several subscreen,
+         for instance ensure similar rotations upon mouse signal.
 </TABLE>
 
 ### Use of Julia 0.4 (master)
