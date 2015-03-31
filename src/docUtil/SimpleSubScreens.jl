@@ -1,24 +1,13 @@
-# --line 7349 --  -- from : "BigData.pamphlet"  
-# This will move to a library
-@doc """   Empty the vector of renderers passed in argument, 
-           and delete individually    each element.
-     """   ->
-function clear!(x::Vector{RenderObject})
-    while !isempty(x)
-        value = pop!(x)
-        delete!(value)
-    end
-end
-# --line 7362 --  -- from : "BigData.pamphlet"  
-@doc """   Drop repeated signals
-     """   ->
-function dropequal(a::Signal)
-    is_equal = foldl((false, a.value), a) do v0, v1
-        (v0[2] == v1, v1)
-    end
-    dropwhen(lift(first, is_equal), a.value, a)
-end
-# --line 7374 --  -- from : "BigData.pamphlet"  
+# --line 8316 --  -- from : "BigData.pamphlet"  
+module SimpleSubScreens
+
+export SubScreen,  prepSubscreen, RectangleProp
+
+#   we use some definitions from  GLAbstraction (Rectangle)
+using GLAbstraction
+
+# here we deal with subscreens
+
 @doc """
          Elements of this type define a subscreen's position relative
          to the main screen. E.g. x is the x-offset if the x coordinates
@@ -31,11 +20,13 @@ type SubScreen{T <: Number}
     w::T
     h::T      
 end
-# --line 7389 --  -- from : "BigData.pamphlet"  
+# --line 8340 --  -- from : "BigData.pamphlet"  
 @doc """ 
          prepare an array of SubScreen{Float}, each with position(x,y) and 
          width(w,h). The arguments are two vectors indicating the relative
          sizes of the rows and of the columns.
+
+         Connections with actual sizes transmitted by signals done later.
      """ ->
 function prepSubscreen{T}(colwRel::Vector{T},linehRel::Vector{T})
     sumCol = sum(colwRel)
@@ -56,7 +47,7 @@ function prepSubscreen{T}(colwRel::Vector{T},linehRel::Vector{T})
     end
     return ret
 end
-# --line 7416 --  -- from : "BigData.pamphlet"  
+# --line 8369 --  -- from : "BigData.pamphlet"  
 @doc """
          Returns a Rectangle based on:
          Arg. 1:  a SubScreen for proportions 
@@ -67,3 +58,8 @@ function RectangleProp(ssc,x)
     Rectangle{Int}( int64(ssc.x*x[1]),  int64(ssc.y*x[2]),
   		    int64(ssc.w*x[1]),  int64(ssc.h*x[2]))
 end
+
+
+# --line 8385 --  -- from : "BigData.pamphlet"  
+end # module SimpleSubScreens
+
