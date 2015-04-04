@@ -16,6 +16,9 @@ $(DOCUTILDIR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl
 $(DOCUTILDIR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl
 	cat $< |cpif $@
 
+$(DOCUTILDIR)/MatrixMathPlus.jl: $(JULIATRY)/MatrixMathPlus.jl
+	cat $< |cpif $@
+
 $(DOCUTILDIR)/SubScreens.jl: $(JULIATRY)/SubScreens.jl
 	cat $< |cpif $@
 
@@ -23,6 +26,12 @@ $(DOCUTILDIR)/SimpleSubScreens.jl: $(JULIATRY)/SimpleSubScreens.jl
 	cat $< |cpif $@
 
 $(DOCUTILDIR)/XtraRenderObjOGL.jl: $(JULIATRY)/XtraRenderObjOGL.jl
+	cat $< |cpif $@
+
+$(DOCUTILDIR)/ROGeomOps.jl: $(JULIATRY)/ROGeomOps.jl
+	cat $< |cpif $@
+
+$(DOCUTILDIR)/VirtualOGLGeom.jl: $(JULIATRY)/VirtualOGLGeom.jl
 	cat $< |cpif $@
 
 $(DOCUTILDIR)/TBCompletedM.jl: $(JULIATRY)/TBCompletedM.jl
@@ -38,9 +47,12 @@ progs :  RomeoVolume.jl \
         $(DOCUTILDIR)/RomeoLib.jl \
         $(DOCUTILDIR)/DebugTools.jl \
         $(DOCUTILDIR)/TBCompletedM.jl \
+        $(DOCUTILDIR)/MatrixMathPlus.jl \
         $(DOCUTILDIR)/SubScreens.jl \
         $(DOCUTILDIR)/SimpleSubScreens.jl \
         $(DOCUTILDIR)/XtraRenderObjOGL.jl \
+	$(DOCUTILDIR)/VirtualOGLGeom.jl \
+	$(DOCUTILDIR)/ROGeomOps.jl \
         $(DOCUTILDIR)/Changelog
 
 

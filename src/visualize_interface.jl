@@ -1,5 +1,22 @@
 visualize(x; customizations...) = visualize(string(x); customizations...)
+
+#== Avoid silent stringification of visualization requests applied to RenderObject(s)
+    This is the consequence of the definition on line 1 when no specialized version
+    exists. I find this  inappropriate for RenderObject... 
+==#
+visualize(rol::(RenderObject...); customizations...) = map (rol ) do ro
+                           visualize(ro; customizations...)
+                          end
+        
+function visualize(ro::RenderObject; customizations...)
+    return ro
+    # we simply ignore customizations for now.
+end
+#==  end additions to avoid silent stringification
+==#
+    
 visualize(x::Function; customizations...) = visualize(methods(x); customizations...)
+
 
 
 #################################################################################################################################

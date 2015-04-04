@@ -1,133 +1,187 @@
-# --line 7430 --  -- from : "BigData.pamphlet"  
+# --line 9804 --  -- from : "BigData.pamphlet"  
 using DocCompat
+using Lumberjack
+using TBCompletedM
+
+# try to avoid the numerous "deprecated warnings/messages"
+using ManipStreams
+(os,ns) =  redirectNewFWrite("/tmp/julia.redirected")
 
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
 using ImmutableArrays
     #  Loading GLFW opens the window
+using Compat
 
-include("RomeoLib.jl")
-
-
-# --line 7442 --  -- from : "BigData.pamphlet"  
-@doc """  Performs a number of initializations
-          It uses the global vizObjArray which is an array of RenderObjects
-          that corresponds to the geometric grid built locally in subScreenGeom
-     """  -> 
-function init_romeo()
-    root_area = Romeo.ROOT_SCREEN.area
-
-    # this enables sub-screen dimensions to adapt to  root window changes:
-    # a signal is produced with root window's dimensions on display
-    screen_height_width = lift(root_area) do area 
-        Vector2{Int}(area.w, area.h)
-    end
+using  XtraRenderObjOGL
+include("../src/docUtil/RomeoLib.jl")
 
 
+# --line 9824 --  -- from : "BigData.pamphlet"  
+function mkSubScrGeom()
     ## Build subscreens, use of screen_height_width permits to
     ## adapt subscreen dimensions to changes in  root window  size
-    subScreenGeom = prepSubscreen(Vector([4,1]),Vector([1,4]))
-    areaGrid= mapslices(subScreenGeom ,[]) do ssc
-          lift (Romeo.ROOT_SCREEN.area,  screen_height_width) do ar,screenDims
-                RectangleProp(ssc,screenDims) 
-          end
-    end
-
-    # Make subscreens of Screen type, each equipped with renderlist
-    # We will then put RenderObject in each of the subscreens
-    screenGrid= mapslices(areaGrid, []) do ar
-        Screen(Romeo.ROOT_SCREEN, area=ar)
-    end
-
-
-   # vizObjArray is global
-   # Equip each subscreen with a RenderObject 
-   for i = 1:size(screenGrid,1), j = 1:size(screenGrid,2)
-       scr = screenGrid[i,j]
-       vo  = vizObjArray[i,j]
-       viz = if ! isa(vo,Dict)
-           visualize(vo, screen= scr)
-       else
-           vf = filter((k,val)-> k != :render, vo)
-           vf[:screen] = scr
-           visualize(vo[:render]; vf...)
-       end
-
-       push!(scr.renderlist, viz)
-   end
-
+        ps1=SubScreens.prepSubscreen([4.; 1.],[1.; 4.])
+        ps2=SubScreens.prepSubscreen([1.; 2.; 3.; 4.],[1.])
+        SubScreens.insertChildren!(ps1,2,2, ps2)
+        ps1
 end
-# --line 7493 --  -- from : "BigData.pamphlet"  
+# --line 9835 --  -- from : "BigData.pamphlet"  
 @doc """
-        This function fills the (global) vizObjArray  with the various
-        render objects that we wish to show. 
+        This function fills the (global) vizObjArray  with functions taking
+        arguments:
+            screen::Screen 
+	    camera::Camera  (GLAbstraction/src/GLCamera.jl)
+        and returning the render objects that we wish to show. 
+
         The corresponding geometry is built in subScreenGeom directly in 
         init_romeo (it contains the (lifted) geometry elements following the
-        window changes).
+        window changes). As the geometry is built, the functions in vizObjArray
+        are called, generating the RenderObjects and filling the renderlist.
 
         The argument onlyImg is here for debugging , when true we show only
         the same image in all grid positions.
      """  ->
 function init_graph_grid(onlyImg::Bool)
    # try with a plot 
-   plt = Float32[rand(Float32)  for i=0:50, j=0:50]
-            # color = rgba(1.0,0.0,0.0,0.4) )
-            #  notice that the visualize act is done in init_romeo()
+   plt = (sc::Screen,cam::GLAbstraction.Camera) -> Float32[ rand(Float32)  
+                                                            for i=0:50, j=0:50 ]
+   # put the cat all over the place!!!
+   pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
 
    # volume : try with a cube (need to figure out how to make this)
-   vol =  Texture("pic.jpg")
-   # put cats all over the place!!!
-   pic = Texture("pic.jpg")
+   vol = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
+
+   # color
+   function doColorChooser(sc::Screen,cam::GLAbstraction.Camera)
+          TBCompleted (AlphaColorValue(RGB{Float32}(0.8,0.2,0.2), float32(0.5)),
+                       nothing, Dict{Symbol,Any}())
+   end
+   colorBtn = doColorChooser
+
+   # edit
+   # this is an oversimplification!! (look at exemple!!)
+   function doEdit(sc::Screen,cam::GLAbstraction.Camera)
+     "barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n"
+   end
+
+   # subscreen geometry 
+   scOuter = prepSubscreen([1.; 4.],[4.; 1.])
+   scRight = prepSubscreen([1.; 1.;1.;1.],[1.])
+   insertChildren!(scOuter, 2, 2, scRight)
+
+   # compute the geometric rectangles by walking down the geometry
+   vizObj =computeRects(GLAbstraction.Rectangle{Float64}(0.,0.,1.,1.), scOuter) 
+
+   #insert the functions that will cause RenderObject to be instantiated
+   #and put in the proper render lists
+   vizObj[1,1].attrib[RObjFn]         = onlyImg ? pic : doEdit
+   vizObj[1,2].attrib[RObjFn]         = onlyImg ? pic : vol
+   vizObj[(2,2),(1,1)].attrib[RObjFn] = onlyImg ? pic : colorBtn
+   vizObj[(2,2),(2,1)].attrib[RObjFn] = onlyImg ? pic : vol
+   vizObj[(2,2),(3,1)].attrib[RObjFn] = onlyImg ? pic : plt
+   vizObj[(2,2),(4,1)].attrib[RObjFn] = onlyImg ? pic : plt
+   vizObj[2,1].attrib[RObjFn]         = onlyImg ? pic : plt
+
+   # enter rotation parameters for 3 plt, after having required check of feature
+   #vizObj[(2,2),(2,1)].attrib[ROReqVirtUser] = VFRotateModel
+   #vizObj[(2,2),(2,1)].attrib[RORot] = (π/4.0,  0.,      0.)
+
+   vizObj[(2,2),(3,1)].attrib[ROReqVirtUser] = VFRotateModel
+   vizObj[(2,2),(3,1)].attrib[RORot] = (    0., π/4.0,   0.)
+
+   #vizObj[(2,2),(4,1)].attrib[ROReqVirtUser] = VFRotateModel
+   #vizObj[(2,2),(4,1)].attrib[RORot] = (    0.,   0.,    π/4.0,)
 
 
-            # rows go from bottom to top, columns from left to right on screen
-   vizObjArray[1,1] = pic
-   vizObjArray[1,2] = onlyImg ? pic :
-                                Dict{Symbol,Any}(:render  => vol, 
-                                    :color   => rgba(1.0,0.0,0.0,0.4))
-   vizObjArray[2,2] = pic
-   vizObjArray[2,1] = onlyImg ? pic :
-                                Dict{Symbol,Any}(:render  => plt, 
-                                    :color   => rgba(1.0,0.0,0.0,0.4))
-            # init_romeo has the ability to set any attribute in visualize
+   vizObj[(2,2),(3,1)].attrib[RODumpMe]  = true
+   vizObj[(2,2),(3,1)].attrib[ROReqVirtUser]  = VFRotateModel
+   vizObj[1,2].attrib[RODumpMe]  = true
+   vizObj[1,2].attrib[ROReqVirtUser]  = VFRotateModel | VFTranslateModel
+        
+   return vizObj
+
 end  
-# --line 7530 --  -- from : "BigData.pamphlet"  
-vizObjArray = Array(Any,2,2)
-            #elements are either Dicts or render??(what type?) 
 
+# --line 9915 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options
      """ ->
-function realMain(onlyImg::Bool)
+function realMain(onlyImg::Bool;pcamSel=true)
+   init_glutils()
 
-   init_graph_grid(onlyImg)
-   init_romeo()
-   while Romeo.ROOT_SCREEN.inputs[:open].value
-      glEnable(GL_SCISSOR_TEST)
-      Romeo.renderloop(Romeo.ROOT_SCREEN)
-      sleep(0.01)
-   end
-   GLFW.Terminate()
+   vizObjSC   = init_graph_grid(onlyImg)
+   init_romeo( vizObjSC; pcamSel = pcamSel )
+
+   interact_loop()
 end
 
-# --line 7551 --  -- from : "BigData.pamphlet"  
+# --line 9931 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the command line.
 using ArgParse
-
 function main(args)
      s = ArgParseSettings(description = "Test of Romeo with grid of objects")   
      @add_arg_table s begin
        "--img","-i"   
                help="Use image instead of other graphics/scenes"
                action = :store_true
+       "--debugAbs","-d"
+               help="show debugging output (in particular from GLRender)"
+               arg_type = Int
+       "--debugWin","-D"
+               help="show debugging output (in particular from GLRender)"
+               arg_type = Int
+      "--ortho", "-o"       
+               help ="Use orthographic camera instead of perspective"
+               action = :store_true
+       "--log","-l"
+               help ="Use lumberjack log"
+               arg_type = String
+
      end    
 
      s.epilog = """
-          More explanations to come here
+       GLAbstraction debug levels (ORed bit values)
+        Ox01     1 : add traceback for constructors and related
+        0x04     4 : print uniforms
+        0x08     8 : print vertices
+        0x10    16 : reserved for GLTypes.GLVertexArray
+        0x10    32 : reserved for postRenderFunctions
+
+       GLWindow debug :
+               flagOn : on / off
+               *** Level (ORed bit values) :to be allocated ***
      """
     parsed_args = parse_args(s) # the result is a Dict{String,Any}
 
-    onlyImg     = parsed_args["img"]
-    realMain(onlyImg)
+    onlyImg        = parsed_args["img"]
+    pcamSel        = !parsed_args["ortho"]
+
+
+    if parsed_args["log"] != nothing
+          logFileName = parsed_args["log"]
+          logFileName = length(logFileName) < 5 ? "/tmp/RomeoLumber.log"  : logFileName 
+
+          Lumberjack.configure(; modes = ["debug", "info", "warn", "error", "crazy"])
+          Lumberjack.add_truck(LumberjackTruck(logFileName, "romeo-app"))
+          Lumberjack.add_saw(Lumberjack.msec_date_saw)
+          Lumberjack.log("debug", "starting main with args")
+                               # Dict(:onlyImg =>string(onlyImg) ,
+                               #                       :cubeSimple=>string(cubeSimple),
+                               #                       :pcamSel=>string(pcamSel),
+                               #                       :newGeomMgr=>string(newGeomMgr)))
+    end
+
+    parsed_args["debugAbs"] != nothing && GLAbstraction.setDebugLevels( true,  
+                                                      parsed_args["debugAbs"])
+    parsed_args["debugWin"] != nothing && GLWindow.setDebugLevels( true, 
+                                                      parsed_args["debug"])
+
+    ### NOW, run the program 
+    realMain(onlyImg; pcamSel=pcamSel)    
 end
 
 main(ARGS)
+
+restoreErrStream(os)
+close(ns)
+
