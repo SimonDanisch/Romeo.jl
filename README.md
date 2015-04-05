@@ -8,8 +8,8 @@ Romeo is an interactive scripting environment, in which you can execute Julia sc
 Screenshots  shows current state of my development based on Romeo.jl
 <TABLE>
 <TR>
-    <TD><IMG SRC="test/images/ScreenShot328.png" WIDTH=300>
-    <TD><IMG SRC="test/images/screenshot.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0404.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0405.png" WIDTH=300>
 </TABLE>
 
 The following branches in the Git tree have specific meaning (At least planned):
@@ -20,6 +20,8 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>newScrMgr
     <TD>Manage multiple subscreens, and provide inter-subscreen or interaction
         related functionality
+<TR><TD>relateSubscreens
+    <TD>Establish communications between subscreens
 </TABLE>
 
 
@@ -30,8 +32,8 @@ The following branches in the Git tree have specific meaning (At least planned):
     <TD>Date
     <TD>Description
 <TR><TD>
-    <TD>
-    <TD>
+    <TD>Sat Apr 04 2015
+    <TD>Not tracking development of GLAbstraction
 <TR><TD>
     <TD>
     <TD>

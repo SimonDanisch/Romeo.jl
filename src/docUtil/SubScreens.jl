@@ -90,7 +90,8 @@ const sigScreen   = :sigScreen
 const RObjFn        = :RObjFn
 const ROVirtIfDict  = :ROVirtIfDict   # Characteristics (ORed) requested by user
 const ROReqVirtUser = :ROReqVirtUser # Request to perform a geometric transf
-const RORot         = :RORot          #Geometric rotation (3 angles mod 2PI)
+const RORot         = :RORot    #Geometric rotation (3 angles XYZ/Cardan mod2Pi)
+
 const RODumpMe    = :RODumpMe       #Targeted debugging dump
 
 
@@ -98,7 +99,7 @@ const RODumpMe    = :RODumpMe       #Targeted debugging dump
 import Base.convert
 convert(::Type{ASCIIString},t::SSCAttribs) = string(t)
 convert(::Type{Symbol},t::SSCAttribs) = :t
-# --line 8515 --  -- from : "BigData.pamphlet"  
+# --line 8516 --  -- from : "BigData.pamphlet"  
 @doc """ Makes a 2D array of specified dimensions with all empty values 
          which can be put in the   field children of a SubScreen.
      """ ->
@@ -111,7 +112,7 @@ function mkEmpty(t::Float64,nl,nc)
 end
 
 
-# --line 8532 --  -- from : "BigData.pamphlet"  
+# --line 8533 --  -- from : "BigData.pamphlet"  
 @doc """  The SubScreen ssc receives the value newSubCell as 
           its child with coordinates (i,j) 
           sss.children[i,j] <- newSubCell
@@ -124,7 +125,7 @@ function insertChildren!( ssc::SubScreen, i::Int, j::Int,
    ssc.children[i,j] = newSubCell
 end
        
-# --line 8547 --  -- from : "BigData.pamphlet"  
+# --line 8548 --  -- from : "BigData.pamphlet"  
 @doc """ Accesses the child described by idx of ssc. This
          walks down the SubScreen tree.
          here the syntax is:
@@ -143,7 +144,7 @@ function Base.getindex(ssc::SubScreen, idx::(Int,Int)...)
 end
 # Just a syntactic helper
 Base.getindex(ssc::SubScreen,i::Int,j::Int) = Base.getindex(ssc,(i,j))
-# --line 8569 --  -- from : "BigData.pamphlet"  
+# --line 8570 --  -- from : "BigData.pamphlet"  
 @doc """ Sets the child described by idx of ssc to the value val. 
          This  walks down the SubScreen tree.
          here the syntax is:
@@ -169,7 +170,7 @@ end
 #  syntactic helper
 Base.setindex!(ssc::SubScreen,val::SubScreen,i,j) =Base.setindex!(ssc,val,(i,j))
 
-# --line 8596 --  -- from : "BigData.pamphlet"  
+# --line 8597 --  -- from : "BigData.pamphlet"  
 using Base.Enum
 
 @enum    OptsTreeWalker preOrdr postOrdr
@@ -198,11 +199,12 @@ end
 
 @doc """ 
      """ ->
-function _treeWalkPre!(ssc::SubScreen, func::Function,indx::Vector{(Int64,Int64)};
+function _treeWalkPre!(ssc::SubScreen, func::Function,
+                       indx::Vector{(Int64,Int64)};
 		       misc::Dict{Symbol,Any}=Dict{Symbol,Any}() )
        cur = ssc
 
-       info=Dict(:isDecomposed=>false)
+       info=Dict{Symbol,Any}(:isDecomposed=>false)
        for i = 1:size(cur.children,1),  j = 1:size(cur.children,2)
            if cur.children[i,j] !=nothing
                info[:isDecomposed]=true
@@ -211,9 +213,14 @@ function _treeWalkPre!(ssc::SubScreen, func::Function,indx::Vector{(Int64,Int64)
        end
        
 
-       # Pre: visit this node
-       func(cur,indx,misc,info)
-       
+       # Pre: visit this node          
+          # @show func
+          # @show cur
+          # @show indx
+          # @show misc
+          # @show info
+          func(cur,indx,misc,info)
+
        # Go visit subnodes
        for i = 1:size(cur.children,1),  j = 1:size(cur.children,2)
            nindx = indx==[] ? [(i,j)] : [indx,(i,j)]
@@ -234,11 +241,12 @@ end
 @doc """  Walk the SubScreen tree and apply a function at each SubScreen.
          The function receives each SubScreen as its sole argment.
      """ ->
-function _treeWalkPost!(ssc::SubScreen, func::Function, indx::Vector{(Int64,Int64)}; 
+function _treeWalkPost!(ssc::SubScreen, func::Function, 
+                       indx::Vector{(Int64,Int64)}; 
 		       misc::Dict{Symbol,Any}=Dict{Symbol,Any}() )
        cur = ssc
 
-       info=Dict(:isDecomposed=>false)
+       info=Dict{Symbol,Any}(:isDecomposed=>false)
        for i = 1:size(cur.children,1),  j = 1:size(cur.children,2)
            if cur.children[i,j] !=nothing
                info[:isDecomposed]=true
@@ -268,7 +276,7 @@ function _treeWalkPost!(ssc::SubScreen, func::Function, indx::Vector{(Int64,Int6
 end
 
 
-# --line 8696 --  -- from : "BigData.pamphlet"  
+# --line 8704 --  -- from : "BigData.pamphlet"  
 @doc """ 
          Compute a Subscreen whose children are represented by an 
          array of SubScreen{Float}, each with position(x,y) and 
@@ -313,7 +321,7 @@ function prepSubscreen(linehRel::Vector{Float64}, colwRel::Vector{Float64})
     end
     return sc
 end
-# --line 8743 --  -- from : "BigData.pamphlet"  
+# --line 8751 --  -- from : "BigData.pamphlet"  
 @doc """ Receives 2 arguments: a frame and a rect, where the 
          rect defines its relative coordinates in the frame. 
          
@@ -327,13 +335,13 @@ function rectContextualize(frame::Rectangle{Float64}, rect::Rectangle{Float64})
 
      SubScreen(x,y,w,h)
 end
-# --line 8759 --  -- from : "BigData.pamphlet"  
+# --line 8767 --  -- from : "BigData.pamphlet"  
 @doc """ Extract the rectangle coordinates of a SubScreen
      """ ->
 function toRectangle(ssc::SubScreen)
      Rectangle(ssc.x, ssc.y,ssc.w,ssc.h)
 end
-# --line 8768 --  -- from : "BigData.pamphlet"  
+# --line 8776 --  -- from : "BigData.pamphlet"  
 @doc """ Recursively builds the coordinates of the SubScreen tree,
          in the coordinate space of the root SubScreen, (where
          the root subscreen is located by its (x,y,w,h).
@@ -360,7 +368,7 @@ function computeRects(r::Rectangle{Float64},  ssc::SubScreen)
      end
 end
 
-# --line 8798 --  -- from : "BigData.pamphlet"  
+# --line 8806 --  -- from : "BigData.pamphlet"  
 @doc """  Helper for main recursive version, repackages the first 
           arg as a SubScreen.
      """ ->
@@ -383,7 +391,7 @@ function RectangleProp(ssc,x)
   		    int64(ssc.w*x[1]),  int64(ssc.h*x[2]))
 end
 
-# --line 8810 --  -- from : "BigData.pamphlet"  
+# --line 8818 --  -- from : "BigData.pamphlet"  
 end # module SubScreens
 
 

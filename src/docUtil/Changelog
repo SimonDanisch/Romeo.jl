@@ -1,4 +1,13 @@
 Date: CURRENT
+    Adding interface to effect geometrical (and possibly other) transformations
+	on RenderObject or their presentation by OGL.
+	Using 2 channels: 
+	    -camera (in Screen...)
+	    -RenderObject (added field manipVirtuals)
+	Currently works for cube(own RO construction), issues for plot of 2D 
+	function (provided  with Romeo)
+	
+Date: Tue Mar 31 11:33:47 2015 +0200
     Modularized RomeoLib
     SubsScreens reimplemented for hierachical subscreen model, 
         previous version now called SimpleSubScreens. Additional functionality

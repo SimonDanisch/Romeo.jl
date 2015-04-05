@@ -1,4 +1,4 @@
-# --line 9804 --  -- from : "BigData.pamphlet"  
+# --line 9945 --  -- from : "BigData.pamphlet"  
 using DocCompat
 using Lumberjack
 using TBCompletedM
@@ -16,7 +16,7 @@ using  XtraRenderObjOGL
 include("../src/docUtil/RomeoLib.jl")
 
 
-# --line 9824 --  -- from : "BigData.pamphlet"  
+# --line 9965 --  -- from : "BigData.pamphlet"  
 function mkSubScrGeom()
     ## Build subscreens, use of screen_height_width permits to
     ## adapt subscreen dimensions to changes in  root window  size
@@ -25,7 +25,7 @@ function mkSubScrGeom()
         SubScreens.insertChildren!(ps1,2,2, ps2)
         ps1
 end
-# --line 9835 --  -- from : "BigData.pamphlet"  
+# --line 9976 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with functions taking
         arguments:
@@ -42,9 +42,22 @@ end
         the same image in all grid positions.
      """  ->
 function init_graph_grid(onlyImg::Bool)
-   # try with a plot 
-   plt = (sc::Screen,cam::GLAbstraction.Camera) -> Float32[ rand(Float32)  
-                                                            for i=0:50, j=0:50 ]
+   # try with a plot
+   npts = 50 
+   function plotFn(i,j)
+         x = Float32(i)/Float32(npts)-0.5 
+         y = Float32(j)/Float32(npts)-0.5 
+         ret = if ( x>=0 ) && ( x>=y)
+                   0.5*x*x+0.3*y*y
+               elseif ( x<0) 
+                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+               else
+                   0.0
+               end
+          ret
+   end
+   plt = (sc::Screen,cam::GLAbstraction.Camera) -> Float32[ plotFn(i,j)  
+                                                     for i=0:npts, j=0:npts ]
    # put the cat all over the place!!!
    pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
 
@@ -65,7 +78,7 @@ function init_graph_grid(onlyImg::Bool)
    end
 
    # subscreen geometry 
-   scOuter = prepSubscreen([1.; 4.],[4.; 1.])
+   scOuter = prepSubscreen([1.; 4.],[3.; 1.])
    scRight = prepSubscreen([1.; 1.;1.;1.],[1.])
    insertChildren!(scOuter, 2, 2, scRight)
 
@@ -77,32 +90,29 @@ function init_graph_grid(onlyImg::Bool)
    vizObj[1,1].attrib[RObjFn]         = onlyImg ? pic : doEdit
    vizObj[1,2].attrib[RObjFn]         = onlyImg ? pic : vol
    vizObj[(2,2),(1,1)].attrib[RObjFn] = onlyImg ? pic : colorBtn
-   vizObj[(2,2),(2,1)].attrib[RObjFn] = onlyImg ? pic : vol
+   vizObj[(2,2),(2,1)].attrib[RObjFn] = onlyImg ? pic : plt
    vizObj[(2,2),(3,1)].attrib[RObjFn] = onlyImg ? pic : plt
    vizObj[(2,2),(4,1)].attrib[RObjFn] = onlyImg ? pic : plt
    vizObj[2,1].attrib[RObjFn]         = onlyImg ? pic : plt
 
    # enter rotation parameters for 3 plt, after having required check of feature
-   #vizObj[(2,2),(2,1)].attrib[ROReqVirtUser] = VFRotateModel
-   #vizObj[(2,2),(2,1)].attrib[RORot] = (π/4.0,  0.,      0.)
+   vizObj[(2,2),(2,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
+   vizObj[(2,2),(2,1)].attrib[RORot] = (π/8.0,  0.,      0.)
 
-   vizObj[(2,2),(3,1)].attrib[ROReqVirtUser] = VFRotateModel
-   vizObj[(2,2),(3,1)].attrib[RORot] = (    0., π/4.0,   0.)
+   vizObj[(2,2),(3,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
+   vizObj[(2,2),(3,1)].attrib[RORot] = (    0., π/8.0,   0.)
 
-   #vizObj[(2,2),(4,1)].attrib[ROReqVirtUser] = VFRotateModel
-   #vizObj[(2,2),(4,1)].attrib[RORot] = (    0.,   0.,    π/4.0,)
+   vizObj[(2,2),(4,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
+   vizObj[(2,2),(4,1)].attrib[RORot] = (    0.,   0.,    π/8.0,)
 
 
-   vizObj[(2,2),(3,1)].attrib[RODumpMe]  = true
-   vizObj[(2,2),(3,1)].attrib[ROReqVirtUser]  = VFRotateModel
-   vizObj[1,2].attrib[RODumpMe]  = true
-   vizObj[1,2].attrib[ROReqVirtUser]  = VFRotateModel | VFTranslateModel
-        
+   #vizObj[(2,2),(3,1)].attrib[RODumpMe]  = true
+
    return vizObj
 
 end  
 
-# --line 9915 --  -- from : "BigData.pamphlet"  
+# --line 10066 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options
      """ ->
@@ -115,7 +125,7 @@ function realMain(onlyImg::Bool;pcamSel=true)
    interact_loop()
 end
 
-# --line 9931 --  -- from : "BigData.pamphlet"  
+# --line 10082 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the command line.
 using ArgParse
 function main(args)
