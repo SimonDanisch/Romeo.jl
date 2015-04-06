@@ -1,4 +1,4 @@
-# --line 9945 --  -- from : "BigData.pamphlet"  
+# --line 9921 --  -- from : "BigData.pamphlet"  
 using DocCompat
 using Lumberjack
 using TBCompletedM
@@ -16,7 +16,7 @@ using  XtraRenderObjOGL
 include("../src/docUtil/RomeoLib.jl")
 
 
-# --line 9965 --  -- from : "BigData.pamphlet"  
+# --line 9941 --  -- from : "BigData.pamphlet"  
 function mkSubScrGeom()
     ## Build subscreens, use of screen_height_width permits to
     ## adapt subscreen dimensions to changes in  root window  size
@@ -25,7 +25,7 @@ function mkSubScrGeom()
         SubScreens.insertChildren!(ps1,2,2, ps2)
         ps1
 end
-# --line 9976 --  -- from : "BigData.pamphlet"  
+# --line 9952 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with functions taking
         arguments:
@@ -112,7 +112,7 @@ function init_graph_grid(onlyImg::Bool)
 
 end  
 
-# --line 10066 --  -- from : "BigData.pamphlet"  
+# --line 10042 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options
      """ ->
@@ -125,7 +125,7 @@ function realMain(onlyImg::Bool;pcamSel=true)
    interact_loop()
 end
 
-# --line 10082 --  -- from : "BigData.pamphlet"  
+# --line 10058 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the command line.
 using ArgParse
 function main(args)

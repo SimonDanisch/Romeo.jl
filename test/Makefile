@@ -6,6 +6,7 @@ JULIAENV=$(PAMDIR)/JULIA-ENV
 JULIAPGM=Julia4
 
 DOCUTILDIR=../src/docUtil
+DOCUNITTEST=unitTests
 
 RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl
 	cat $< |cpif $@
@@ -40,7 +41,21 @@ $(DOCUTILDIR)/TBCompletedM.jl: $(JULIATRY)/TBCompletedM.jl
 $(DOCUTILDIR)/Changelog: $(JULIAENV)/Changelog
 	cat $< |cpif $@
 
-.PHONY: run runD runDI runSingle runSingleD runSingleI progs \
+$(DOCUNITTEST)/testSubScreen.jl :$(JULIATRY)/testSubScreen.jl
+	cat $< |cpif $@
+
+$(DOCUNITTEST)/testLumberjack.jl :$(JULIATRY)/testLumberjack.jl
+	cat $< |cpif $@
+
+$(DOCUNITTEST)/TestOGLGeom.jl :$(JULIATRY)/TestOGLGeom.jl
+	cat $< |cpif $@
+
+$(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl
+	cat $< |cpif $@
+
+
+
+.PHONY: run runD runDI runSingle runSingleD runSingleI progs tests progtests\
         editTest2
 
 progs :  RomeoVolume.jl \
@@ -54,6 +69,11 @@ progs :  RomeoVolume.jl \
 	$(DOCUTILDIR)/VirtualOGLGeom.jl \
 	$(DOCUTILDIR)/ROGeomOps.jl \
         $(DOCUTILDIR)/Changelog
+
+progtests: $(DOCUNITTEST)/testSubScreen.jl \
+	    $(DOCUNITTEST)/testLumberjack.jl \
+	    $(DOCUNITTEST)/TestOGLGeom.jl \
+	    $(DOCUNITTEST)/testVirtOGLGeom.jl
 
 
 run:         progs 

@@ -262,18 +262,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
 
        # Model space transformations which amount to changes in camera
        # position/center of view
-       println("About to call effVModelGeomCamera")
-          #== this code is really a bypass of compiler/typing problems
-          ==#
-       neye  = zeros(Float32,3)  #uninitialized vector
-       ncent = zeros(Float32,3)  #uninitialized vector
-       effVModelGeomCamera(ssc,eyepos, centerScene,neye,ncent)
-       println("Returned")
-       eyepos      = Vector3(neye) 
-       centerScene = Vector3(ncent)
-       println("effVModelGeomCamera returns $eyepos, $centerScene")
-          #== end bypass 
-          ==#
+       eyepos ,  centerScene = effVModelGeomCamera(ssc,eyepos, centerScene)
 
        pcam = PerspectiveCamera(camera_input,eyepos ,  centerScene)
        ocam=  OrthographicCamera(camera_input)
@@ -283,8 +272,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        vo  = ssc.attrib[ RObjFn ]( scr, camera )
 
 
-
-# --line 9237 --  -- from : "BigData.pamphlet"  
+# --line 9225 --  -- from : "BigData.pamphlet"  
        # The game here: thy shall not call visualize with a RenderObject
        # ( May be this can be simplified if  my proposed patch in 
        # Romeo/src/visualize_interface.jl gets accepted)
@@ -306,7 +294,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        end
 
 
-# --line 9260 --  -- from : "BigData.pamphlet"  
+# --line 9248 --  -- from : "BigData.pamphlet"  
        # Does the user request virtual functions (we need to verify availability or diagnose)
        marker  = haskey(ssc.attrib,ROReqVirtUser) ? ssc.attrib[ROReqVirtUser] : 0
        # Check availability, this will use an external function (in ad hoc module!)
@@ -320,7 +308,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
             end
        end
 
-# --line 9275 --  -- from : "BigData.pamphlet"  
+# --line 9263 --  -- from : "BigData.pamphlet"  
        # this way the user can request a dump 
        if haskey(ssc.attrib,RODumpMe)
           println("Dump for object viz of type = ",typeof(viz),"")
@@ -338,7 +326,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
           end
        end
 
-# --line 9296 --  -- from : "BigData.pamphlet"  
+# --line 9284 --  -- from : "BigData.pamphlet"  
        if isa(viz,(RenderObject...))
             for v in viz
                 push!(scr.renderlist, v)
@@ -362,14 +350,14 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
 
     end   # function  fnWalk3
 
-# --line 9321 --  -- from : "BigData.pamphlet"  
+# --line 9309 --  -- from : "BigData.pamphlet"  
     treeWalk!(vObjT,  fnWalk3)
 
 end
 
 
 
-# --line 9331 --  -- from : "BigData.pamphlet"  
+# --line 9319 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations in order to display a
 	  single render object in the root window. It is also
           a debugging tool for render objects.
@@ -425,7 +413,7 @@ function init_romeo_single(roFunc)
     
 end
 
-# --line 9784 --  -- from : "BigData.pamphlet"  
+# --line 9760 --  -- from : "BigData.pamphlet"  
 function interact_loop()
    while Romeo.ROOT_SCREEN.inputs[:open].value
       glEnable(GL_SCISSOR_TEST)
