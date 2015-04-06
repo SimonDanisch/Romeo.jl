@@ -14,6 +14,9 @@ RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl
 $(DOCUTILDIR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl
 	cat $< |cpif $@
 
+$(DOCUTILDIR)/RomeoLibSimple.jl: $(JULIATRY)/RomeoLibSimple.jl
+	cat $< |cpif $@
+
 $(DOCUTILDIR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl
 	cat $< |cpif $@
 
@@ -55,11 +58,13 @@ $(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl
 
 
 
-.PHONY: run runD runDI runSingle runSingleD runSingleI progs tests progtests\
+.PHONY: run run3D runD runDI runSingle runSingle3D runSingleD runSingleI \
+	eprogs tests progtests \
         editTest2
 
 progs :  RomeoVolume.jl \
         $(DOCUTILDIR)/RomeoLib.jl \
+        $(DOCUTILDIR)/RomeoLibSimple.jl \
         $(DOCUTILDIR)/DebugTools.jl \
         $(DOCUTILDIR)/TBCompletedM.jl \
         $(DOCUTILDIR)/MatrixMathPlus.jl \
@@ -79,6 +84,9 @@ progtests: $(DOCUNITTEST)/testSubScreen.jl \
 run:         progs 
 	$(JULIAPGM) RomeoVolume.jl --log=/tmp/RomeoLumber01.log
 
+run3D:       progs 
+	$(JULIAPGM) RomeoVolume.jl --dim=3 --log=/tmp/RomeoLumber01.log
+
 runD:         progs 
 	$(JULIAPGM) RomeoVolume.jl --log=/tmp/RomeoLumber01.log --debugAbs=61 --debugWin=1
 
@@ -88,6 +96,9 @@ runDI:         progs
 
 runSingle:   progs 
 	$(JULIAPGM) RomeoGridSimple.jl --log=/tmp/RomeoLumber01.log --cube
+
+runSingle3D:   progs 
+	$(JULIAPGM) RomeoGridSimple.jl  --log=/tmp/RomeoLumber01.log --dim3D
 
 runSingleD:  progs 
 	$(JULIAPGM) RomeoGridSimple.jl --cube --debugAbs=61 --debugWin=1

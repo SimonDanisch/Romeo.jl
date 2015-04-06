@@ -259,6 +259,11 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        #default perspective parametrization (may be done better or parametrized)
        eyepos = Vector3{Float32}(2, 2, 2)
        centerScene= Vector3{Float32}(0.0)
+       # when the user specifies a rotation we start from an eye aligned with
+       # the x axis
+       if haskey(ssc.attrib,RORot) 
+           eyepos = Vector3{Float32}(3.5, 0, 0)
+       end
 
        # Model space transformations which amount to changes in camera
        # position/center of view
@@ -272,15 +277,21 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        vo  = ssc.attrib[ RObjFn ]( scr, camera )
 
 
-# --line 9225 --  -- from : "BigData.pamphlet"  
+# --line 9230 --  -- from : "BigData.pamphlet"  
        # The game here: thy shall not call visualize with a RenderObject
        # ( May be this can be simplified if  my proposed patch in 
        # Romeo/src/visualize_interface.jl gets accepted)
 
        #screen= parameter to visualize inspired from test/simple_display_grid.jl
        viz =  if isa( vo, NotComplete)
-		#good enough for now, will need improvement
-                visualize(vo.what)      
+                if haskey(vo.data, :SetPerspectiveCam)
+                      scr.perspectivecam = camera
+                      visualize(vo.what, screen=scr )
+                elseif  haskey(vo.data, :doColorChooser)
+                      visualize(vo.what)      
+                else 
+                  error("Unknown or absent key for TBCompleted ")
+                end
            elseif ! isa(vo,Dict)
                visualize(vo, screen=scr)
            else
@@ -294,7 +305,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        end
 
 
-# --line 9248 --  -- from : "BigData.pamphlet"  
+# --line 9259 --  -- from : "BigData.pamphlet"  
        # Does the user request virtual functions (we need to verify availability or diagnose)
        marker  = haskey(ssc.attrib,ROReqVirtUser) ? ssc.attrib[ROReqVirtUser] : 0
        # Check availability, this will use an external function (in ad hoc module!)
@@ -308,7 +319,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
             end
        end
 
-# --line 9263 --  -- from : "BigData.pamphlet"  
+# --line 9274 --  -- from : "BigData.pamphlet"  
        # this way the user can request a dump 
        if haskey(ssc.attrib,RODumpMe)
           println("Dump for object viz of type = ",typeof(viz),"")
@@ -326,7 +337,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
           end
        end
 
-# --line 9284 --  -- from : "BigData.pamphlet"  
+# --line 9295 --  -- from : "BigData.pamphlet"  
        if isa(viz,(RenderObject...))
             for v in viz
                 push!(scr.renderlist, v)
@@ -350,70 +361,12 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
 
     end   # function  fnWalk3
 
-# --line 9309 --  -- from : "BigData.pamphlet"  
+# --line 9320 --  -- from : "BigData.pamphlet"  
     treeWalk!(vObjT,  fnWalk3)
 
 end
 
-
-
-# --line 9319 --  -- from : "BigData.pamphlet"  
-@doc """  Performs a number of initializations in order to display a
-	  single render object in the root window. It is also
-          a debugging tool for render objects.
-     """  -> 
-function init_romeo_single(roFunc)
-    root_area = Romeo.ROOT_SCREEN.area
-    root_inputs =  Romeo.ROOT_SCREEN.inputs
-    root_screen=Romeo.ROOT_SCREEN
-
-    # this enables screen dimensions to adapt to  root window changes:
-    # a signal is produced with root window's dimensions on display
-    screen_height_width = lift(root_area) do area 
-        Vector2{Int}(area.w, area.h)
-    end
-
-    screenarea= lift (Romeo.ROOT_SCREEN.area, screen_height_width) do ar,scdim
-                RectangleProp(SubScreen(0,0,1,1), scdim) 
-    end
-
-
-    camera_input=copy(root_inputs)
-    camera_input[:window_size] = lift(x->Vector4(x.x, x.y, x.w, x.h), screenarea)
-    eyepos = Vec3(2, 2, 2)
-    centerScene= Vec3(0.0)
-
-    pcam = PerspectiveCamera(camera_input,eyepos ,  centerScene)
-    ocam=  OrthographicCamera(camera_input)
-
-    screen =Screen(screenarea, root_screen, Screen[], root_screen.inputs, 
-                   RenderObject[], 
-                    root_screen.hidden, root_screen.hasfocus, pcam, ocam, 
-                    root_screen.nativewindow)
-
-    # Visualize a RenderObject on the screen
-    vo  = roFunc(screen, pcam )
-
-    # roFunc may return single objects or Tuples of such
-    function registerRo (viz::RenderObject)
-        #in this case calling visualize result in an error (stringification)
-        push!( screen.renderlist, viz)
-        push!( root_screen.renderlist, viz)
-    end
-    function registerRo (viz::Tuple)
-       for v in viz
-           registerRo (v)
-       end
-    end
-
-    registerRo (vo)
-
-    #println("screen=$screen\nEnd of screen\n\tshould be child of ROOT_SCREEN")
-    #println("root_screen=$root_screen\nEnd of root screen\n")
-    
-end
-
-# --line 9760 --  -- from : "BigData.pamphlet"  
+# --line 9781 --  -- from : "BigData.pamphlet"  
 function interact_loop()
    while Romeo.ROOT_SCREEN.inputs[:open].value
       glEnable(GL_SCISSOR_TEST)

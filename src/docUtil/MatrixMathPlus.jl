@@ -1,4 +1,4 @@
-# --line 9679 --  -- from : "BigData.pamphlet"  
+# --line 9696 --  -- from : "BigData.pamphlet"  
 module MatrixMathPlus
 
 export norm2S,  frobNorm, 

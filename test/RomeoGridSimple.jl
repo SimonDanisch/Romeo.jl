@@ -18,8 +18,8 @@ using ImmutableArrays
     #  Loading GLFW opens the window
 using Compat
 
-using  XtraRenderObjOGL
-include("../src/docUtil/RomeoLib.jl")
+using  XtraRenderObjOGL, TBCompletedM
+include("../src/docUtil/RomeoLibSimple.jl")
 
 function mkSubScrGeom()
     ## Build subscreens, use of screen_height_width permits to
@@ -30,7 +30,7 @@ function mkSubScrGeom()
             SimpleSubScreens.prepSubscreen( Vector([4,1]), Vector([1,4]))
         end
 end
-# --line 9575 --  -- from : "BigData.pamphlet"  
+
 @doc """
         This function fills the (global) vizObjArray  with functions taking
         arguments:
@@ -78,7 +78,7 @@ function init_graph_grid(onlyImg::Bool)
 
 end  
 
-# --line 9654 --  -- from : "BigData.pamphlet"  
+
 @doc """
        Does the real work, main only deals with the command line options
      """ ->
@@ -92,20 +92,46 @@ function realMain(onlyImg::Bool; pcamSel=true)
    interact_loop()
 end
 
+function mkVol(sc,cam)
+   npts3D = 12
+   function plotFn3D(i,j,k)
+         x = Float32(i)/Float32(npts3D)-0.5 
+         y = Float32(j)/Float32(npts3D)-0.5 
+         z = Float32(k)/Float32(npts3D)-0.5 
+
+         ret = if ( x>=0 ) && ( x>=y)
+                   2*x*x+3*y*y+z*z
+               elseif ( x<0) 
+                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+               else
+                   9*x*y*z
+               end
+          ret
+   end
+   function doPlot3D (sc::Screen,cam::GLAbstraction.Camera)
+          #sc.perspectivecam = cam 
+          visualize( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
+                                   j=0:npts3D, k=0:npts3D ], screen=sc)
+   end  
+   doPlot3D(sc,cam)
+end
+        
 @doc """
        Does the real work, simple variant
      """ ->
-function realMainSimple(onlyImg::Bool; pcamSel=true)
+function realMainSimple(onlyImg::Bool; pcamSel=true, doVol=false)
    init_glutils()   # defined in GLAbstraction/GLInit
                     # in practice loads registerd shaders
 
    renderObjFn = 
      if onlyImg
        (sc,cam) -> Texture("pic.jpg")
-     else
+     elseif !doVol
        (sc,cam) -> mkCube(sc,cam) # this is a function object, since
                   # we cannot evaluate before we know the screen 
      		  # and we left camera parametrization in init_romeo_single
+     else
+       (sc,cam) -> mkVol(sc,cam)  
      end
    init_romeo_single(renderObjFn; pcamSel=pcamSel )
    interact_loop()
@@ -121,7 +147,10 @@ function main(args)
                action = :store_true
        "--cube", "-c"
                help="Test with a single cube in root window/screen"
-               action = :store_true 
+               action = :store_true
+       "--dim3D","-v"
+		help="Test with a single volume plot in root window/screen"
+               action = :store_true
        "--debugAbs","-d"
                help="show debugging output (in particular from GLRender)"
                arg_type = Int
@@ -153,6 +182,7 @@ function main(args)
 
     onlyImg        = parsed_args["img"]
     cubeSimple     = parsed_args["cube"]
+    volSimple      = parsed_args["dim3D"]
     pcamSel        = !parsed_args["ortho"]
 
     if parsed_args["log"] != nothing
@@ -172,6 +202,7 @@ function main(args)
 
     ### NOW, run the program 
     cubeSimple ?   realMainSimple(onlyImg; pcamSel=pcamSel ) :
+       volSimple ? realMainSimple(onlyImg; pcamSel=pcamSel, doVol=true ) :
                    realMain(onlyImg ; pcamSel=pcamSel)    
 end
 

@@ -9,7 +9,8 @@ Screenshots  shows current state of my development based on Romeo.jl
 <TABLE>
 <TR>
     <TD><IMG SRC="test/images/ScreenShot0404.png" WIDTH=300>
-    <TD><IMG SRC="test/images/ScreenShot0405.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0406.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0406b.png" WIDTH=300>
 </TABLE>
 
 The following branches in the Git tree have specific meaning (At least planned):
@@ -21,7 +22,8 @@ The following branches in the Git tree have specific meaning (At least planned):
     <TD>Manage multiple subscreens, and provide inter-subscreen or interaction
         related functionality
 <TR><TD>relateSubscreens
-    <TD>Establish communications between subscreens
+    <TD>Establish communications between subscreens(obey same mouse actions), 
+        statically rotate the view in some subscreen
 </TABLE>
 
 
@@ -34,9 +36,9 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>
     <TD>Sat Apr 04 2015
     <TD>Not tracking development of GLAbstraction
-<TR><TD>
-    <TD>
-    <TD>
+<TR><TD>plot 3D
+    <TD>Mon Apr 06 2015
+    <TD>Mysterious bug in render loop (apparently in Reactive)
 <TR><TD>
     <TD>
     <TD>

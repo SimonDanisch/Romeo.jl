@@ -1,4 +1,4 @@
-# --line 9921 --  -- from : "BigData.pamphlet"  
+# --line 9942 --  -- from : "BigData.pamphlet"  
 using DocCompat
 using Lumberjack
 using TBCompletedM
@@ -15,17 +15,7 @@ using Compat
 using  XtraRenderObjOGL
 include("../src/docUtil/RomeoLib.jl")
 
-
-# --line 9941 --  -- from : "BigData.pamphlet"  
-function mkSubScrGeom()
-    ## Build subscreens, use of screen_height_width permits to
-    ## adapt subscreen dimensions to changes in  root window  size
-        ps1=SubScreens.prepSubscreen([4.; 1.],[1.; 4.])
-        ps2=SubScreens.prepSubscreen([1.; 2.; 3.; 4.],[1.])
-        SubScreens.insertChildren!(ps1,2,2, ps2)
-        ps1
-end
-# --line 9952 --  -- from : "BigData.pamphlet"  
+# --line 9962 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with functions taking
         arguments:
@@ -41,14 +31,14 @@ end
         The argument onlyImg is here for debugging , when true we show only
         the same image in all grid positions.
      """  ->
-function init_graph_grid(onlyImg::Bool)
+function init_graph_grid(onlyImg::Bool, plotDim=2)
    # try with a plot
    npts = 50 
-   function plotFn(i,j)
+   function plotFn2D(i,j)
          x = Float32(i)/Float32(npts)-0.5 
          y = Float32(j)/Float32(npts)-0.5 
          ret = if ( x>=0 ) && ( x>=y)
-                   0.5*x*x+0.3*y*y
+                   4*x*x+2*y*y
                elseif ( x<0) 
                    2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
                else
@@ -56,8 +46,36 @@ function init_graph_grid(onlyImg::Bool)
                end
           ret
    end
-   plt = (sc::Screen,cam::GLAbstraction.Camera) -> Float32[ plotFn(i,j)  
-                                                     for i=0:npts, j=0:npts ]
+   function doPlot2D (sc::Screen,cam::GLAbstraction.Camera)
+           TBCompleted ( Float32[ plotFn2D(i,j)  for i=0:npts, j=0:npts ],
+                         nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
+                       )
+   end  
+
+   npts3D = 12
+   function plotFn3D(i,j,k)
+         x = Float32(i)/Float32(npts3D)-0.5 
+         y = Float32(j)/Float32(npts3D)-0.5 
+         z = Float32(k)/Float32(npts3D)-0.5 
+
+         ret = if ( x>=0 ) && ( x>=y)
+                   2*x*x+3*y*y+z*z
+               elseif ( x<0) 
+                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+               else
+                   9*x*y*z
+               end
+          ret
+   end
+   function doPlot3D (sc::Screen,cam::GLAbstraction.Camera)
+           dd = Dict{Symbol,Any}(:SetPerspectiveCam => true) 
+           TBCompleted ( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
+                                   j=0:npts3D, k=0:npts3D ],
+                         nothing, dd)
+   end  
+
+
+   plt = plotDim==2 ? doPlot2D : doPlot3D
    # put the cat all over the place!!!
    pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
 
@@ -67,7 +85,7 @@ function init_graph_grid(onlyImg::Bool)
    # color
    function doColorChooser(sc::Screen,cam::GLAbstraction.Camera)
           TBCompleted (AlphaColorValue(RGB{Float32}(0.8,0.2,0.2), float32(0.5)),
-                       nothing, Dict{Symbol,Any}())
+                       nothing, Dict{Symbol,Any}(:doColorChooser=> true))
    end
    colorBtn = doColorChooser
 
@@ -97,13 +115,13 @@ function init_graph_grid(onlyImg::Bool)
 
    # enter rotation parameters for 3 plt, after having required check of feature
    vizObj[(2,2),(2,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
-   vizObj[(2,2),(2,1)].attrib[RORot] = (π/8.0,  0.,      0.)
+   vizObj[(2,2),(2,1)].attrib[RORot] = (π/2.01,  0.,      0.)
 
    vizObj[(2,2),(3,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
-   vizObj[(2,2),(3,1)].attrib[RORot] = (    0., π/8.0,   0.)
+   vizObj[(2,2),(3,1)].attrib[RORot] = (    0., π/2.01,   0.)
 
    vizObj[(2,2),(4,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
-   vizObj[(2,2),(4,1)].attrib[RORot] = (    0.,   0.,    π/8.0,)
+   vizObj[(2,2),(4,1)].attrib[RORot] = (    0.,   0.,    π/2.01,)
 
 
    #vizObj[(2,2),(3,1)].attrib[RODumpMe]  = true
@@ -112,25 +130,33 @@ function init_graph_grid(onlyImg::Bool)
 
 end  
 
-# --line 10042 --  -- from : "BigData.pamphlet"  
+# --line 10080 --  -- from : "BigData.pamphlet"  
 @doc """
-       Does the real work, main only deals with the command line options
+       Does the real work, main only deals with the command line options.
+       - init_glutils    :initialization functions (see the GL* libraries)
+       - init_graph_grid :prepare a description of the subscreens
+       - init_romeo      :construct the subscreens, use the description
+                          of subscreens to actually build them (calls visualize)
      """ ->
-function realMain(onlyImg::Bool;pcamSel=true)
+function realMain(onlyImg::Bool;pcamSel=true, plotDim=2)
    init_glutils()
 
-   vizObjSC   = init_graph_grid(onlyImg)
+   vizObjSC   = init_graph_grid(onlyImg, plotDim)
    init_romeo( vizObjSC; pcamSel = pcamSel )
 
    interact_loop()
 end
 
-# --line 10058 --  -- from : "BigData.pamphlet"  
-# parse arguments, so that we have some flexibility to vary tests on the command line.
+# --line 10100 --  -- from : "BigData.pamphlet"  
+# parse arguments, so that we have some flexibility to vary tests on the 
+# command line.
 using ArgParse
 function main(args)
      s = ArgParseSettings(description = "Test of Romeo with grid of objects")   
      @add_arg_table s begin
+       "--dim"
+               help="Set to 2 or 3 for 2D or 3D plot"
+               arg_type = Int
        "--img","-i"   
                help="Use image instead of other graphics/scenes"
                action = :store_true
@@ -165,7 +191,7 @@ function main(args)
 
     onlyImg        = parsed_args["img"]
     pcamSel        = !parsed_args["ortho"]
-
+    plotDim        = (parsed_args["dim"] != nothing) ?  parsed_args["dim"] : 2
 
     if parsed_args["log"] != nothing
           logFileName = parsed_args["log"]
@@ -175,10 +201,6 @@ function main(args)
           Lumberjack.add_truck(LumberjackTruck(logFileName, "romeo-app"))
           Lumberjack.add_saw(Lumberjack.msec_date_saw)
           Lumberjack.log("debug", "starting main with args")
-                               # Dict(:onlyImg =>string(onlyImg) ,
-                               #                       :cubeSimple=>string(cubeSimple),
-                               #                       :pcamSel=>string(pcamSel),
-                               #                       :newGeomMgr=>string(newGeomMgr)))
     end
 
     parsed_args["debugAbs"] != nothing && GLAbstraction.setDebugLevels( true,  
@@ -187,7 +209,7 @@ function main(args)
                                                       parsed_args["debug"])
 
     ### NOW, run the program 
-    realMain(onlyImg; pcamSel=pcamSel)    
+    realMain(onlyImg; pcamSel=pcamSel, plotDim=plotDim)    
 end
 
 main(ARGS)
