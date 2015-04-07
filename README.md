@@ -23,7 +23,8 @@ The following branches in the Git tree have specific meaning (At least planned):
         related functionality
 <TR><TD>relateSubscreens
     <TD>Establish communications between subscreens(obey same mouse actions), 
-        statically rotate the view in some subscreen
+        statically rotate the view in some subscreen. Plan to generalize
+        to other signals.
 </TABLE>
 
 

@@ -1,4 +1,4 @@
-# --line 9856 --  -- from : "BigData.pamphlet"  
+# --line 9927 --  -- from : "BigData.pamphlet"  
 # here we have our debug subsection
 module DebugTools
 
@@ -19,7 +19,7 @@ function unitCube{T<:Number}(zero::T)
     unitcube
 end
 
-# --line 9879 --  -- from : "BigData.pamphlet"  
+# --line 9950 --  -- from : "BigData.pamphlet"  
 #code_native( unitCube, (Int32,))
 function chkDump(tup::(RenderObject...),more::Bool=false)
      for t in tup
@@ -27,7 +27,7 @@ function chkDump(tup::(RenderObject...),more::Bool=false)
      end
 end
 
-# --line 9889 --  -- from : "BigData.pamphlet"  
+# --line 9960 --  -- from : "BigData.pamphlet"  
 function chkDump(r::RenderObject,more::Bool=false)
     println("In  chkDump(r::RenderObject)\n\t$r\n")
 
@@ -40,6 +40,11 @@ function chkDump(r::RenderObject,more::Bool=false)
 
     elseif haskey(r.uniforms, :projection)
          projUnitCube = cvFl(r.uniforms[:projection].value) * unitCube(1f0)
+         println("Has projection")
+         println("Projected (projection) unit cube=\n\t$projUnitCube")
+
+    elseif haskey(r.uniforms, :view)
+         projUnitCube = cvFl(r.uniforms[:view].value) * unitCube(1f0)
          println("Has projection")
          println("Projected (projection) unit cube=\n\t$projUnitCube")
 
@@ -58,7 +63,7 @@ function chkDump(r::RenderObject,more::Bool=false)
 
     println("+++  End chkDump output  +++\n")
 end
-# --line 9922 --  -- from : "BigData.pamphlet"  
+# --line 9998 --  -- from : "BigData.pamphlet"  
 function chkDump(d::Dict{Symbol,Any},more::Bool=false)
     println("In  chkDump(d::Dict{Symbol,Any})\n")
     for (k,v) in d

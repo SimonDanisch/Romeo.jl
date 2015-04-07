@@ -1,11 +1,18 @@
 Date: CURRENT
+    Adding functionality: camera movement in one subscreen follows a different
+	 subscreen (identical); can we do this with a rotation offset?
+	
+Date: Mon Apr 6 18:55:44 2015 +0200	
     Adding interface to effect geometrical (and possibly other) transformations
 	on RenderObject or their presentation by OGL.
-	Using 2 channels: 
+	Using 2 techniques: 
 	    -camera (in Screen...)
-	    -RenderObject (added field manipVirtuals)
-	Currently works for cube(own RO construction), issues for plot of 2D 
-	function (provided  with Romeo)
+	    -RenderObject (added field manipVirtuals ... not used at the moment)
+	Currently works for cube(own RO construction), plot of 2D 
+	function ( as provided  with Romeo).
+
+	Issues: Problem when trying to visualize plot of 3D data field (
+	        error in renderloop)
 	
 Date: Tue Mar 31 11:33:47 2015 +0200
     Modularized RomeoLib

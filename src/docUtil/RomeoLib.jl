@@ -11,13 +11,13 @@ function clear!(x::Vector{RenderObject})
         delete!(value)
     end
 end
-# --line 8955 --  -- from : "BigData.pamphlet"  
+# --line 8957 --  -- from : "BigData.pamphlet"  
 using DebugTools
 using ROGeomOps       ## geometric OpenGL transformations on RenderObjects
 using VirtualOGLGeom  ## tools to effect transformations on RenderObjects via
                       ## interfaces
 
-# --line 8963 --  -- from : "BigData.pamphlet"  
+# --line 8965 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations
           Construct all RenderObjects (suitably parametrized) and inserts them in
           renderlist.
@@ -116,73 +116,8 @@ function init_romeo(subScreenGeom, vizObjArray; pcamSel=true)
    end
 end
 
-# --line 9064 --  -- from : "BigData.pamphlet"  
-@doc """  Inner function for init_romeo
-""" ->
-function equipSubsScreenLeaf(sscLeaf::SubScreen)
-       scr = sccLeaf
 
-       # the  selection of signals to drive cameras (in correct subscreen) is from S.Danisch example 
-       # (synchronized subscreens)
-       #checks if mouse is inside 
-       insidescreen = lift(global_inputs[:mouseposition]) do mpos
-             isinside(scr.area.value, mpos...) 
-       end
-       # creates signals for the camera, which are only active if mouse is 
-       # inside screen
-       camera_input = merge(global_inputs, Dict(
-         :mouseposition  => keepwhen(insidescreen, Vector2(0.0), global_inputs[:mouseposition]), 
-         :scroll_x       => keepwhen(insidescreen, 0, global_inputs[:scroll_x]), 
-         :scroll_y       => keepwhen(insidescreen, 0, global_inputs[:scroll_y]), 
-       ))
-       # this is the reason we have to go through all this. For the correct
-       # perspective projection,
-       # the camera needs the correct screen rectangle.
-       camera_input[:window_size] = lift(x->Vector4(x.x, x.y, x.w, x.h), scr.area)
-
-       eyepos = Vec3(2, 2, 2)
-       centerScene= Vec3(0.0)
-
-       pcam = PerspectiveCamera(camera_input,eyepos ,  centerScene)
-       ocam=  OrthographicCamera(camera_input)
-       camera = pcamSel ? pcam : ocam
-
-       # Build the RenderObjects by calling the supplied function
-       vo  = vizObjTree[i,j]( scr, camera )
-
-       # The game here: thy shall not call visualize with a RenderObject
-       # ( May be this can be simplified if  my proposed patch in
-       #  Romeo/src/visualize_interface.jl
-       # gets accepted)
-
-       # passing screen= parameter to visualize inspired from 
-       # test/simple_display_grid.jl
-       viz = if ! isa(vo,Dict)
-               visualize(vo, screen=scr)
-           else
-              # do not visualize RenderObjects!
-              if ! (   isa(vo[:render],RenderObject) 
-                    || isa(vo[:render],(RenderObject...)))
-                 visualize(vo, screen=scr)
-              else
-                 vo
-              end
-       end
-
-       #chkDump(viz,true) #debug (may be make this parameterized)
-
-       if isa(viz,(RenderObject...))
-            for v in viz
-                push!(scr.renderlist, v)
-            end
-       else
-            push!(scr.renderlist, viz)
-       end
-
-   end # function equipSubsScreenLeaf
-
-
-# --line 9131 --  -- from : "BigData.pamphlet"  
+# --line 9068 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations
           Construct all RenderObjects (suitably parametrized) and inserts them in
           renderlist.
@@ -206,7 +141,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
     end
 
 
-# --line 9156 --  -- from : "BigData.pamphlet"  
+# --line 9093 --  -- from : "BigData.pamphlet"  
     # set the subscreens areas as signals focused on subscreen rectangles
     fnWalk1 = function(ssc,indx,misc,info)
            info[:isDecomposed] && return
@@ -218,7 +153,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
     end
     treeWalk!(vObjT,  fnWalk1)
 
-# --line 9169 --  -- from : "BigData.pamphlet"  
+# --line 9106 --  -- from : "BigData.pamphlet"  
     # Make subscreens of Screen type, each equipped with renderlist
     # We will then put RenderObject in each of the subscreens
 
@@ -229,7 +164,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
     treeWalk!(vObjT,  fnWalk2)
 
 
-# --line 9181 --  -- from : "BigData.pamphlet"  
+# --line 9118 --  -- from : "BigData.pamphlet"  
    # Equip each subscreen with a RenderObject 
 
     fnWalk3 = function( ssc::SubScreen, 
@@ -252,9 +187,9 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
          :scroll_x       => keepwhen(insidescreen, 0, global_inputs[:scroll_x]), 
          :scroll_y       => keepwhen(insidescreen, 0, global_inputs[:scroll_y]), 
        ))
-       #this is the reason we have to go through all this. For the correct perspective projection,
-       # the camera needs the correct screen rectangle.
-       camera_input[:window_size] = lift(x->Vector4(x.x, x.y, x.w, x.h), scr.area)
+       #this is the reason we have to go through all this. For the correct 
+       #perspective projection, the camera needs the correct screen rectangle.
+       camera_input[:window_size] = lift(x->Vector4(x.x, x.y, x.w, x.h),scr.area)
 
        #default perspective parametrization (may be done better or parametrized)
        eyepos = Vector3{Float32}(2, 2, 2)
@@ -277,7 +212,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        vo  = ssc.attrib[ RObjFn ]( scr, camera )
 
 
-# --line 9230 --  -- from : "BigData.pamphlet"  
+# --line 9167 --  -- from : "BigData.pamphlet"  
        # The game here: thy shall not call visualize with a RenderObject
        # ( May be this can be simplified if  my proposed patch in 
        # Romeo/src/visualize_interface.jl gets accepted)
@@ -303,9 +238,10 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
                  vo
               end
        end
+       ssc.attrib[ROProper] = viz
 
 
-# --line 9259 --  -- from : "BigData.pamphlet"  
+# --line 9197 --  -- from : "BigData.pamphlet"  
        # Does the user request virtual functions (we need to verify availability or diagnose)
        marker  = haskey(ssc.attrib,ROReqVirtUser) ? ssc.attrib[ROReqVirtUser] : 0
        # Check availability, this will use an external function (in ad hoc module!)
@@ -319,7 +255,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
             end
        end
 
-# --line 9274 --  -- from : "BigData.pamphlet"  
+# --line 9212 --  -- from : "BigData.pamphlet"  
        # this way the user can request a dump 
        if haskey(ssc.attrib,RODumpMe)
           println("Dump for object viz of type = ",typeof(viz),"")
@@ -337,7 +273,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
           end
        end
 
-# --line 9295 --  -- from : "BigData.pamphlet"  
+# --line 9233 --  -- from : "BigData.pamphlet"  
        if isa(viz,(RenderObject...))
             for v in viz
                 push!(scr.renderlist, v)
@@ -361,12 +297,57 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
 
     end   # function  fnWalk3
 
-# --line 9320 --  -- from : "BigData.pamphlet"  
+# --line 9258 --  -- from : "BigData.pamphlet"  
     treeWalk!(vObjT,  fnWalk3)
 
+# --line 9264 --  -- from : "BigData.pamphlet"  
+# 4th pass for  operations which require multiple RO built (so that 
+# we do not have to care about order of RO construction
+    function fnWalk4( ssc::SubScreen, 
+                        indx::Vector{(Int64,Int64)}, 
+			misc::Dict{Symbol,Any}, info::Dict{Symbol,Any})
+       info[:isDecomposed] && return
+       haskey(ssc.attrib,ROMouseFollows )  || return
+       haskey(ssc.attrib,RObjFn )  || return
+
+#==
+       followViz::SubScreen = ssc.attrib[ROMouseFollows]
+       println("At index=$indx, mouse follows subscreen $followViz")       
+
+       # Now do as advertised in  S.Danisch example  (synchronized subscreens)
+       function doMouseFollows(primary::RenderObject,follower::RenderObject)
+           println("** FOLLOWER **")
+           chkDump(follower,false)
+           println("** PRIMARY **")
+           chkDump(primary,false)
+           println("** PLOUF **")
+           follower.uniforms[:projection] = primary.uniforms[:projection]
+           # cube has projectionview (see typology)
+           follower.uniforms[:view] = primary.uniforms[:view]
+           nothing
+       end
+       doMouseFollows(primary::RenderObject, followers::(RenderObject...)
+             ) = map (x->doMouseFollows(x,primary),followers)
+       doMouseFollows(primaries::(RenderObject...), followers::Any ) = 
+              map (x->doMouseFollows(followers,x),primaries)
+       doMouseFollows(followViz.attrib[ROProper],ssc.attrib[ROProper]) 
+==#       
+       adaptTo::Adaptor     = ssc.attrib[ROMouseFollows]
+       adaptTo.to           = ssc.attrib[ROProper]
+       adaptTo.from         = adaptTo.from.attrib[ROProper]
+
+       println("At index=$indx, mouse follows adaptor=$adaptTo")       
+       adapt!(adaptTo)
+
+    end #  function fnWalk4
+
+    treeWalk!(vObjT,  fnWalk4)
+
+
+# --line 9310 --  -- from : "BigData.pamphlet"  
 end
 
-# --line 9781 --  -- from : "BigData.pamphlet"  
+# --line 9852 --  -- from : "BigData.pamphlet"  
 function interact_loop()
    while Romeo.ROOT_SCREEN.inputs[:open].value
       glEnable(GL_SCISSOR_TEST)

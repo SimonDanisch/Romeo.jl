@@ -26,6 +26,9 @@ $(DOCUTILDIR)/MatrixMathPlus.jl: $(JULIATRY)/MatrixMathPlus.jl
 $(DOCUTILDIR)/SubScreens.jl: $(JULIATRY)/SubScreens.jl
 	cat $< |cpif $@
 
+$(DOCUTILDIR)/Adaptors.jl: $(JULIATRY)/Adaptors.jl
+	cat $< |cpif $@
+
 $(DOCUTILDIR)/SimpleSubScreens.jl: $(JULIATRY)/SimpleSubScreens.jl
 	cat $< |cpif $@
 
@@ -69,6 +72,7 @@ progs :  RomeoVolume.jl \
         $(DOCUTILDIR)/TBCompletedM.jl \
         $(DOCUTILDIR)/MatrixMathPlus.jl \
         $(DOCUTILDIR)/SubScreens.jl \
+        $(DOCUTILDIR)/Adaptors.jl \
         $(DOCUTILDIR)/SimpleSubScreens.jl \
         $(DOCUTILDIR)/XtraRenderObjOGL.jl \
 	$(DOCUTILDIR)/VirtualOGLGeom.jl \
