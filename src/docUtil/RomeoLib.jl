@@ -307,47 +307,28 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
                         indx::Vector{(Int64,Int64)}, 
 			misc::Dict{Symbol,Any}, info::Dict{Symbol,Any})
        info[:isDecomposed] && return
-       haskey(ssc.attrib,ROMouseFollows )  || return
+       haskey(ssc.attrib,ROConnects )  || return
        haskey(ssc.attrib,RObjFn )  || return
 
-#==
-       followViz::SubScreen = ssc.attrib[ROMouseFollows]
-       println("At index=$indx, mouse follows subscreen $followViz")       
+       #recover the connector
+       connectTo::Connector     = ssc.attrib[ROConnects]
+       #this connector is by necessity incomplete, must be completed
+       connectTo.to           = ssc.attrib[ROProper]
+       #go from screen to RenderObject (is this really needed here ??)
+       connectTo.from         = connectTo.from.attrib[ROProper]
 
-       # Now do as advertised in  S.Danisch example  (synchronized subscreens)
-       function doMouseFollows(primary::RenderObject,follower::RenderObject)
-           println("** FOLLOWER **")
-           chkDump(follower,false)
-           println("** PRIMARY **")
-           chkDump(primary,false)
-           println("** PLOUF **")
-           follower.uniforms[:projection] = primary.uniforms[:projection]
-           # cube has projectionview (see typology)
-           follower.uniforms[:view] = primary.uniforms[:view]
-           nothing
-       end
-       doMouseFollows(primary::RenderObject, followers::(RenderObject...)
-             ) = map (x->doMouseFollows(x,primary),followers)
-       doMouseFollows(primaries::(RenderObject...), followers::Any ) = 
-              map (x->doMouseFollows(followers,x),primaries)
-       doMouseFollows(followViz.attrib[ROProper],ssc.attrib[ROProper]) 
-==#       
-       adaptTo::Adaptor     = ssc.attrib[ROMouseFollows]
-       adaptTo.to           = ssc.attrib[ROProper]
-       adaptTo.from         = adaptTo.from.attrib[ROProper]
-
-       println("At index=$indx, mouse follows adaptor=$adaptTo")       
-       adapt!(adaptTo)
+       println("At index=$indx, mouse follows connector=$connectTo")       
+       connect!(connectTo)
 
     end #  function fnWalk4
 
     treeWalk!(vObjT,  fnWalk4)
 
 
-# --line 9310 --  -- from : "BigData.pamphlet"  
+# --line 9291 --  -- from : "BigData.pamphlet"  
 end
 
-# --line 9852 --  -- from : "BigData.pamphlet"  
+# --line 9833 --  -- from : "BigData.pamphlet"  
 function interact_loop()
    while Romeo.ROOT_SCREEN.inputs[:open].value
       glEnable(GL_SCISSOR_TEST)

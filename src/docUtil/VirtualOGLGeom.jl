@@ -1,4 +1,4 @@
-# --line 9604 --  -- from : "BigData.pamphlet"  
+# --line 9585 --  -- from : "BigData.pamphlet"  
 module VirtualOGLGeom
 
 export  rotationMatrix,
@@ -14,12 +14,12 @@ using ImmutableArrays
 using SubScreens
 using ROGeomOps
 using MatrixMathPlus
-# --line 9634 --  -- from : "BigData.pamphlet"  
+# --line 9615 --  -- from : "BigData.pamphlet"  
 function rotationMatrix{T}(angle::T, axis::Vector3{T})
          GLAbstraction.rotate(angle,axis)
 end
 
-# --line 9643 --  -- from : "BigData.pamphlet"  
+# --line 9624 --  -- from : "BigData.pamphlet"  
 ## NOTE: more representations of rotation matrices appear in 
 ##       GLAbstraction.GLMatrixMath
 
@@ -54,12 +54,12 @@ rotationMatrixCardan{T}(phi::T, theta::T, psi::T)=rotationMatrixXYZ(phi,
 
 
 
-# --line 9680 --  -- from : "BigData.pamphlet"  
+# --line 9661 --  -- from : "BigData.pamphlet"  
 function translationMatrix{T}(translation::Vector3{T})
        GLAbstraction.translationmatrix(translation)
 end
 
-# --line 9687 --  -- from : "BigData.pamphlet"  
+# --line 9668 --  -- from : "BigData.pamphlet"  
 function   modelGeomApply{T}(ro::RenderObject, matrix::Matrix4x4{T})
     # basic philosophy: look into ro's Virtual Function Table, grab the
     # transformation and apply it or throw error (geom transf non supported)
@@ -69,12 +69,12 @@ function   modelGeomApply{T}(ro::RenderObject, matrix::Matrix4x4{T})
     xformFn = vfns[VFXCapabilities]
     xformFn(ro,matrix)
 end
-# --line 9700 --  -- from : "BigData.pamphlet"  
+# --line 9681 --  -- from : "BigData.pamphlet"  
 modelGeomRotate{T}( ro::RenderObject,angle::T, axis::Vector3{T} )=
           modelGeomApply(ro,rotationMatrix(angle, axis))
 modelGeomtranslate{T}(ro::RenderObject, translation::Vector3{T} )=
           modelGeomApply(ro,translationMatrix(translation))
-# --line 9711 --  -- from : "BigData.pamphlet"  
+# --line 9692 --  -- from : "BigData.pamphlet"  
 @doc  """ This function performs the geometric transformation on
           model space when this is amenable to camera or camera
           parameter changes
@@ -104,7 +104,7 @@ function effVModelGeomCamera{T}(ssc::SubScreen, eyepos::Vector3{T},
       return  eyepos, centerscene
    end
 end
-# --line 9744 --  -- from : "BigData.pamphlet"  
+# --line 9725 --  -- from : "BigData.pamphlet"  
 @doc """ This is performs modelSpace transformations
          ro :is a RenderObject which supports model space transformations
          matrix: is the transformation matrix in homogeneous coordinates 
@@ -118,5 +118,5 @@ rotateInner{T}(ro::RenderObject,rmat::Matrix4x4{T}) = modelSpaceXform(ro,rmat)
 translateInner{T}(ro::RenderObject,rmat::Matrix4x4{T}) = modelSpaceXform(ro,rmat)
 
 
-# --line 9761 --  -- from : "BigData.pamphlet"  
+# --line 9742 --  -- from : "BigData.pamphlet"  
 end # module VirtualOGLGeom

@@ -1,8 +1,9 @@
 Date: CURRENT
     Adding functionality: camera movement in one subscreen follows a different
-	 subscreen (identical); can we do this with a rotation offset?
-	
-Date: Mon Apr 6 18:55:44 2015 +0200	
+	 subscreen ; progress towards implementing a more general facility
+	 (Adaptor) permitting to feed one subscreen signals into a different one.
+
+Date: Mon Apr 6 18:55:44 2015 +0200
     Adding interface to effect geometrical (and possibly other) transformations
 	on RenderObject or their presentation by OGL.
 	Using 2 techniques: 
@@ -13,7 +14,7 @@ Date: Mon Apr 6 18:55:44 2015 +0200
 
 	Issues: Problem when trying to visualize plot of 3D data field (
 	        error in renderloop)
-	
+
 Date: Tue Mar 31 11:33:47 2015 +0200
     Modularized RomeoLib
     SubsScreens reimplemented for hierachical subscreen model, 

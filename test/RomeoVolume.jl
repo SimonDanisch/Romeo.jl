@@ -1,9 +1,9 @@
-# --line 10018 --  -- from : "BigData.pamphlet"  
+# --line 9999 --  -- from : "BigData.pamphlet"  
 using DocCompat
 using Lumberjack
 using TBCompletedM
 using SubScreens
-using Adaptors
+using Connectors
 
 # try to avoid the numerous "deprecated warnings/messages"
 using ManipStreams
@@ -17,7 +17,7 @@ using Compat
 using  XtraRenderObjOGL
 include("../src/docUtil/RomeoLib.jl")
 
-# --line 10040 --  -- from : "BigData.pamphlet"  
+# --line 10021 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with functions taking
         arguments:
@@ -34,7 +34,7 @@ include("../src/docUtil/RomeoLib.jl")
         the same image in all grid positions.
      """  ->
 function init_graph_grid(onlyImg::Bool, plotDim=2)
-# --line 10058 --  -- from : "BigData.pamphlet"  
+# --line 10039 --  -- from : "BigData.pamphlet"  
    # try with a plot
    npts = 50 
    function plotFn2D(i,j)
@@ -55,7 +55,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
                        )
    end  
 
-# --line 10080 --  -- from : "BigData.pamphlet"  
+# --line 10061 --  -- from : "BigData.pamphlet"  
    npts3D = 12
    function plotFn3D(i,j,k)
          x = Float32(i)/Float32(npts3D)-0.5 
@@ -78,7 +78,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
                          nothing, dd)
    end  
 
-# --line 10104 --  -- from : "BigData.pamphlet"  
+# --line 10085 --  -- from : "BigData.pamphlet"  
    plt = plotDim==2 ? doPlot2D : doPlot3D
 
    # put the cat all over the place!!!
@@ -100,7 +100,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
      "barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n"
    end
 
-# --line 10127 --  -- from : "BigData.pamphlet"  
+# --line 10108 --  -- from : "BigData.pamphlet"  
    # subscreen geometry 
    scOuter = prepSubscreen([1.; 4.],[3.; 1.])
    scRight = prepSubscreen([1.; 1.;1.;1.],[1.])
@@ -109,7 +109,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
    # compute the geometric rectangles by walking down the geometry
    vizObj =computeRects(GLAbstraction.Rectangle{Float64}(0.,0.,1.,1.), scOuter) 
 
-# --line 10137 --  -- from : "BigData.pamphlet"  
+# --line 10118 --  -- from : "BigData.pamphlet"  
    #insert the functions that will cause RenderObject to be instantiated
    #and put in the proper render lists
    vizObj[1,1].attrib[RObjFn]         = onlyImg ? pic : doEdit
@@ -131,8 +131,9 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
    vizObj[(2,2),(4,1)].attrib[RORot] = (    0.,   0.,    π/2.01,)
 
    # specify that mouse actions in cube/axes representation follow large plot
-   vizObj[1,2].attrib[ROMouseFollows] = 
-      InputAdapt(vizObj[2,1],(:view,:projection),(:view,:projection))
+   # this uses an connector for flexibility
+   vizObj[1,2].attrib[ROConnects] = 
+      InputConnect(vizObj[2,1],(:view,:projection),(:view,:projection))
 
    #vizObj[(2,2),(3,1)].attrib[RODumpMe]  = true
 
@@ -140,7 +141,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
 
 end  
 
-# --line 10171 --  -- from : "BigData.pamphlet"  
+# --line 10153 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options.
        - init_glutils    :initialization functions (see the GL* libraries)
@@ -157,7 +158,7 @@ function realMain(onlyImg::Bool;pcamSel=true, plotDim=2)
    interact_loop()
 end
 
-# --line 10191 --  -- from : "BigData.pamphlet"  
+# --line 10173 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the 
 # command line.
 using ArgParse

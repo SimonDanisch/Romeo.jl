@@ -12,7 +12,7 @@ export SubScreen,
         treeWalk!,
 
         SSCAttribs, RObjFn, ROProper, sigArea, sigScreen, RORot, RODumpMe, 
-        ROVirtIfDict, ROReqVirtUser, ROMouseFollows
+        ROVirtIfDict, ROReqVirtUser, ROConnects
 
 
 # --line 8417 --  -- from : "BigData.pamphlet"  
@@ -94,7 +94,7 @@ const ROReqVirtUser = :ROReqVirtUser # Request to perform a geometric transf
 const RORot         = :RORot    #Geometric rotation (3 angles XYZ/Cardan mod2Pi)
 
 const RODumpMe      = :RODumpMe       #Targeted debugging dump
-const ROMouseFollows= :ROMouseFollows #follow mouse actions in a different 
+const ROConnects= :ROConnects #follow mouse actions in a different 
 				      # subscreen
 
 # provide the required conversion so that we may index dictionnaries
