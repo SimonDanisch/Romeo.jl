@@ -1,6 +1,7 @@
-# Beginner with Romeo, an interactive scripting environment featuring OpenGL
+# Experimenting with Romeo, an interactive scripting environment featuring OpenGL
 
 The original page for Romeo is <A HREF="https://github.com/SimonDanisch/Romeo.jl">https://github.com/SimonDanisch/Romeo.jl</A>
+Concerning my additions see branch `relateSubscreens`  at https://github.com/AlainLich/Romeo.jl/relateSubscreens
 
 # Romeo
 Romeo is an interactive scripting environment, in which you can execute Julia scripts and edit the variables in 3D.
@@ -10,24 +11,6 @@ Screenshots  shows current state of my development based on Romeo.jl
 <TR>
     <TD><IMG SRC="test/images/ScreenShot323.png" WIDTH=300>
     <TD><IMG SRC="test/images/ScreenShot324.png" WIDTH=300>
-</TABLE>
-
-
-
-### The following issues concern my own development
-<TABLE>
-<TR><TD>ISSUES
-    <TD>Date
-    <TD>Description
-<TR><TD>
-    <TD>
-    <TD>
-<TR><TD>
-    <TD>
-    <TD>
-<TR><TD>
-    <TD>
-    <TD>
 </TABLE>
 
 
