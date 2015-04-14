@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <xsd:annotation>
+    <xsd:documentation xml:lang="en">
+      Part of extensions for Romeo.jl
+    </xsd:documentation>
+  </xsd:annotation>
+
+
+  <!-- Comma separated lists of numbers -->
+  <xsd:simpleType name="listofIntsType">
+     <xsd:restriction base="xsd:string">
+        <xsd:pattern value="(\d,)*\d"/>
+     </xsd:restriction>
+  </xsd:simpleType>
+
+
+  <xsd:simpleType name="listofFLoatsType">
+     <xsd:restriction base="xsd:string">
+        <xsd:pattern value="(\d.\d,)*\d.\d"/>
+     </xsd:restriction>
+  </xsd:simpleType>
+
+
+  <xsd:element name="scene" type="sceneType"/>
+  <xsd:complexType name="sceneType">
+    <xsd:element name="rootScreen" type="subscreenType"/>
+    <xsd:attribute name="name" type="xsd:string"/>
+
+    <xsd:list itemType="subscreenType">
+    <xsd:list itemType="setplotType">
+    <xsd:list itemType="connectionType">
+    <xsd:list itemType="debugType">
+  </xsd:complexType>
+
+  <xsd:element name="subscreen" type="subscreenType"/>
+  <xsd:complexType name="subscreenType">
+    <xsd:sequence>
+      <xsd:element name="rowsizes" type="listofFLoatsType"/>
+      <xsd:element name="colsizes" type="listofFLoatsType"/>
+      <xsd:element name="table" type="TableType"/>
+    </xsd:sequence>
+    <xsd:attribute name="rows" type="xsd:number"/>
+    <xsd:attribute name="cols" type="xsd:number"/>
+    <xsd:attribute name="name" type="xsd:string"/>
+  </xsd:complexType>
+
+
+  <xsd:element name="table" type="TableType"/>
+  <xsd:simpleType name="TableType">  
+    <xsd:list itemType="TableRowType"/>
+  </xsd:simpleType>
+
+
+  <xsd:element name="tr" type="TableRowType"/>
+  <xsd:simpleType name="TableRowType">  
+    <xsd:list itemType="subscreenType"/>
+  </xsd:simpleType>
+
+
+  <xsd:complexType name="setplotType">
+    <xsd:sequence>
+      <xsd:element name="rotateModel" type="listofFLoatsType"/>
+    </xsd:sequence>
+    <xsd:attribute name="ref" type="xsd:string"/>
+    <xsd:attribute name="fn" type="xsd:string"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="connectionType">
+    <xsd:sequence>
+      <xsd:element name="from" />
+      <xsd:element name="to" />
+      <xsd:element name="inSig" type="listofSignals"/>
+      <xsd:element name="outSig" type="listofSignals"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+
+
+</xsd:schema>
+

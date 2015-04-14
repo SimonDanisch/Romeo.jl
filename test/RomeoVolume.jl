@@ -1,4 +1,4 @@
-# --line 9999 --  -- from : "BigData.pamphlet"  
+# --line 10817 --  -- from : "BigData.pamphlet"  
 using DocCompat
 using Lumberjack
 using TBCompletedM
@@ -17,7 +17,7 @@ using Compat
 using  XtraRenderObjOGL
 include("../src/docUtil/RomeoLib.jl")
 
-# --line 10021 --  -- from : "BigData.pamphlet"  
+# --line 10839 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with functions taking
         arguments:
@@ -34,7 +34,7 @@ include("../src/docUtil/RomeoLib.jl")
         the same image in all grid positions.
      """  ->
 function init_graph_grid(onlyImg::Bool, plotDim=2)
-# --line 10039 --  -- from : "BigData.pamphlet"  
+# --line 10857 --  -- from : "BigData.pamphlet"  
    # try with a plot
    npts = 50 
    function plotFn2D(i,j)
@@ -55,7 +55,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
                        )
    end  
 
-# --line 10061 --  -- from : "BigData.pamphlet"  
+# --line 10879 --  -- from : "BigData.pamphlet"  
    npts3D = 12
    function plotFn3D(i,j,k)
          x = Float32(i)/Float32(npts3D)-0.5 
@@ -78,7 +78,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
                          nothing, dd)
    end  
 
-# --line 10085 --  -- from : "BigData.pamphlet"  
+# --line 10903 --  -- from : "BigData.pamphlet"  
    plt = plotDim==2 ? doPlot2D : doPlot3D
 
    # put the cat all over the place!!!
@@ -100,7 +100,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
      "barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n"
    end
 
-# --line 10108 --  -- from : "BigData.pamphlet"  
+# --line 10926 --  -- from : "BigData.pamphlet"  
    # subscreen geometry 
    scOuter = prepSubscreen([1.; 4.],[3.; 1.])
    scRight = prepSubscreen([1.; 1.;1.;1.],[1.])
@@ -109,7 +109,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
    # compute the geometric rectangles by walking down the geometry
    vizObj =computeRects(GLAbstraction.Rectangle{Float64}(0.,0.,1.,1.), scOuter) 
 
-# --line 10118 --  -- from : "BigData.pamphlet"  
+# --line 10937 --  -- from : "BigData.pamphlet"  
    #insert the functions that will cause RenderObject to be instantiated
    #and put in the proper render lists
    vizObj[1,1].attrib[RObjFn]         = onlyImg ? pic : doEdit
@@ -140,8 +140,92 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
    return vizObj
 
 end  
+# --line 10972 --  -- from : "BigData.pamphlet"  
+using ParseXMLSubscreen
 
-# --line 10153 --  -- from : "BigData.pamphlet"  
+
+@doc """ This function uses the XML interface to define a screen organized
+         into subscreens.
+     """  ->
+function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml)
+# --line 10981 --  -- from : "BigData.pamphlet"  
+   # try with a plot
+   npts = 50 
+   function plotFn2D(i,j)
+         x = Float32(i)/Float32(npts)-0.5 
+         y = Float32(j)/Float32(npts)-0.5 
+         ret = if ( x>=0 ) && ( x>=y)
+                   4*x*x+2*y*y
+               elseif ( x<0) 
+                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+               else
+                   0.0
+               end
+          ret
+   end
+   function doPlot2D (sc::Screen,cam::GLAbstraction.Camera)
+           TBCompleted ( Float32[ plotFn2D(i,j)  for i=0:npts, j=0:npts ],
+                         nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
+                       )
+   end  
+
+# --line 11003 --  -- from : "BigData.pamphlet"  
+   npts3D = 12
+   function plotFn3D(i,j,k)
+         x = Float32(i)/Float32(npts3D)-0.5 
+         y = Float32(j)/Float32(npts3D)-0.5 
+         z = Float32(k)/Float32(npts3D)-0.5 
+
+         ret = if ( x>=0 ) && ( x>=y)
+                   2*x*x+3*y*y+z*z
+               elseif ( x<0) 
+                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+               else
+                   9*x*y*z
+               end
+          ret
+   end
+   function doPlot3D (sc::Screen,cam::GLAbstraction.Camera)
+           dd = Dict{Symbol,Any}(:SetPerspectiveCam => true) 
+           TBCompleted ( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
+                                   j=0:npts3D, k=0:npts3D ],
+                         nothing, dd)
+   end  
+
+# --line 11027 --  -- from : "BigData.pamphlet"  
+   plt = plotDim==2 ? doPlot2D : doPlot3D
+
+   # put the cat all over the place!!!
+   pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
+
+   # volume : try with a cube (need to figure out how to make this)
+   vol = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
+
+   # color
+   function doColorChooser(sc::Screen,cam::GLAbstraction.Camera)
+          TBCompleted (AlphaColorValue(RGB{Float32}(0.8,0.2,0.2), float32(0.5)),
+                       nothing, Dict{Symbol,Any}(:doColorChooser=> true))
+   end
+   colorBtn = doColorChooser
+
+   # edit
+   # this is an oversimplification!! (look at exemple!!)
+   function doEdit(sc::Screen,cam::GLAbstraction.Camera)
+     "barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n"
+   end
+# --line 11049 --  -- from : "BigData.pamphlet"  
+   # here we need to read the XML and do whatever is needed
+
+   xdoc = parse_file(xml)
+   parseTree = acDoc(xdoc)
+
+   @show parseTree
+
+# --line 11059 --  -- from : "BigData.pamphlet"  
+   return vizObj
+
+end  
+# --line 11074 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options.
        - init_glutils    :initialization functions (see the GL* libraries)
@@ -149,16 +233,17 @@ end
        - init_romeo      :construct the subscreens, use the description
                           of subscreens to actually build them (calls visualize)
      """ ->
-function realMain(onlyImg::Bool;pcamSel=true, plotDim=2)
+function realMain(onlyImg::Bool;pcamSel=true, plotDim=2, xml="")
    init_glutils()
 
-   vizObjSC   = init_graph_grid(onlyImg, plotDim)
+   vizObjSC   = xml="" ? init_graph_grid(onlyImg, plotDim) : 
+		         init_graph_gridXML(onlyImg, plotDim, xml) : 
    init_romeo( vizObjSC; pcamSel = pcamSel )
 
    interact_loop()
 end
 
-# --line 10173 --  -- from : "BigData.pamphlet"  
+# --line 11095 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the 
 # command line.
 using ArgParse
@@ -174,6 +259,9 @@ function main(args)
        "--debugAbs","-d"
                help="show debugging output (in particular from GLRender)"
                arg_type = Int
+       "--xml","-x"
+               help="enter the filename of the XML subscreen description"
+               arg_type = String
        "--debugWin","-D"
                help="show debugging output (in particular from GLRender)"
                arg_type = Int
@@ -204,6 +292,8 @@ function main(args)
     pcamSel        = !parsed_args["ortho"]
     plotDim        = (parsed_args["dim"] != nothing) ?  parsed_args["dim"] : 2
 
+    xml =  parsed_args["xml"] != nothing ? parsed_args["xml"] : ""
+
     if parsed_args["log"] != nothing
           logFileName = parsed_args["log"]
           logFileName = length(logFileName) < 5 ? "/tmp/RomeoLumber.log"  : logFileName 
@@ -220,7 +310,7 @@ function main(args)
                                                       parsed_args["debug"])
 
     ### NOW, run the program 
-    realMain(onlyImg; pcamSel=pcamSel, plotDim=plotDim)    
+    realMain(onlyImg; pcamSel=pcamSel, plotDim=plotDim, xml=xml)    
 end
 
 main(ARGS)

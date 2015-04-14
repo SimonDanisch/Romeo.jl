@@ -44,6 +44,15 @@ $(DOCUTILDIR)/VirtualOGLGeom.jl: $(JULIATRY)/VirtualOGLGeom.jl
 $(DOCUTILDIR)/TBCompletedM.jl: $(JULIATRY)/TBCompletedM.jl
 	cat $< |cpif $@
 
+$(DOCUTILDIR)/ParseXMLSubscreen.jl: $(JULIATRY)/ParseXMLSubscreen.jl
+	cat $< |cpif $@
+
+$(DOCUTILDIR)/subscreenSchema.xsd: $(JULIATRY)/subscreenSchema.xsd
+	cat $< |cpif $@
+
+subscreenSpec.xml: $(JULIATRY)/subscreenSpec.xml
+	cat $< |cpif $@
+
 $(DOCUTILDIR)/Changelog: $(JULIAENV)/Changelog
 	cat $< |cpif $@
 
@@ -61,7 +70,7 @@ $(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl
 
 
 
-.PHONY: run run3D runD runDI runSingle runSingle3D runSingleD runSingleI \
+.PHONY: run run3D runXML runD runDI runSingle runSingle3D runSingleD runSingleI \
 	eprogs tests progtests \
         editTest2
 
@@ -77,7 +86,11 @@ progs :  RomeoVolume.jl \
         $(DOCUTILDIR)/XtraRenderObjOGL.jl \
 	$(DOCUTILDIR)/VirtualOGLGeom.jl \
 	$(DOCUTILDIR)/ROGeomOps.jl \
-        $(DOCUTILDIR)/Changelog
+        $(DOCUTILDIR)/Changelog \
+        $(DOCUTILDIR)/ParseXMLSubscreen.jl \
+        $(DOCUTILDIR)/subscreenSchema.xsd 
+
+
 
 progtests: $(DOCUNITTEST)/testSubScreen.jl \
 	    $(DOCUNITTEST)/testLumberjack.jl \
@@ -87,6 +100,9 @@ progtests: $(DOCUNITTEST)/testSubScreen.jl \
 
 run:         progs 
 	$(JULIAPGM) RomeoVolume.jl --log=/tmp/RomeoLumber01.log
+
+runXML:      progs subscreenSpec.xml
+	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
 
 run3D:       progs 
 	$(JULIAPGM) RomeoVolume.jl --dim=3 --log=/tmp/RomeoLumber01.log

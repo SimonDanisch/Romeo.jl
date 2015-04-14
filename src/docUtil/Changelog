@@ -1,4 +1,10 @@
 Date: CURRENT
+    Adding a XML screen/subscreen description facility (with identical 
+	functionality to Subscreen module; intent is to facilitate user
+	tasks, make code independent of subscreen interface parametrization).
+	Using LightXML.jl, and various editors/validators for xsd.
+
+Date: Sat Apr 11 22:55:23 2015 +0200
     Adding functionality: camera movement in one subscreen follows a different
 	 subscreen ; progress towards implementing a more general facility
 	 (Adaptor) permitting to feed one subscreen signals into a different one.
