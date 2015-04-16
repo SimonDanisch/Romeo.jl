@@ -1,6 +1,7 @@
-# --line 10817 --  -- from : "BigData.pamphlet"  
-using DocCompat
+# --line 11045 --  -- from : "BigData.pamphlet"  
 using Lumberjack
+
+using DocCompat
 using TBCompletedM
 using SubScreens
 using Connectors
@@ -13,11 +14,12 @@ using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
 using ImmutableArrays
     #  Loading GLFW opens the window
 using Compat
+using LightXML
 
 using  XtraRenderObjOGL
 include("../src/docUtil/RomeoLib.jl")
 
-# --line 10839 --  -- from : "BigData.pamphlet"  
+# --line 11069 --  -- from : "BigData.pamphlet"  
 @doc """
         This function fills the (global) vizObjArray  with functions taking
         arguments:
@@ -34,7 +36,7 @@ include("../src/docUtil/RomeoLib.jl")
         the same image in all grid positions.
      """  ->
 function init_graph_grid(onlyImg::Bool, plotDim=2)
-# --line 10857 --  -- from : "BigData.pamphlet"  
+# --line 11087 --  -- from : "BigData.pamphlet"  
    # try with a plot
    npts = 50 
    function plotFn2D(i,j)
@@ -55,7 +57,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
                        )
    end  
 
-# --line 10879 --  -- from : "BigData.pamphlet"  
+# --line 11109 --  -- from : "BigData.pamphlet"  
    npts3D = 12
    function plotFn3D(i,j,k)
          x = Float32(i)/Float32(npts3D)-0.5 
@@ -78,7 +80,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
                          nothing, dd)
    end  
 
-# --line 10903 --  -- from : "BigData.pamphlet"  
+# --line 11133 --  -- from : "BigData.pamphlet"  
    plt = plotDim==2 ? doPlot2D : doPlot3D
 
    # put the cat all over the place!!!
@@ -100,7 +102,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
      "barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n"
    end
 
-# --line 10926 --  -- from : "BigData.pamphlet"  
+# --line 11156 --  -- from : "BigData.pamphlet"  
    # subscreen geometry 
    scOuter = prepSubscreen([1.; 4.],[3.; 1.])
    scRight = prepSubscreen([1.; 1.;1.;1.],[1.])
@@ -109,7 +111,7 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
    # compute the geometric rectangles by walking down the geometry
    vizObj =computeRects(GLAbstraction.Rectangle{Float64}(0.,0.,1.,1.), scOuter) 
 
-# --line 10937 --  -- from : "BigData.pamphlet"  
+# --line 11167 --  -- from : "BigData.pamphlet"  
    #insert the functions that will cause RenderObject to be instantiated
    #and put in the proper render lists
    vizObj[1,1].attrib[RObjFn]         = onlyImg ? pic : doEdit
@@ -140,15 +142,15 @@ function init_graph_grid(onlyImg::Bool, plotDim=2)
    return vizObj
 
 end  
-# --line 10972 --  -- from : "BigData.pamphlet"  
+# --line 11202 --  -- from : "BigData.pamphlet"  
 using ParseXMLSubscreen
-
+using SemXMLSubscreen
 
 @doc """ This function uses the XML interface to define a screen organized
          into subscreens.
      """  ->
-function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml)
-# --line 10981 --  -- from : "BigData.pamphlet"  
+function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
+# --line 11211 --  -- from : "BigData.pamphlet"  
    # try with a plot
    npts = 50 
    function plotFn2D(i,j)
@@ -169,7 +171,7 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml)
                        )
    end  
 
-# --line 11003 --  -- from : "BigData.pamphlet"  
+# --line 11233 --  -- from : "BigData.pamphlet"  
    npts3D = 12
    function plotFn3D(i,j,k)
          x = Float32(i)/Float32(npts3D)-0.5 
@@ -192,7 +194,7 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml)
                          nothing, dd)
    end  
 
-# --line 11027 --  -- from : "BigData.pamphlet"  
+# --line 11257 --  -- from : "BigData.pamphlet"  
    plt = plotDim==2 ? doPlot2D : doPlot3D
 
    # put the cat all over the place!!!
@@ -213,19 +215,21 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml)
    function doEdit(sc::Screen,cam::GLAbstraction.Camera)
      "barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n"
    end
-# --line 11049 --  -- from : "BigData.pamphlet"  
+# --line 11279 --  -- from : "BigData.pamphlet"  
    # here we need to read the XML and do whatever is needed
 
    xdoc = parse_file(xml)
    parseTree = acDoc(xdoc)
+   SemXMLSubscreen. setDebugLevels(true,31)   #debug
+   buildFromParse(parseTree)
 
    @show parseTree
-
-# --line 11059 --  -- from : "BigData.pamphlet"  
+# --line 11290 --  -- from : "BigData.pamphlet"  
+   error("TBD!!!!")
    return vizObj
 
 end  
-# --line 11074 --  -- from : "BigData.pamphlet"  
+# --line 11303 --  -- from : "BigData.pamphlet"  
 @doc """
        Does the real work, main only deals with the command line options.
        - init_glutils    :initialization functions (see the GL* libraries)
@@ -233,17 +237,18 @@ end
        - init_romeo      :construct the subscreens, use the description
                           of subscreens to actually build them (calls visualize)
      """ ->
-function realMain(onlyImg::Bool;pcamSel=true, plotDim=2, xml="")
+function realMain(onlyImg::Bool; pcamSel=true, plotDim=2,  xml::String="")
    init_glutils()
 
-   vizObjSC   = xml="" ? init_graph_grid(onlyImg, plotDim) : 
-		         init_graph_gridXML(onlyImg, plotDim, xml) : 
+   vizObjSC   = ( xml=="" ? init_graph_grid(onlyImg, plotDim) : 
+		          init_graph_gridXML(onlyImg, plotDim, xml) )
+
    init_romeo( vizObjSC; pcamSel = pcamSel )
 
    interact_loop()
 end
 
-# --line 11095 --  -- from : "BigData.pamphlet"  
+# --line 11325 --  -- from : "BigData.pamphlet"  
 # parse arguments, so that we have some flexibility to vary tests on the 
 # command line.
 using ArgParse
@@ -310,7 +315,7 @@ function main(args)
                                                       parsed_args["debug"])
 
     ### NOW, run the program 
-    realMain(onlyImg; pcamSel=pcamSel, plotDim=plotDim, xml=xml)    
+    realMain(onlyImg, pcamSel=pcamSel,  plotDim=plotDim, xml=xml)    
 end
 
 main(ARGS)

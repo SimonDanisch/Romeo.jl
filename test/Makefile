@@ -47,10 +47,16 @@ $(DOCUTILDIR)/TBCompletedM.jl: $(JULIATRY)/TBCompletedM.jl
 $(DOCUTILDIR)/ParseXMLSubscreen.jl: $(JULIATRY)/ParseXMLSubscreen.jl
 	cat $< |cpif $@
 
+$(DOCUTILDIR)/SemXMLSubscreen.jl: $(JULIATRY)/SemXMLSubscreen.jl
+	cat $< |cpif $@
+
 $(DOCUTILDIR)/subscreenSchema.xsd: $(JULIATRY)/subscreenSchema.xsd
 	cat $< |cpif $@
 
 subscreenSpec.xml: $(JULIATRY)/subscreenSpec.xml
+	cat $< |cpif $@
+
+subscreenSpec2.xml: $(JULIATRY)/subscreenSpec2.xml
 	cat $< |cpif $@
 
 $(DOCUTILDIR)/Changelog: $(JULIAENV)/Changelog
@@ -88,6 +94,7 @@ progs :  RomeoVolume.jl \
 	$(DOCUTILDIR)/ROGeomOps.jl \
         $(DOCUTILDIR)/Changelog \
         $(DOCUTILDIR)/ParseXMLSubscreen.jl \
+        $(DOCUTILDIR)/SemXMLSubscreen.jl \
         $(DOCUTILDIR)/subscreenSchema.xsd 
 
 
@@ -103,6 +110,9 @@ run:         progs
 
 runXML:      progs subscreenSpec.xml
 	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
+
+runXML2:      progs subscreenSpec2.xml
+	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec2.xml --log=/tmp/RomeoLumber01.log
 
 run3D:       progs 
 	$(JULIAPGM) RomeoVolume.jl --dim=3 --log=/tmp/RomeoLumber01.log
