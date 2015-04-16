@@ -66,6 +66,7 @@ function genuvwcube(x, y, z, fb, camera, screen)
   lift(screen.area) do window_size
     resize!(frontface, [window_size.w, window_size.h])
     resize!(backface, [window_size.w, window_size.h])
+    nothing
   end
   
   rendersetup = () -> begin

@@ -87,7 +87,8 @@ function color_chooser_boundingbox(obj)
   model       = obj[:model]
   verts       = COLOR_QUAD[1]
 
-#==
+#==  Keeping (as comment )my (old) modification in case it proves usefull again
+/*
   Original code:
   minv = Vec3(model*Vec4(minimum(verts)...,0f0))
   maxv = Vec3(model*Vec4(maximum(verts)...,0f0))
@@ -101,7 +102,7 @@ function color_chooser_boundingbox(obj)
   ERROR: error compiling color_chooser_boundingbox: too many parameters for type Vector3
 
   So now, use an hopefully compilable inner function   (to be checked)
-==#
+*/
 
   function minmaxAdhoc(a)
     min = a[1][1]
@@ -120,5 +121,11 @@ function color_chooser_boundingbox(obj)
   maxv = Vec3(maxX, maxX, maxX)
     
   AABB(minv,maxv)
+==#
+      
+  minv = model*Vec4(minimum(verts)...,0f0)
+  maxv = model*Vec4(maximum(verts)...,0f0)
+  AABB(Vec3(minv[1:3]), Vec3(maxv[1:3]))
+
 end
 end # local begin color chooser
