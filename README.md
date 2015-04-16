@@ -101,6 +101,11 @@ The following branches in the Git tree have specific meaning (At least planned):
      <TD>Example simple_display_grid.jl clarifies screen positionning, 
          signal. Shows capacity of synchronized signals in several subscreen,
          for instance ensure similar rotations upon mouse signal.
+<TR> 
+     <TD>1096656709a90fb5fcdb422e5dde558321467592
+     <TD>ven. 10 avril 2015 10:37:41 CEST
+     <TD>
+     <TD>Solves issue with 3D plot.
 </TABLE>
 
 ### Use of Julia 0.4 (master)
@@ -111,10 +116,9 @@ The following branches in the Git tree have specific meaning (At least planned):
      <TD>Issues
      <TD>Description
 <TR> 
-     <TD> Version 0.4.0-dev+3821 commit 8a777c274cdd1e77
-     <TD> Sat Mar 14 16:15:30 2015
+     <TD>Version 0.4.0-dev+4287 
+     <TD> 2015-04-16 09:12 UTC
      <TD> Rebuild from source tree
-     <TD> Full rebuild was needed, Romeo examples now run under Julia 0.4. 
-          Moving to Julia 0.4 for future devs using Romeo.
+     <TD> Commit bd748b9*; x86_64-linux-gnu
 </TABLE>
 

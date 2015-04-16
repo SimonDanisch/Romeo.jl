@@ -4,6 +4,9 @@ Date: CURRENT
 	tasks, make code independent of subscreen interface parametrization).
 	Using LightXML.jl, and various editors/validators for xsd.
 
+Date: Thu Apr 16 13:22:54 2015 +0200
+        Integrated with upstream commit, enables 3Dplots
+	
 Date: Sat Apr 11 22:55:23 2015 +0200
     Adding functionality: camera movement in one subscreen follows a different
 	 subscreen ; progress towards implementing a more general facility

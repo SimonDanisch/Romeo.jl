@@ -360,7 +360,7 @@ function accept(tt::Token{:debug}, xnd::XMLNode, depth::Int=0)
     for chld in child_nodes(xnd)
         accept(Token(name(chld)), chld, depth+1)
     end
-    SemNode("TBD:debug")
+    SemNode((:debug,"TBD:debug"))
 end
 # --line 9573 --  -- from : "BigData.pamphlet"  
 # this transform accumulated vector of vectors into 2D table
