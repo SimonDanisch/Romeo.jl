@@ -1,5 +1,5 @@
 
-# --line 9157 --  -- from : "BigData.pamphlet"  
+# --line 9173 --  -- from : "BigData.pamphlet"  
 module ParseXMLSubscreen
 using LightXML
 
@@ -8,7 +8,7 @@ export Token, SemNode,
        stateTrans,
        setDebugLevels
 
-# --line 9168 --  -- from : "BigData.pamphlet"  
+# --line 9184 --  -- from : "BigData.pamphlet"  
 debugFlagOn  = false
 debugLevel   = 0::Int64
 
@@ -31,7 +31,7 @@ end
 
 
 
-# --line 9193 --  -- from : "BigData.pamphlet"  
+# --line 9209 --  -- from : "BigData.pamphlet"  
 #==
  Token Type, which is used to choose different recursive descent options 
  via multiple dispatch
@@ -41,11 +41,11 @@ end
  Token(x::Symbol) = Token{x}()
  Token(x::String) = Token{Symbol(x)}()
  Token() = Token{:Default}()
-# --line 9205 --  -- from : "BigData.pamphlet"  
+# --line 9221 --  -- from : "BigData.pamphlet"  
 type SemNode
     nd::Any
 end
-# --line 9211 --  -- from : "BigData.pamphlet"  
+# --line 9227 --  -- from : "BigData.pamphlet"  
 # utilities needed in the recursive descent parse of XML
 function pretty(depth::Int,args...)
     for i=0:depth
@@ -58,7 +58,7 @@ function prettyError(depth::Int,xmlel,expected)
     println("Error at depth $depth found=$xmlel\texpected=$expected")
     throw (LightXML.XMLParseError ("XML Syntax error"))
 end
-# --line 9226 --  -- from : "BigData.pamphlet"  
+# --line 9242 --  -- from : "BigData.pamphlet"  
 function checkSymbol(nm::Symbol,ls::(Symbol...))
    in (nm, ls) && return
    throw (LightXML.XMLParseError ("Unexpected symbol $nm not in $ls"))
@@ -71,7 +71,7 @@ end
 testSymbol(nm::String,ls::(Symbol...)) = testSymbol(Symbol(nm),ls)
 
 
-# --line 9243 --  -- from : "BigData.pamphlet"  
+# --line 9259 --  -- from : "BigData.pamphlet"  
 function getAttr(node::XMLNode)
    if is_elementnode(node)
       el = XMLElement(node)
@@ -84,7 +84,7 @@ function getAttr(node::XMLNode)
    end
 end
 
-# --line 9258 --  -- from : "BigData.pamphlet"  
+# --line 9274 --  -- from : "BigData.pamphlet"  
 @doc """ This is a utility function used when our semantic functions 
      are governed by a finite state automaton. Perform state transitions where
       state       : current state
@@ -109,7 +109,7 @@ function stateTrans(state::Symbol,
    return state
 end
 
-# --line 9285 --  -- from : "BigData.pamphlet"  
+# --line 9301 --  -- from : "BigData.pamphlet"  
 # do a recursive descent based on our Schema
 
 # reads the xml document and build everything
@@ -120,7 +120,7 @@ function acDoc(xdoc::XMLDocument)
 end
 
 acScene(xssc::XMLElement) = 
-# --line 9298 --  -- from : "BigData.pamphlet"  
+# --line 9314 --  -- from : "BigData.pamphlet"  
 # We use full dispatch in order to implement a recursive descent parser
 #
 # This is the generic acceptor (only a development placeholder)
@@ -130,7 +130,7 @@ function accept{T}(tt::Token{T}, node::XMLNode, depth::Int = 0 )
      pretty(depth, "$nn\tGA($T/$tt)")
      SemNode("GA($T/$tt)")
 end
-# --line 9310 --  -- from : "BigData.pamphlet"  
+# --line 9326 --  -- from : "BigData.pamphlet"  
 # This is generic function for collecting attributes; we use this trick
 # to enable specific versions for checking that the proper attributes
 # have been set.
@@ -138,7 +138,7 @@ end
 function doAttrib{T}(tt::Token{T}, node::XMLNode, depth::Int = 0 )
    return getAttr(node)
 end
-# --line 9321 --  -- from : "BigData.pamphlet"  
+# --line 9337 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:scene}, xssc::XMLElement, depth::Int=0)
     name(xssc) == "scene" || prettyError(depth,name(xssc),"scene")
     pretty(depth, "E>\t", name(xssc))
@@ -192,7 +192,7 @@ function accept(tt::Token{:scene}, xssc::XMLElement, depth::Int=0)
     SemNode(lst)
 end
 
-# --line 9377 --  -- from : "BigData.pamphlet"  
+# --line 9393 --  -- from : "BigData.pamphlet"  
 global subsCount=0
 function accept(tt::Token{:subscreen}, xnd::XMLNode, depth::Int=0)
     global subsCount
@@ -200,6 +200,7 @@ function accept(tt::Token{:subscreen}, xnd::XMLNode, depth::Int=0)
     bld = Dict{Symbol,SemNode}()
 
     attribs = doAttrib(tt,xnd,depth)
+    bld[:attrs] = SemNode(attribs)
     # we use state to move between the  parts concerning subscreens, setplot
     # connection and  debug (see subscreenSchema.xsd )
     state::Symbol= :rowsizes
@@ -218,11 +219,21 @@ function accept(tt::Token{:subscreen}, xnd::XMLNode, depth::Int=0)
             && testSymbol( nmChild , (:rowsizes, :comment, :text)))
            if snmChild == :rowsizes   
              bld[:rowsizes] = accept(Token(:listInt), chld, depth+1)
+             if length(bld[:rowsizes].nd) != parse ( Int,attribs["rows"]) 
+                @show bld[:rowsizes]
+                @show attribs["rows"]
+                error( "Attrib rows not consistent with rowsizes")
+             end
            end
         elseif (   state == :colsizes 
             && testSymbol( nmChild , (:colsizes, :comment, :text)))
            if snmChild == :colsizes   
              bld[:colsizes] = accept(Token(:listInt), chld, depth+1)
+             if length(bld[:colsizes].nd) != parse( Int, attribs["cols"]) 
+                @show bld[:colsizes]
+                @show attribs["cols"]
+                error("Attrib cols not consistent with colsizes")
+             end
            end
         elseif (   state == :table 
             && testSymbol( nmChild , (:table, :comment, :text)))
@@ -240,7 +251,7 @@ function accept(tt::Token{:subscreen}, xnd::XMLNode, depth::Int=0)
     SemNode((:subscreen,bld))
 end
 
-# --line 9427 --  -- from : "BigData.pamphlet"  
+# --line 9454 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:table}, xnd::XMLNode, depth::Int=0)
     pretty(depth, "N>\t",name(xnd))
     tbl = Array{SemNode,1}(0)
@@ -258,7 +269,7 @@ function accept(tt::Token{:table}, xnd::XMLNode, depth::Int=0)
     end
     SemNode((:table,tbl))
 end
-# --line 9447 --  -- from : "BigData.pamphlet"  
+# --line 9474 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:tr}, xnd::XMLNode, depth::Int=0)
     pretty(depth, "N>\t",name(xnd))
     tbl = Array{SemNode,1}(0)
@@ -278,7 +289,7 @@ function accept(tt::Token{:tr}, xnd::XMLNode, depth::Int=0)
 end
 
 
-# --line 9469 --  -- from : "BigData.pamphlet"  
+# --line 9496 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:setplot}, xnd::XMLNode, depth::Int=0)
     pretty(depth, "S>\t", name(xnd), getAttr(xnd))
     attrs = getAttr(xnd)
@@ -292,7 +303,7 @@ function accept(tt::Token{:setplot}, xnd::XMLNode, depth::Int=0)
     
 end
 
-# --line 9485 --  -- from : "BigData.pamphlet"  
+# --line 9512 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:connection}, xnd::XMLNode, depth::Int=0)
     pretty(depth, "C>\t",name(xnd))
     attrs = getAttr(xnd)
@@ -313,17 +324,17 @@ function accept(tt::Union(Token{:inSig},Token{:outSig}),
     SemNode((name(xnd),lst))
 
 end
-# --line 9509 --  -- from : "BigData.pamphlet"  
+# --line 9536 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:rotateModel},  xnd::XMLNode, depth::Int=0)
     pretty(depth, "RotateModel>\t",name(xnd))        
     SemNode("TBD:RotateModel")
 end
-# --line 9516 --  -- from : "BigData.pamphlet"  
+# --line 9543 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:dump},  xnd::XMLNode, depth::Int=0)
     pretty(depth, "Dump>\t",name(xnd))        
     SemNode("TBD:Dump")
 end
-# --line 9524 --  -- from : "BigData.pamphlet"  
+# --line 9551 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:listInt},  xnd::XMLNode, depth::Int=0)
     lst=Array{Int64,1}(0)
     for chld in      child_nodes(xnd)
@@ -333,7 +344,7 @@ function accept(tt::Token{:listInt},  xnd::XMLNode, depth::Int=0)
     SemNode(lst)
 
 end
-# --line 9536 --  -- from : "BigData.pamphlet"  
+# --line 9563 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:listFloat},  xnd::XMLNode, depth::Int=0)
     lst=Array{Float64,1}(0)
     for chld in      child_nodes(xnd)
@@ -342,7 +353,7 @@ function accept(tt::Token{:listFloat},  xnd::XMLNode, depth::Int=0)
     end    
     SemNode(lst)
 end
-# --line 9549 --  -- from : "BigData.pamphlet"  
+# --line 9576 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:text}, xnd::XMLNode, depth::Int=0)
     c = content(xnd)
     ret=if  ! ismatch( r"^[\s\n]*$", c)
@@ -354,7 +365,7 @@ function accept(tt::Token{:text}, xnd::XMLNode, depth::Int=0)
     SemNode((:text,ret))
 end
 
-# --line 9563 --  -- from : "BigData.pamphlet"  
+# --line 9590 --  -- from : "BigData.pamphlet"  
 function accept(tt::Token{:debug}, xnd::XMLNode, depth::Int=0)
     pretty(depth, "D>\t",name(xnd))
     for chld in child_nodes(xnd)
@@ -362,7 +373,7 @@ function accept(tt::Token{:debug}, xnd::XMLNode, depth::Int=0)
     end
     SemNode((:debug,"TBD:debug"))
 end
-# --line 9573 --  -- from : "BigData.pamphlet"  
+# --line 9600 --  -- from : "BigData.pamphlet"  
 # this transform accumulated vector of vectors into 2D table
 function subsTblSimplify!(bld::Dict{Symbol,SemNode})
      
@@ -396,5 +407,5 @@ function subsTblSimplify!(bld::Dict{Symbol,SemNode})
                  "subsTblSimplify returns bld=$bld")
 end
 
-# --line 9609 --  -- from : "BigData.pamphlet"  
+# --line 9636 --  -- from : "BigData.pamphlet"  
 end # module ParseXMLSubscreen

@@ -53,6 +53,72 @@ the following chunk:
       InputConnect(vizObj[2,1],(:view,:projection),(:view,:projection))
 ```
 
+The current evolution will mean that an **XML** description like the following will achieve
+*the same* (aim is  *ease of use*):
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+             xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
+
+<!-- Subscreen description -->
+
+ <subscreen rows="2" cols="2" name="MAIN">
+  <rowsizes>1,4</rowsizes>
+  <colsizes>4,1</colsizes>
+  <table>
+    <tr>
+     <subscreen name="A1"/>
+     <subscreen name="A2"/>
+     </tr>
+    <tr>
+     <subscreen name="B1"/>
+     <subscreen rows="4" cols="1" name="INNER">
+         <rowsizes>1,1,1,1</rowsizes>
+         <colsizes>1</colsizes>
+         <table>
+             <tr><subscreen name="IA1"/></tr>
+             <tr><subscreen name="IB1"/></tr>
+             <tr><subscreen name="IC1"/></tr>
+             <tr><subscreen name="ID1"/></tr>
+         </table>
+     </subscreen>
+    </tr>
+   </table>
+ </subscreen>
+
+<!-- Subscreen contents -->
+
+ <setplot  ref="A1"  fn="doEdit"/>
+ <setplot  ref="A2"  fn="doVol"/>
+ <setplot  ref="B1"  fn="doPlot"/>
+
+ <setplot  ref="IA1"  fn="doColorBtn"/>
+ <setplot  ref="IB1"  fn="doPlot"> 
+      <rotateModel>Pi/2,0.0,0.0</rotateModel>
+ </setplot>
+ <setplot  ref="IC1"  fn="doPlot">
+      <rotateModel>Pi/2,0.0,0.0</rotateModel>
+ </setplot>
+ <setplot  ref="ID1"  fn="doPlot">
+      <rotateModel>Pi/2,0.0,0.0</rotateModel>
+ </setplot>
+
+ <!-- Connectors -->
+ <connection from="A2" to="B1"> 
+            <inSig>:view,:projection</inSig>
+            <outSig>:view,:projection</outSig>
+ </connection>
+
+ <!-- Debug options -->
+
+<debug>
+    <dump ref="IC1"/>
+</debug>
+
+</scene>
+<!-- This ends the scene-->
+```
+
 The following branches in the Git tree have specific meaning (At least planned):
 <TABLE>
 <TR><TD>master
@@ -65,6 +131,8 @@ The following branches in the Git tree have specific meaning (At least planned):
     <TD>Establish communications between subscreens(obey same mouse actions), 
         statically rotate the view in some subscreen. Plan to generalize
         to other signals.
+<TR><TD>XML
+    <TD>Support description of screen in an XML file as shown above.
 </TABLE>
 
 
@@ -77,9 +145,9 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>
     <TD>Sat Apr 04 2015
     <TD>Not tracking development of GLAbstraction
-<TR><TD>plot 3D
-    <TD>Mon Apr 06 2015
-    <TD>Mysterious bug in render loop (apparently in Reactive)
+<TR><TD>
+    <TD>
+    <TD>
 <TR><TD>
     <TD>
     <TD>
@@ -102,7 +170,7 @@ The following branches in the Git tree have specific meaning (At least planned):
          signal. Shows capacity of synchronized signals in several subscreen,
          for instance ensure similar rotations upon mouse signal.
 <TR> 
-     <TD>1096656709a90fb5fcdb422e5dde558321467592
+     <TD>1096656709a90fb
      <TD>ven. 10 avril 2015 10:37:41 CEST
      <TD>
      <TD>Solves issue with 3D plot.

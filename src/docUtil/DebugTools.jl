@@ -1,4 +1,4 @@
-# --line 10784 --  -- from : "BigData.pamphlet"  
+# --line 10902 --  -- from : "BigData.pamphlet"  
 # here we have our debug subsection
 module DebugTools
 
@@ -19,7 +19,7 @@ function unitCube{T<:Number}(zero::T)
     unitcube
 end
 
-# --line 10807 --  -- from : "BigData.pamphlet"  
+# --line 10925 --  -- from : "BigData.pamphlet"  
 #code_native( unitCube, (Int32,))
 function chkDump(tup::(RenderObject...),more::Bool=false)
      for t in tup
@@ -27,7 +27,7 @@ function chkDump(tup::(RenderObject...),more::Bool=false)
      end
 end
 
-# --line 10817 --  -- from : "BigData.pamphlet"  
+# --line 10935 --  -- from : "BigData.pamphlet"  
 function chkDump(r::RenderObject,more::Bool=false)
     println("In  chkDump(r::RenderObject)\n\t$r\n")
 
@@ -63,7 +63,7 @@ function chkDump(r::RenderObject,more::Bool=false)
 
     println("+++  End chkDump output  +++\n")
 end
-# --line 10855 --  -- from : "BigData.pamphlet"  
+# --line 10973 --  -- from : "BigData.pamphlet"  
 function chkDump(d::Dict{Symbol,Any},more::Bool=false)
     println("In  chkDump(d::Dict{Symbol,Any})\n")
     for (k,v) in d

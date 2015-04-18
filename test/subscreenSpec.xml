@@ -19,7 +19,7 @@
    </table>
  </subscreen>
 
- <subscreen rows="2" cols="2" name="INNER">
+ <subscreen rows="4" cols="1" name="INNER">
   <rowsizes>1,1,1,1</rowsizes>
   <colsizes>1</colsizes>
   <table>
