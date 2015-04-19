@@ -10,7 +10,7 @@
   <table>
     <tr>
      <subscreen name="A1"/>
-     <subscreen child="A2"/>
+     <subscreen name="A2"/>
      </tr>
     <tr>
      <subscreen name="B1"/>

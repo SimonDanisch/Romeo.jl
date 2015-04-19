@@ -11,13 +11,13 @@ function clear!(x::Vector{RenderObject})
         delete!(value)
     end
 end
-# --line 9951 --  -- from : "BigData.pamphlet"  
+# --line 10061 --  -- from : "BigData.pamphlet"  
 using DebugTools
 using ROGeomOps       ## geometric OpenGL transformations on RenderObjects
 using VirtualOGLGeom  ## tools to effect transformations on RenderObjects via
                       ## interfaces
 
-# --line 9959 --  -- from : "BigData.pamphlet"  
+# --line 10069 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations
           Construct all RenderObjects (suitably parametrized) and inserts them in
           renderlist.
@@ -117,7 +117,7 @@ function init_romeo(subScreenGeom, vizObjArray; pcamSel=true)
 end
 
 
-# --line 10062 --  -- from : "BigData.pamphlet"  
+# --line 10172 --  -- from : "BigData.pamphlet"  
 @doc """  Performs a number of initializations
           Construct all RenderObjects (suitably parametrized) and inserts them in
           renderlist.
@@ -141,7 +141,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
     end
 
 
-# --line 10087 --  -- from : "BigData.pamphlet"  
+# --line 10197 --  -- from : "BigData.pamphlet"  
     # set the subscreens areas as signals focused on subscreen rectangles
     fnWalk1 = function(ssc,indx,misc,info)
            info[:isDecomposed] && return
@@ -153,7 +153,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
     end
     treeWalk!(vObjT,  fnWalk1)
 
-# --line 10100 --  -- from : "BigData.pamphlet"  
+# --line 10210 --  -- from : "BigData.pamphlet"  
     # Make subscreens of Screen type, each equipped with renderlist
     # We will then put RenderObject in each of the subscreens
 
@@ -164,7 +164,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
     treeWalk!(vObjT,  fnWalk2)
 
 
-# --line 10112 --  -- from : "BigData.pamphlet"  
+# --line 10222 --  -- from : "BigData.pamphlet"  
    # Equip each subscreen with a RenderObject 
 
     fnWalk3 = function( ssc::SubScreen, 
@@ -212,7 +212,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        vo  = ssc.attrib[ RObjFn ]( scr, camera )
 
 
-# --line 10161 --  -- from : "BigData.pamphlet"  
+# --line 10271 --  -- from : "BigData.pamphlet"  
        # The game here: thy shall not call visualize with a RenderObject
        # ( May be this can be simplified if  my proposed patch in 
        # Romeo/src/visualize_interface.jl gets accepted)
@@ -241,7 +241,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        ssc.attrib[ROProper] = viz
 
 
-# --line 10191 --  -- from : "BigData.pamphlet"  
+# --line 10301 --  -- from : "BigData.pamphlet"  
        # Does the user request virtual functions (we need to verify availability or diagnose)
        marker  = haskey(ssc.attrib,ROReqVirtUser) ? ssc.attrib[ROReqVirtUser] : 0
        # Check availability, this will use an external function (in ad hoc module!)
@@ -255,7 +255,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
             end
        end
 
-# --line 10206 --  -- from : "BigData.pamphlet"  
+# --line 10316 --  -- from : "BigData.pamphlet"  
        # this way the user can request a dump 
        if haskey(ssc.attrib,RODumpMe)
           println("Dump for object viz of type = ",typeof(viz),"")
@@ -273,7 +273,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
           end
        end
 
-# --line 10227 --  -- from : "BigData.pamphlet"  
+# --line 10337 --  -- from : "BigData.pamphlet"  
        if isa(viz,(RenderObject...))
             for v in viz
                 push!(scr.renderlist, v)
@@ -297,10 +297,10 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
 
     end   # function  fnWalk3
 
-# --line 10252 --  -- from : "BigData.pamphlet"  
+# --line 10362 --  -- from : "BigData.pamphlet"  
     treeWalk!(vObjT,  fnWalk3)
 
-# --line 10258 --  -- from : "BigData.pamphlet"  
+# --line 10368 --  -- from : "BigData.pamphlet"  
 # 4th pass for  operations which require multiple RO built (so that 
 # we do not have to care about order of RO construction
     function fnWalk4( ssc::SubScreen, 
@@ -325,10 +325,10 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
     treeWalk!(vObjT,  fnWalk4)
 
 
-# --line 10285 --  -- from : "BigData.pamphlet"  
+# --line 10395 --  -- from : "BigData.pamphlet"  
 end
 
-# --line 10827 --  -- from : "BigData.pamphlet"  
+# --line 10937 --  -- from : "BigData.pamphlet"  
 function interact_loop()
    while Romeo.ROOT_SCREEN.inputs[:open].value
       glEnable(GL_SCISSOR_TEST)
