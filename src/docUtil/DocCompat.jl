@@ -1,4 +1,3 @@
-# --line 3754 --  -- from : "BigData.pamphlet"  
 # This module is just a placeholder for Version 0.4 Base/doc.jl
 # therefore, in older version it silently swallows the @doc <string> -> syntax
 # attempting to do no harm... (remains to be checked). In later versions it just

@@ -1,4 +1,3 @@
-# --line 3231 --  -- from : "BigData.pamphlet"  
 #==
  A set of function to address file/stream functionalities
     - redirect STDERR
@@ -10,7 +9,6 @@ using DocCompat
 
 export redirectNewFWrite, restoreErrStream, mkstemp
 
-# --line 3244 --  -- from : "BigData.pamphlet"  
 @doc """ 
           This function takes a file name as argument, the corresponding
           file is created(if does not exist) , opened for write , and
@@ -30,7 +28,6 @@ function redirectNewFWrite(fname,mode="w")
       return ( oldSTDERR, redirIOS)
 end
 
-# --line 3265 --  -- from : "BigData.pamphlet"  
 @doc """
          This function redirects stderr to the stream passed in argument. 
          Current file stays open and may be closed (flushed or whatever by
@@ -39,7 +36,6 @@ end
 function restoreErrStream(oldStr)
       redirect_stderr(oldStr)
 end
-# --line 3276 --  -- from : "BigData.pamphlet"  
 @doc """  Securely creates a new temporary file, readable and writable
           only by the current user, non executable.
 
@@ -63,7 +59,6 @@ function _mkstemp(; suffix=nothing, prefix=nothing,dir=nothing)
 end
 
 
-# --line 3304 --  -- from : "BigData.pamphlet"  
 @doc """  Securely creates a new temporary file, readable and writable
           only by the current user, non executable.
 

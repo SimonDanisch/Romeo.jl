@@ -8,47 +8,65 @@ JULIAPGM=Julia4
 DOCUTILDIR=../src/docUtil
 DOCUNITTEST=unitTests
 
+ifeq ( "$(STRIP)" , "" )
+  STRIPLINECMD=cat
+else
+  STRIPLINECMD=egrep -v -E "[-][-]line [0-9]+ --.*from :" 
+endif
+
+.PHONY:help
+
+help:
+	echo "set var STRIP when source line numbering not needed (for git)"
+	echo make STRIP=YES....
+
 RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
+
+$(DOCUTILDIR)/DocCompat.jl: $(JULIAENV)/DocCompat.jl
+	$(STRIPLINECMD) $< |cpif $@
+
+$(DOCUTILDIR)/ManipStreams.jl: $(JULIAENV)/ManipStreams.jl
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/RomeoLibSimple.jl: $(JULIATRY)/RomeoLibSimple.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/MatrixMathPlus.jl: $(JULIATRY)/MatrixMathPlus.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/SubScreens.jl: $(JULIATRY)/SubScreens.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/Connectors.jl: $(JULIATRY)/Connectors.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/SimpleSubScreens.jl: $(JULIATRY)/SimpleSubScreens.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/XtraRenderObjOGL.jl: $(JULIATRY)/XtraRenderObjOGL.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/ROGeomOps.jl: $(JULIATRY)/ROGeomOps.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/VirtualOGLGeom.jl: $(JULIATRY)/VirtualOGLGeom.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/TBCompletedM.jl: $(JULIATRY)/TBCompletedM.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/ParseXMLSubscreen.jl: $(JULIATRY)/ParseXMLSubscreen.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/SemXMLSubscreen.jl: $(JULIATRY)/SemXMLSubscreen.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/subscreenSchema.xsd: $(JULIATRY)/subscreenSchema.xsd
 	cat $< |cpif $@
@@ -63,16 +81,16 @@ $(DOCUTILDIR)/Changelog: $(JULIAENV)/Changelog
 	cat $< |cpif $@
 
 $(DOCUNITTEST)/testSubScreen.jl :$(JULIATRY)/testSubScreen.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUNITTEST)/testLumberjack.jl :$(JULIATRY)/testLumberjack.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUNITTEST)/TestOGLGeom.jl :$(JULIATRY)/TestOGLGeom.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl
-	cat $< |cpif $@
+	$(STRIPLINECMD) $< |cpif $@
 
 
 
@@ -95,8 +113,9 @@ progs :  RomeoVolume.jl \
         $(DOCUTILDIR)/Changelog \
         $(DOCUTILDIR)/ParseXMLSubscreen.jl \
         $(DOCUTILDIR)/SemXMLSubscreen.jl \
+        $(DOCUTILDIR)/ManipStreams.jl \
+        $(DOCUTILDIR)/DocCompat.jl \
         $(DOCUTILDIR)/subscreenSchema.xsd 
-
 
 
 progtests: $(DOCUNITTEST)/testSubScreen.jl \

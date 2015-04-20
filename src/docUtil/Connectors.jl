@@ -1,4 +1,3 @@
-# --line 10403 --  -- from : "BigData.pamphlet"  
 module Connectors
 
 using DebugTools

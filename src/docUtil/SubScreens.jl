@@ -1,5 +1,4 @@
 
-# --line 8424 --  -- from : "BigData.pamphlet"  
 module SubScreens
 
 using GLAbstraction ## need Rectangle
@@ -15,7 +14,6 @@ export SubScreen,
         ROVirtIfDict, ROReqVirtUser, ROConnects
 
 
-# --line 8443 --  -- from : "BigData.pamphlet"  
 # Recursive types in Julia are found in
 # http://julia.readthedocs.org/en/latest/manual/constructors/ at
 # paragraph  ``Incomplete Initialization''
@@ -24,7 +22,6 @@ export SubScreen,
 # NOTE: our notation for matrices and argument pertaining to matrices
 #       is such that line comes before column (linenum,colnum),... etc...
 
-# --line 8460 --  -- from : "BigData.pamphlet"  
 # define subscreen as a recursive type
 type SubScreen
     x::Float64
@@ -81,6 +78,21 @@ type SubScreen
 
 end  # type SubScreen
 
+import Base.show
+
+function Base.show(io::IO, ssc::SubScreen)
+     strs=Array{String,1}(0)
+     push!(strs,"SubScreen object id" * @sprintf("0x%x",object_id(ssc)))
+     push!(strs,"\tRect=[" * string((ssc.x,ssc.y,ssc.w,ssc.h)))
+     push!(strs,"\tattrib=" * string(ssc.attrib))
+     push!(strs,"\tchildColW=" * string(ssc.childColW))
+     push!(strs,"\tchildLinW=" * string(ssc.childLinW))
+     push!(strs,"\tchildren object_id=" * @sprintf( "0x%s",
+                                                    object_id(ssc.children)))
+     push!(strs,"\tchildren="  * string(ssc.children))
+     print(io, reduce((x,y)->( x* "\n") * y, strs))
+end
+
 @enum SSCAttribs  SsigArea SsigScreen
 # apparently,cannot use this enum to index our dicts
 
@@ -101,7 +113,6 @@ const ROConnects= :ROConnects #follow mouse actions in a different
 import Base.convert
 convert(::Type{ASCIIString},t::SSCAttribs) = string(t)
 convert(::Type{Symbol},t::SSCAttribs) = :t
-# --line 8544 --  -- from : "BigData.pamphlet"  
 @doc """ Makes a 2D array of specified dimensions with all empty values 
          which can be put in the   field children of a SubScreen.
      """ ->
@@ -114,7 +125,6 @@ function mkEmpty(t::Float64,nl,nc)
 end
 
 
-# --line 8561 --  -- from : "BigData.pamphlet"  
 @doc """  The SubScreen ssc receives the value newSubCell as 
           its child with coordinates (i,j) 
           sss.children[i,j] <- newSubCell
@@ -127,7 +137,6 @@ function insertChildren!( ssc::SubScreen, i::Int, j::Int,
    ssc.children[i,j] = newSubCell
 end
        
-# --line 8576 --  -- from : "BigData.pamphlet"  
 @doc """ Accesses the child described by idx of ssc. This
          walks down the SubScreen tree.
          here the syntax is:
@@ -146,7 +155,6 @@ function Base.getindex(ssc::SubScreen, idx::(Int,Int)...)
 end
 # Just a syntactic helper
 Base.getindex(ssc::SubScreen,i::Int,j::Int) = Base.getindex(ssc,(i,j))
-# --line 8598 --  -- from : "BigData.pamphlet"  
 @doc """ Sets the child described by idx of ssc to the value val. 
          This  walks down the SubScreen tree.
          here the syntax is:
@@ -172,7 +180,6 @@ end
 #  syntactic helper
 Base.setindex!(ssc::SubScreen,val::SubScreen,i,j) =Base.setindex!(ssc,val,(i,j))
 
-# --line 8625 --  -- from : "BigData.pamphlet"  
 using Base.Enum
 
 @enum    OptsTreeWalker preOrdr postOrdr
@@ -278,7 +285,6 @@ function _treeWalkPost!(ssc::SubScreen, func::Function,
 end
 
 
-# --line 8732 --  -- from : "BigData.pamphlet"  
 @doc """ 
          Compute a Subscreen whose children are represented by an 
          array of SubScreen{Float}, each with position(x,y) and 
@@ -323,7 +329,6 @@ function prepSubscreen(linehRel::Vector{Float64}, colwRel::Vector{Float64})
     end
     return sc
 end
-# --line 8779 --  -- from : "BigData.pamphlet"  
 @doc """ Receives 2 arguments: a frame and a rect, where the 
          rect defines its relative coordinates in the frame. 
          
@@ -337,13 +342,11 @@ function rectContextualize(frame::Rectangle{Float64}, rect::Rectangle{Float64})
 
      SubScreen(x,y,w,h)
 end
-# --line 8795 --  -- from : "BigData.pamphlet"  
 @doc """ Extract the rectangle coordinates of a SubScreen
      """ ->
 function toRectangle(ssc::SubScreen)
      Rectangle(ssc.x, ssc.y,ssc.w,ssc.h)
 end
-# --line 8804 --  -- from : "BigData.pamphlet"  
 @doc """ Recursively builds the coordinates of the SubScreen tree,
          in the coordinate space of the root SubScreen, (where
          the root subscreen is located by its (x,y,w,h).
@@ -370,7 +373,6 @@ function computeRects(r::Rectangle{Float64},  ssc::SubScreen)
      end
 end
 
-# --line 8834 --  -- from : "BigData.pamphlet"  
 @doc """  Helper for main recursive version, repackages the first 
           arg as a SubScreen.
      """ ->
@@ -381,7 +383,6 @@ function computeRects( s::SubScreen,
 end
 
 
-# --line 8396 --  -- from : "BigData.pamphlet"  
 @doc """
          Returns a Rectangle based on:
          Arg. 1:  a SubScreen for proportions 
@@ -393,7 +394,6 @@ function RectangleProp(ssc,x)
   		    int64(ssc.w*x[1]),  int64(ssc.h*x[2]))
 end
 
-# --line 8846 --  -- from : "BigData.pamphlet"  
 end # module SubScreens
 
 
