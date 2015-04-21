@@ -51,10 +51,20 @@ end
          Arg. 2:  a vector representing  the (w,h) measures in the x and y 
                   directions.
      """ ->
-function RectangleProp(ssc,x)
+function RectangleProp(ssc::SubScreen,x)
     Rectangle{Int}( int64(ssc.x*x[1]),  int64(ssc.y*x[2]),
   		    int64(ssc.w*x[1]),  int64(ssc.h*x[2]))
 end
+
+
+
+function setRectangle!(ssc::SubScreen,x::Float64, y::Float64,w::Float64,h::Float64)
+      ssc.x = x; ssc.y = y; ssc.w  = w; ssc.h = h
+end
+
+setRectangle!{T}(ssc::SubScreen, r::Rectangle{T}) = setRectangle!( ssc, 
+    r.x, r.y, r.w, r.h)
+
 
 
 end # module SimpleSubScreens

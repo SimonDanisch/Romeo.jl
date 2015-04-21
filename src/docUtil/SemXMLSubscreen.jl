@@ -27,11 +27,12 @@ debugFlagOn  = false
 debugLevel   = 0::Int64
 
 #==       Level (ORed bit values)
-              1: 
-              2: 
+           0x01: Show steps in syntax recognition
+              2: Show final AST
               4: Show state transitions when state automata use fn. stateTrans
-              8: 
-             16: 
+              8: Show steps in semantics (transition from XML to actions 
+                      on subscreen tree)
+           0x10: Show steps in subscreen tree indexing or manipulation
 ==#
  
 #==  Set the debug parameters
@@ -42,6 +43,11 @@ function setDebugLevels(flagOn::Bool,level::Int)
     debugFlagOn = flagOn
     debugLevel  = flagOn ? level : 0
 end
+
+dodebug(b::UInt8)  = debugFlagOn && ( debugLevel & Int64(b) != 0 )
+dodebug(b::UInt32) = debugFlagOn && ( debugLevel & Int64(b) != 0 )
+dodebug(b::UInt64) = debugFlagOn && ( debugLevel & Int64(b) != 0 )
+
 # we use type subscreenContext to keep the context of the recursion 
 # building subscreen SemNodes.
 
@@ -104,7 +110,7 @@ function Base.show(io::IO, sc::subscreenContext)
 end
 
 function buildFromParse(ast::SemNode, fnDict::Dict{String,Function})
-   println("In  buildFromParse,ast=$ast")
+   dodebug(0x1) && println("In  buildFromParse,ast=$ast")
    state::Symbol = :subscreen
    astPos::Int = 0
    const stateTransitions    = (
@@ -141,9 +147,11 @@ function buildFromParse(ast::SemNode, fnDict::Dict{String,Function})
       end   # if (distinguish states)
 
   end # for astItem
-  println("***\nAfter processing Ast")
-  show(sc)
-  println("***\n")
+  if dodebug(0x2)
+     println("***\nAfter processing Ast")
+     show(sc)
+     println("***\n")
+  end
   # Now we need to return the tree remaining in SC
   # which corresponds to the key "MAIN"
   (i,s,t)=getTreeSetPtr(:MAIN,sc,:name)
@@ -153,9 +161,10 @@ end
 #     prior to call, and to be used / analysed after this function terminates
 function  processSubscreen(cur::Dict{Symbol,ParseXMLSubscreen.SemNode}, 
                            sContext::subscreenContext)
-
-    #println("In processSubscreen at level", sContext.level)
-    #println("\tcur=$cur\n***** *****")
+    if (dodebug(0x8))
+       println("In processSubscreen at level", sContext.level)
+       println("\tcur=$cur\n***** *****")
+    end
 
     # distinguish cases
     s::Union(Void,SubScreen) = nothing
@@ -205,13 +214,13 @@ function  processSubscreen(cur::Dict{Symbol,ParseXMLSubscreen.SemNode},
        sContext.builtDict[sk] = Symbol(cur[:ident].nd)
     end
 
-    #println("Exiting processSubscreen\n\tsubscreenContext=$sContext\n\treturning:$s")
+    dodebug(0x8) && println("Exiting processSubscreen\n\tsubscreenContext=$sContext\n\treturning:$s")
     s
 end
 
 
 function    finalizeSubscreenSection(sc::subscreenContext)
-    println("In finalizeSubscreenSection")
+    dodebug(0x8) && println("In finalizeSubscreenSection")
 
     # we want to compute  the rectangles, but before we do that we need to
     # replace named subtrees by their value
@@ -241,8 +250,10 @@ function getTreeSetPtr(nm::Symbol,sc::subscreenContext,catSym::Symbol=:locname)
      #                       :subscreen:  reference to subscreen tree
 
      # may need to do this in a try block to diagnose not found cases!!
-     # println("In getTreeSetPtr nm=$nm")
-     # @show sc
+     if dodebug(0x10)
+         println("In getTreeSetPtr nm=$nm")
+         @show sc
+     end
      idt = sc.builtDict[( catSym, nm)]
      tree,tloc =  sc.builtDict[(:ident,idt)]
      if tree != nothing
@@ -280,7 +291,7 @@ function scIdentSetTree!(nm::Symbol,tree::SubScreen,sc::subscreenContext,
      sc.builtDict[(:subscreen,oldId)] = tree     
 end
 function graftSubTrees( sc::subscreenContext )
-     println("In graftSubTrees")
+     dodebug(0x10) && println("In graftSubTrees")
      # look for identifiers both in a :name entry and in a :locname entry
      fullTrees = map( x->x[2] , filter( x-> x[1]==:name, keys(sc.builtDict)))
      # look for references (:locnames) to full trees
@@ -289,7 +300,7 @@ function graftSubTrees( sc::subscreenContext )
      for nm in ftRefs
          (iM,sM,tM)         =  getTreeSetPtr(nm, sc, :name)
          (iLoc, sLoc, tLoc) =  getTreeSetPtr(nm, sc, :locname)
-         println("***\nMAINTREE locator=", (iM,sM,tM), "\tLOC locator=", 
+         dodebug(0x10) && println("***\nMAINTREE locator=", (iM,sM,tM), "\tLOC locator=", 
 			          (iLoc, sLoc, tLoc),"\n***")
          # this performs the graft proper
          sLoc[tLoc...]=sM
@@ -297,7 +308,7 @@ function graftSubTrees( sc::subscreenContext )
 end
 function         processSetplot(ast::SemNode, sc::subscreenContext, 
 			        fnDict::Dict{String,Function})
-    #println("In  processSetplot")
+    dodebug(0x08) && println("In  processSetplot")
 
     #locate the insertion pt in the subscreen tree
     (id, tree, indx) = getTreeSetPtr(ast.nd[3]["ref"],sc)

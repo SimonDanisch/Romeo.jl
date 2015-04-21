@@ -1,0 +1,6 @@
+# Output of coverage option from julia
+*.cov
+# Some original files, kept as baseline in development/modifications
+*.orig
+# Editor made copies
+*~

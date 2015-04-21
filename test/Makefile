@@ -8,7 +8,7 @@ JULIAPGM=Julia4
 DOCUTILDIR=../src/docUtil
 DOCUNITTEST=unitTests
 
-ifeq ( "$(STRIP)" , "" )
+ifeq ($(STRIP),)
   STRIPLINECMD=cat
 else
   STRIPLINECMD=egrep -v -E "[-][-]line [0-9]+ --.*from :" 
@@ -17,8 +17,9 @@ endif
 .PHONY:help
 
 help:
-	echo "set var STRIP when source line numbering not needed (for git)"
-	echo make STRIP=YES....
+	@echo "set var STRIP when source line numbering not needed (for git)"
+	@echo make STRIP=YES....
+	echo STRIPLINECMD = $(STRIPLINECMD)
 
 RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl
 	$(STRIPLINECMD) $< |cpif $@

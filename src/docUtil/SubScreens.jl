@@ -6,7 +6,7 @@ using ROGeomOps     ## geometric OpenGL transformations on RenderObjects
 
 export SubScreen,
         insertChildren!, prepSubscreen, computeRects, rectContextualize,
-	RectangleProp,
+	RectangleProp, setRectangle!,
         mkEmpty,
         treeWalk!,
 
@@ -290,7 +290,7 @@ end
          array of SubScreen{Float}, each with position(x,y) and 
          width(w,h)(all relative to a Rectangle(0,0,1,1).          
 
-        The arguments are two vectors indicating the relative
+         The arguments are two vectors indicating the relative
          sizes of the rows and of the columns.
 
          Connections with *actual* sizes transmitted by signals done later.
@@ -329,6 +329,59 @@ function prepSubscreen(linehRel::Vector{Float64}, colwRel::Vector{Float64})
     end
     return sc
 end
+
+@doc """ 
+         Add rectangle dimensions to a Subscreen whose children  are 
+         represented by an array of SubScreen{Float}, each with 
+         position(x,y) and width(w,h)(all relative to a Rectangle(0,0,1,1).
+
+         The arguments are two vectors indicating the relative
+         sizes of the rows and of the columns, and the existing Subscreen
+         whose dimensions must be adjusted/computed.
+
+         Connections with *actual* sizes transmitted by signals done later.
+
+         The returned value is the  Subscreen whose children are now
+         have explicit dimensions. Inasmuch as possible,existing subtrees are
+         kept, therefore if 2 Subscreens are shared, their versions with
+         filled dimensions will also be shared. 
+     """ ->
+function prepSubscreen(linehRel::Vector{Float64}, colwRel::Vector{Float64},
+                       ssc::Union(Void,SubScreen))
+    sumCol = sum(colwRel)
+    sumLine= sum(linehRel)
+    ncol =   size(colwRel)[1]
+    nlig =   size(linehRel)[1]
+
+    ret = ssc == nothing ? Array(Union(SubScreen,Nothing), nlig,ncol) :
+                           ssc.children
+
+    posy = zero(Float64)
+    for i = 1: nlig
+      posx =zero(Float64)
+      h =  linehRel[i]/sumLine
+      for j = 1: ncol
+          w = colwRel[j] / sumCol
+          if ret[i,j] == nothing
+              ret[i,j] = SubScreen(posx::Float64,posy::Float64,w::Float64,h::Float64)
+          else
+              setRectangle!(ret[i,j], posx::Float64,posy::Float64,w::Float64,h::Float64)
+          end
+          posx = posx + w
+      end
+      posy = posy +h
+    end
+
+    if ssc == nothing
+       sc = SubScreen (0.::Float64, 0.::Float64, 1.::Float64, 1.::Float64,
+                    linehRel::Vector{Float64}, colwRel::Vector{Float64}) 
+       for i=1:size(ret,1), j =1:size(ret,2)
+           sc.children[i,j] = ret[i,j]
+       end
+        return sc
+     end
+     return ssc
+end
 @doc """ Receives 2 arguments: a frame and a rect, where the 
          rect defines its relative coordinates in the frame. 
          
@@ -340,7 +393,7 @@ function rectContextualize(frame::Rectangle{Float64}, rect::Rectangle{Float64})
      w =  frame.w * rect.w
      h =  frame.h * rect.h
 
-     SubScreen(x,y,w,h)
+     Rectangle{Float64}(x,y,w,h)
 end
 @doc """ Extract the rectangle coordinates of a SubScreen
      """ ->
@@ -350,11 +403,13 @@ end
 @doc """ Recursively builds the coordinates of the SubScreen tree,
          in the coordinate space of the root SubScreen, (where
          the root subscreen is located by its (x,y,w,h).
+         Inasmuch as possible, existing subscreens are reused, therefore
+         ensuring that shared subscreen trees remain shared.
      """ ->
 function computeRects(r::Rectangle{Float64},  ssc::SubScreen)
      if size(ssc.children) != (0,0)
         arr   = Array{Union(Nothing,SubScreen),2}(size(ssc.children)...)
-        rects = prepSubscreen( ssc.  childLinW, ssc.childColW )
+        rects = prepSubscreen( ssc.  childLinW, ssc.childColW, ssc )
         for i = 1:size(ssc.children,1),  j= 1:  size(ssc.children,2)
            if ssc.children[i,j] != nothing
             v = computeRects( rectContextualize(r, toRectangle(rects[i,j])),
@@ -365,19 +420,20 @@ function computeRects(r::Rectangle{Float64},  ssc::SubScreen)
             arr[i,j]  = rectContextualize(r, Rectangle(ssc.x, ssc.y, ssc.w, ssc.h))
            end
         end
-        return SubScreen(float64(0.0), float64(0.0), float64(1.0), float64(1.0), 
-                    ssc.childLinW, ssc.childColW, arr)
+        # this looks like the culprit
+          setRectangle!(ssc, float64(0.0), float64(0.0), float64(1.0), float64(1.0))
      else
         # makes a leaf, with correct sizes, since r was already applied
-        return rectContextualize(r, Rectangle(0.0, 0.0 , 1.0 ,1.0))
+          setRectangle!(ssc, rectContextualize(r, Rectangle(0.0, 0.0 , 1.0 ,1.0)))
      end
+     return ssc
 end
 
 @doc """  Helper for main recursive version, repackages the first 
           arg as a SubScreen.
      """ ->
 function computeRects( s::SubScreen,
-                          ssc::SubScreen)
+                       ssc::SubScreen)
     r = Rectangle(s.x, s.y, s.w, s.h)
     computeRects(r,ssc)
 end
@@ -389,10 +445,20 @@ end
          Arg. 2:  a vector representing  the (w,h) measures in the x and y 
                   directions.
      """ ->
-function RectangleProp(ssc,x)
+function RectangleProp(ssc::SubScreen,x)
     Rectangle{Int}( int64(ssc.x*x[1]),  int64(ssc.y*x[2]),
   		    int64(ssc.w*x[1]),  int64(ssc.h*x[2]))
 end
+
+
+
+function setRectangle!(ssc::SubScreen,x::Float64, y::Float64,w::Float64,h::Float64)
+      ssc.x = x; ssc.y = y; ssc.w  = w; ssc.h = h
+end
+
+setRectangle!{T}(ssc::SubScreen, r::Rectangle{T}) = setRectangle!( ssc, 
+    r.x, r.y, r.w, r.h)
+
 
 end # module SubScreens
 
