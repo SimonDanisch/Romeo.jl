@@ -315,7 +315,10 @@ function accept(tt::Union(Token{:inSig},Token{:outSig}),
 end
 function accept(tt::Token{:rotateModel},  xnd::XMLNode, depth::Int=0)
     pretty(depth, "RotateModel>\t",name(xnd))        
-    SemNode("TBD:RotateModel")
+    # The expression will be parsed by Julia in the context of the
+    # Constant module, this is done by the accept function
+    acc0= accept(Token(:listFloatExpr), xnd, depth+1)
+    SemNode((:rotateModel,acc0))
 end
 function accept(tt::Token{:dump},  xnd::XMLNode, depth::Int=0)
     pretty(depth, "Dump>\t",name(xnd))        
@@ -325,7 +328,7 @@ function accept(tt::Token{:listInt},  xnd::XMLNode, depth::Int=0)
     lst=Array{Int64,1}(0)
     for chld in      child_nodes(xnd)
         t = content(chld)  # text content 
-        lst= map( s -> parseint(Int64,s), split(t,",") )
+        lst= map( s -> parse(Int64,s), split(t,",") )
     end    
     SemNode(lst)
 
@@ -334,7 +337,16 @@ function accept(tt::Token{:listFloat},  xnd::XMLNode, depth::Int=0)
     lst=Array{Float64,1}(0)
     for chld in      child_nodes(xnd)
         t = content(chld)  # text content 
-        lst = map( s -> parseint(Float64,s), split(t,",") )
+        lst = map( s -> parse(Float64,s), split(t,",") )
+    end    
+    SemNode(lst)
+end
+using Constants
+function accept(tt::Token{:listFloatExpr},  xnd::XMLNode, depth::Int=0)
+    lst=Array{Float64,1}(0)
+    for chld in      child_nodes(xnd)
+        t = content(chld)  # text content
+        lst=eval(Constants, parse(t))
     end    
     SemNode(lst)
 end

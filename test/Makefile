@@ -69,6 +69,9 @@ $(DOCUTILDIR)/ParseXMLSubscreen.jl: $(JULIATRY)/ParseXMLSubscreen.jl
 $(DOCUTILDIR)/SemXMLSubscreen.jl: $(JULIATRY)/SemXMLSubscreen.jl
 	$(STRIPLINECMD) $< |cpif $@
 
+$(DOCUTILDIR)/Constants.jl: $(JULIATRY)/Constants.jl
+	$(STRIPLINECMD) $< |cpif $@
+
 $(DOCUTILDIR)/subscreenSchema.xsd: $(JULIATRY)/subscreenSchema.xsd
 	cat $< |cpif $@
 
@@ -114,6 +117,7 @@ progs :  RomeoVolume.jl \
         $(DOCUTILDIR)/Changelog \
         $(DOCUTILDIR)/ParseXMLSubscreen.jl \
         $(DOCUTILDIR)/SemXMLSubscreen.jl \
+        $(DOCUTILDIR)/Constants.jl \
         $(DOCUTILDIR)/ManipStreams.jl \
         $(DOCUTILDIR)/DocCompat.jl \
         $(DOCUTILDIR)/subscreenSchema.xsd 

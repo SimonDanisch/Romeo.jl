@@ -8,14 +8,11 @@ Romeo is an interactive scripting environment, in which you can execute Julia sc
 Screenshots  shows current state of my development based on Romeo.jl
 <TABLE>
 <TR>
-    <TD><IMG SRC="test/images/ScreenShot0404.png" WIDTH=300>
-    <TD><IMG SRC="test/images/ScreenShot0406.png" WIDTH=300>
-<TR>
-    <TD><IMG SRC="test/images/ScreenShot0406b.png" WIDTH=300>
     <TD><IMG SRC="test/images/ScreenShot0408.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0422.png" WIDTH=300>
 </TABLE>
 
-The last example shows: 1 main object in largest subscreen, 3 views 
+The first example shows: 1 main object in largest subscreen, 3 views 
 of same object from directions along the 3 axes, 1 view with movements
 synchronised with main object. This is achieved through parametrization in
 the following chunk:
@@ -53,8 +50,8 @@ the following chunk:
       InputConnect(vizObj[2,1],(:view,:projection),(:view,:projection))
 ```
 
-The current evolution will mean that an **XML** description like the following will achieve
-*the same* (aim is  *ease of use*):
+We also have the ability to use an **XML** description like the following 
+to achieve *the same*, the result beeing shown on the last screenshot above:
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -94,13 +91,13 @@ The current evolution will mean that an **XML** description like the following w
 
  <setplot  ref="IA1"  fn="doColorBtn"/>
  <setplot  ref="IB1"  fn="doPlot"> 
-      <rotateModel>Pi/2,0.0,0.0</rotateModel>
+      <rotateModel>Pi/2, 0.0, 0.0</rotateModel>
  </setplot>
  <setplot  ref="IC1"  fn="doPlot">
-      <rotateModel>Pi/2,0.0,0.0</rotateModel>
+      <rotateModel>0.0, Pi/2, 0.0</rotateModel>
  </setplot>
  <setplot  ref="ID1"  fn="doPlot">
-      <rotateModel>Pi/2,0.0,0.0</rotateModel>
+      <rotateModel>0.0, 0.0, Pi/2</rotateModel>
  </setplot>
 
  <!-- Connectors -->

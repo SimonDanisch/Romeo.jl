@@ -19,6 +19,7 @@ module SemXMLSubscreen
 using ParseXMLSubscreen
 using SubScreens
 using GLAbstraction
+using ROGeomOps
 
 export  setDebugLevels,  
 	buildFromParse
@@ -309,6 +310,7 @@ end
 function         processSetplot(ast::SemNode, sc::subscreenContext, 
 			        fnDict::Dict{String,Function})
     dodebug(0x08) && println("In  processSetplot")
+    println("In  processSetplot ast=$ast")
 
     #locate the insertion pt in the subscreen tree
     (id, tree, indx) = getTreeSetPtr(ast.nd[3]["ref"],sc)
@@ -318,6 +320,21 @@ function         processSetplot(ast::SemNode, sc::subscreenContext,
 
     # TBD might need other actions in setplot
     println("TBD:other setplot functions")
+    lstCh = ast.nd[2]
+    @show lstCh
+    for itm in lstCh
+        @show itm
+        item=itm.nd
+        if item[1] == :text
+           txt=item[2]
+           ismatch( r"^[\s\n]*$", "$txt") || error("Unexpected \"$txt\" text in setplot")
+        elseif item[1] == :rotateModel
+          tree[indx...].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
+          tree[indx...].attrib[RORot] = item[2].nd
+        else
+           error("Unexpected operation in setplot:" , item[1])
+        end
+    end
 end
 
 function         processConnection(ast::SemNode,sc::subscreenContext)
