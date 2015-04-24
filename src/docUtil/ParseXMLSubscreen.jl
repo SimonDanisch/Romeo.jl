@@ -139,6 +139,7 @@ function accept(tt::Token{:scene}, xssc::XMLElement, depth::Int=0)
                          (:scene,      :subscreen, :subscreen),
                          (:subscreen,  :setplot,   :setplot),
                          (:setplot, :connection,   :connection),
+                         (:setplot, :debug,        :debug),
                          (:connection, :debug,     :debug))
     for chld in child_nodes(xssc)
         nmChild = name(chld)

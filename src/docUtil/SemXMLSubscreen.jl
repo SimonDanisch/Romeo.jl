@@ -117,6 +117,7 @@ function buildFromParse(ast::SemNode, fnDict::Dict{String,Function})
    const stateTransitions    = (
         (:subscreen, :setplot,    :setplot),
         (:setplot,   :connection, :connection),
+        (:setplot,   :debug,      :debug),
         (:connection, :debug,     :debug)
    )
   # accumulate information about subscreens 
@@ -340,7 +341,12 @@ function         processConnection(ast::SemNode,sc::subscreenContext)
    (toId,   toTree,   toIndx)   = getTreeSetPtr(ast.nd[2]["to"],sc)
    inS  = tuple(ast.nd[2][:inSig].nd[2]...)
    outS = tuple(ast.nd[2][:outSig].nd[2]...)
-   toTree[toIndx...].attrib[ROConnects] =  InputConnect( fromTree[fromIndx...], inS, outS)
+
+   #here  multiple connection may have the same target!!! Therefore make a list
+   if ! haskey( toTree[toIndx...].attrib,ROConnects )
+         toTree[toIndx...].attrib[ROConnects] = Array{Connector,1}(0)
+   end
+   push!(toTree[toIndx...].attrib[ROConnects],  InputConnect( fromTree[fromIndx...], inS, outS))
 end
 
 function         processDebug(ast::SemNode,sc::subscreenContext)

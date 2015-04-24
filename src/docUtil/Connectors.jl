@@ -25,14 +25,14 @@ function connect!(a::Connector)
         map(x -> connect!(a,x,from), to)
      elseif  isa(from, (Connector...))
         map(x -> connect!(a,to,x), from)
-     else
+     else 
        connect!(a,to,from)
      end
 
 end
-
-connect!(a::Connector, to::RenderObject, from::(RenderObject...)) = map(x -> connect!(a,to,x), from)
-connect!(a::Connector, to::(RenderObject...), from::RenderObject) = map(x -> connect!(a,x,from), to)
+connect!(ar::Array{Connector,1}) = map(connect!,ar)
+connect!(a::Connector, to::RenderObject, from::(Any...)) = map(x -> connect!(a,to,x), from)
+connect!(a::Connector, to::(Any...), from::RenderObject) = map(x -> connect!(a,x,from), to)
 # this performs the connection proper
 function connect!(a::Connector, to::RenderObject, from::RenderObject)
      println("In connect!, with Connector=$a")
@@ -59,6 +59,11 @@ function connect!(a::Connector, to::RenderObject, from::RenderObject)
      if !found
          warn("Unable to perform connection, pair of connectors not found")
      end
+end
+
+function connect!(a::Connector, to::Any, from::Any)
+     println ("connect! ignores connection with types to=", typeof(to),"  from=", typeof(from))
+     warn("Ignored potential connection because of to/from types")
 end
 
 

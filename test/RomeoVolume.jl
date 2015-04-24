@@ -18,123 +18,6 @@ using LightXML
 using  XtraRenderObjOGL
 using RomeoLib
 
-@doc """
-        This function fills the (global) vizObjArray  with functions taking
-        arguments:
-            screen::Screen 
-	    camera::Camera  (GLAbstraction/src/GLCamera.jl)
-        and returning the render objects that we wish to show. 
-
-        The corresponding geometry is built in subScreenGeom directly in 
-        init_romeo (it contains the (lifted) geometry elements following the
-        window changes). As the geometry is built, the functions in vizObjArray
-        are called, generating the RenderObjects and filling the renderlist.
-
-        The argument onlyImg is here for debugging , when true we show only
-        the same image in all grid positions.
-     """  ->
-function init_graph_grid(onlyImg::Bool, plotDim=2)
-   # try with a plot
-   npts = 50 
-   function plotFn2D(i,j)
-         x = Float32(i)/Float32(npts)-0.5 
-         y = Float32(j)/Float32(npts)-0.5 
-         ret = if ( x>=0 ) && ( x>=y)
-                   4*x*x+2*y*y
-               elseif ( x<0) 
-                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
-               else
-                   0.0
-               end
-          ret
-   end
-   function doPlot2D (sc::Screen,cam::GLAbstraction.Camera)
-           TBCompleted ( Float32[ plotFn2D(i,j)  for i=0:npts, j=0:npts ],
-                         nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
-                       )
-   end  
-
-   npts3D = 12
-   function plotFn3D(i,j,k)
-         x = Float32(i)/Float32(npts3D)-0.5 
-         y = Float32(j)/Float32(npts3D)-0.5 
-         z = Float32(k)/Float32(npts3D)-0.5 
-
-         ret = if ( x>=0 ) && ( x>=y)
-                   2*x*x+3*y*y+z*z
-               elseif ( x<0) 
-                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
-               else
-                   9*x*y*z
-               end
-          ret
-   end
-   function doPlot3D (sc::Screen,cam::GLAbstraction.Camera)
-           dd = Dict{Symbol,Any}(:SetPerspectiveCam => true) 
-           TBCompleted ( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
-                                   j=0:npts3D, k=0:npts3D ],
-                         nothing, dd)
-   end  
-
-   plt = plotDim==2 ? doPlot2D : doPlot3D
-
-   # put the cat all over the place!!!
-   pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
-
-   # volume : try with a cube (need to figure out how to make this)
-   vol = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
-
-   # color
-   function doColorChooser(sc::Screen,cam::GLAbstraction.Camera)
-          TBCompleted (AlphaColorValue(RGB{Float32}(0.8,0.2,0.2), float32(0.5)),
-                       nothing, Dict{Symbol,Any}(:doColorChooser=> true))
-   end
-   colorBtn = doColorChooser
-
-   # edit
-   # this is an oversimplification!! (look at exemple!!)
-   function doEdit(sc::Screen,cam::GLAbstraction.Camera)
-     "barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n"
-   end
-
-   # subscreen geometry 
-   scOuter = prepSubscreen([1.; 4.],[3.; 1.])
-   scRight = prepSubscreen([1.; 1.;1.;1.],[1.])
-   insertChildren!(scOuter, 2, 2, scRight)
-
-   # compute the geometric rectangles by walking down the geometry
-   vizObj =computeRects(GLAbstraction.Rectangle{Float64}(0.,0.,1.,1.), scOuter) 
-
-   #insert the functions that will cause RenderObject to be instantiated
-   #and put in the proper render lists
-   vizObj[1,1].attrib[RObjFn]         = onlyImg ? pic : doEdit
-   vizObj[1,2].attrib[RObjFn]         = onlyImg ? pic : plt #vol(pb projection)
-   vizObj[(2,2),(1,1)].attrib[RObjFn] = onlyImg ? pic : colorBtn
-   vizObj[(2,2),(2,1)].attrib[RObjFn] = onlyImg ? pic : plt
-   vizObj[(2,2),(3,1)].attrib[RObjFn] = onlyImg ? pic : plt
-   vizObj[(2,2),(4,1)].attrib[RObjFn] = onlyImg ? pic : plt
-   vizObj[2,1].attrib[RObjFn]         = onlyImg ? pic : plt
-
-   # enter rotation parameters for 3 plt, after having required check of feature
-   vizObj[(2,2),(2,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
-   vizObj[(2,2),(2,1)].attrib[RORot] = (π/2.01,  0.,      0.)
-
-   vizObj[(2,2),(3,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
-   vizObj[(2,2),(3,1)].attrib[RORot] = (    0., π/2.01,   0.)
-
-   vizObj[(2,2),(4,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
-   vizObj[(2,2),(4,1)].attrib[RORot] = (    0.,   0.,    π/2.01,)
-
-   # specify that mouse actions in cube/axes representation follow large plot
-   # this uses an connector for flexibility
-   vizObj[1,2].attrib[ROConnects] = 
-      InputConnect(vizObj[2,1],(:view,:projection),(:view,:projection))
-
-   #vizObj[(2,2),(3,1)].attrib[RODumpMe]  = true
-
-   return vizObj
-
-end  
 using ParseXMLSubscreen
 using SemXMLSubscreen
 
@@ -190,7 +73,7 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
 
    # volume : try with a cube (need to figure out how to make this)
-   vol = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
+   cube = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
 
    # color
    function doColorChooser(sc::Screen,cam::GLAbstraction.Camera)
@@ -207,9 +90,11 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    # I suppose that after a while, this will be prepared by macros
    fnDict = Dict{AbstractString,Function}("doEdit"=>doEdit, 
                                           "doColorBtn"=>colorBtn, 
-                                          "doVol" => vol, 
+                                          "doCube" => cube, 
                  			  "doPic"=>pic, 
-                                          "doPlot" => plt  )
+                                          "doPlot" => plt,
+                                          "doPlot2D" => doPlot2D,
+                                          "doPlot3D" => doPlot3D   )
    # here we need to read the XML and do whatever is needed
 
    xdoc = parse_file(xml)
@@ -233,9 +118,7 @@ end
 function realMain(onlyImg::Bool; pcamSel=true, plotDim=2,  xml::String="")
    init_glutils()
 
-   vizObjSC   = ( xml=="" ? init_graph_grid(onlyImg, plotDim) : 
-		          init_graph_gridXML(onlyImg, plotDim, xml) )
-
+   vizObjSC   =        init_graph_gridXML(onlyImg, plotDim, xml)
    init_romeo( vizObjSC; pcamSel = pcamSel )
 
    interact_loop()

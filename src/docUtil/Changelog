@@ -1,8 +1,9 @@
-Date: CURRENT
-    Adding a XML screen/subscreen description facility (with identical 
-	functionality to Subscreen module; intent is to facilitate user
-	tasks, make code independent of subscreen interface parametrization).
-	Using LightXML.jl, and various editors/validators for xsd.
+Date: Fri Apr 24 2015
+    Added a XML screen/subscreen description facility; improved functionality
+	in the area of inter subscreen communication (connector/connection).
+	Using LightXML.jl, and various editors/validators for xsd; however
+	XML validation needs improvement, diagnostics during XML parsing
+	also need improvement.
 
 Date: Thu Apr 16 13:22:54 2015 +0200
         Integrated with upstream commit, enables 3Dplots

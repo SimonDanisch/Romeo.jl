@@ -8,50 +8,16 @@ Romeo is an interactive scripting environment, in which you can execute Julia sc
 Screenshots  shows current state of my development based on Romeo.jl
 <TABLE>
 <TR>
-    <TD><IMG SRC="test/images/ScreenShot0408.png" WIDTH=300>
     <TD><IMG SRC="test/images/ScreenShot0422.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0424.png" WIDTH=300>
 </TABLE>
 
 The first example shows: 1 main object in largest subscreen, 3 views 
 of same object from directions along the 3 axes, 1 view with movements
-synchronised with main object. This is achieved through parametrization in
-the following chunk:
-```
-   # subscreen geometry 
-   scOuter = prepSubscreen([1.; 4.],[3.; 1.])
-   scRight = prepSubscreen([1.; 1.;1.;1.],[1.])
-   insertChildren!(scOuter, 2, 2, scRight)
-
-   # compute the geometric rectangles by walking down the geometry
-   vizObj =computeRects(GLAbstraction.Rectangle{Float64}(0.,0.,1.,1.), scOuter)
-
-   #insert the RenderObjects in the various subscreen
-   vizObj[1,1].attrib[RObjFn]         = onlyImg ? pic : doEdit
-   vizObj[1,2].attrib[RObjFn]         = onlyImg ? pic : plt #vol(pb projection)
-   vizObj[(2,2),(1,1)].attrib[RObjFn] = onlyImg ? pic : colorBtn
-   vizObj[(2,2),(2,1)].attrib[RObjFn] = onlyImg ? pic : plt
-   vizObj[(2,2),(3,1)].attrib[RObjFn] = onlyImg ? pic : plt
-   vizObj[(2,2),(4,1)].attrib[RObjFn] = onlyImg ? pic : plt
-   vizObj[2,1].attrib[RObjFn]         = onlyImg ? pic : plt
-
-   # enter rotation parameters for 3 plt, after having required check of feature
-   vizObj[(2,2),(2,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
-   vizObj[(2,2),(2,1)].attrib[RORot] = (π/2.01,  0.,      0.)
-
-   vizObj[(2,2),(3,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
-   vizObj[(2,2),(3,1)].attrib[RORot] = (    0., π/2.01,   0.)
-
-   vizObj[(2,2),(4,1)].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
-   vizObj[(2,2),(4,1)].attrib[RORot] = (    0.,   0.,    π/2.01,)
-
-   # specify that mouse actions in cube/axes representation follow large plot
-   # this uses an connector for flexibility
-   vizObj[1,2].attrib[ROConnects] = 
-      InputConnect(vizObj[2,1],(:view,:projection),(:view,:projection))
-```
-
-We also have the ability to use an **XML** description like the following 
-to achieve *the same*, the result beeing shown on the last screenshot above:
+synchronised with main object. Moreover the color output of the "colorbutton"
+is transfered to several of these views. This is achieved through a **XML** 
+description like the following to achieve, the result beeing shown on the last
+screenshot above:
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -69,16 +35,26 @@ to achieve *the same*, the result beeing shown on the last screenshot above:
      </tr>
     <tr>
      <subscreen name="B1"/>
-     <subscreen rows="4" cols="1" name="INNER">
-         <rowsizes>1,1,1,1</rowsizes>
-         <colsizes>1</colsizes>
-         <table>
-             <tr><subscreen name="IA1"/></tr>
-             <tr><subscreen name="IB1"/></tr>
-             <tr><subscreen name="IC1"/></tr>
-             <tr><subscreen name="ID1"/></tr>
-         </table>
-     </subscreen>
+     <subscreen name="INNER"/>
+     </tr>
+   </table>
+ </subscreen>
+
+ <subscreen rows="4" cols="1" name="INNER">
+  <rowsizes>1,1,1,1</rowsizes>
+  <colsizes>1</colsizes>
+  <table>
+    <tr>
+     <subscreen name="IA1"/>
+    </tr>
+    <tr>
+     <subscreen name="IB1"/>
+    </tr>
+    <tr>
+     <subscreen name="IC1"/>
+    </tr>
+    <tr>
+     <subscreen name="ID1"/>
     </tr>
    </table>
  </subscreen>
@@ -86,34 +62,54 @@ to achieve *the same*, the result beeing shown on the last screenshot above:
 <!-- Subscreen contents -->
 
  <setplot  ref="A1"  fn="doEdit"/>
- <setplot  ref="A2"  fn="doVol"/>
- <setplot  ref="B1"  fn="doPlot"/>
+ <setplot  ref="A2"  fn="doPlot2D"/>
+ <setplot  ref="B1"  fn="doPlot3D"/>
 
  <setplot  ref="IA1"  fn="doColorBtn"/>
- <setplot  ref="IB1"  fn="doPlot"> 
+ <setplot  ref="IB1"  fn="doPlot2D"> 
       <rotateModel>Pi/2, 0.0, 0.0</rotateModel>
  </setplot>
- <setplot  ref="IC1"  fn="doPlot">
+ <setplot  ref="IC1"  fn="doPlot2D">
       <rotateModel>0.0, Pi/2, 0.0</rotateModel>
  </setplot>
- <setplot  ref="ID1"  fn="doPlot">
+ <setplot  ref="ID1"  fn="doPlot2D">
       <rotateModel>0.0, 0.0, Pi/2</rotateModel>
  </setplot>
 
  <!-- Connectors -->
- <connection from="A2" to="B1"> 
-            <inSig>:view,:projection</inSig>
-            <outSig>:view,:projection</outSig>
+ <connection from="B1" to="A2"> 
+            <inSig>:view   , :projection,    :projectionview, :projection</inSig>
+            <outSig>:view , :projectionview,:projection,    :projection </outSig>
  </connection>
+ <connection from="IA1" to="A2"> 
+            <inSig>:color</inSig>
+            <outSig>:color</outSig>
+ </connection>
+ <connection from="IA1" to="B1"> 
+            <inSig>:color</inSig>
+            <outSig>:color</outSig>
+ </connection>
+ <connection from="IA1" to="IC1"> 
+            <inSig>:color</inSig>
+            <outSig>:color</outSig>
+ </connection>
+ <connection from="IA1" to="ID1"> 
+            <inSig>:color</inSig>
+            <outSig>:color</outSig>
+ </connection>
+
 
  <!-- Debug options -->
 
 <debug>
-    <dump ref="IC1"/>
+    <dump ref="A2"/>
+    <dump ref="B1"/>
+    <dump ref="IA1"/>
 </debug>
 
 </scene>
 <!-- This ends the scene-->
+
 ```
 
 The following branches in the Git tree have specific meaning (At least planned):
@@ -126,8 +122,8 @@ The following branches in the Git tree have specific meaning (At least planned):
         related functionality
 <TR><TD>relateSubscreens
     <TD>Establish communications between subscreens(obey same mouse actions), 
-        statically rotate the view in some subscreen. Plan to generalize
-        to other signals.
+        statically rotate the view in some subscreen. Generalization
+        to other signals via *Connectors* and the *connection* tag .
 <TR><TD>XML
     <TD>Support description of screen in an XML file as shown above.
 </TABLE>
@@ -143,8 +139,8 @@ The following branches in the Git tree have specific meaning (At least planned):
     <TD>Sat Apr 04 2015
     <TD>Not tracking development of GLAbstraction
 <TR><TD>
-    <TD>
-    <TD>
+    <TD>Fri Apr 24 2015
+    <TD>XML not validated against the xsd; xsd also needs validation
 <TR><TD>
     <TD>
     <TD>

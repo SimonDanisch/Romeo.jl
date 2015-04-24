@@ -281,15 +281,17 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
           println("Dump for object viz of type = ",typeof(viz),"")
           function dumpIntern(viz)
               for k in sort(collect(keys( viz.uniforms)))
-                 println("RODumpMe\tkey=$k")
+                 println("RODumpMe\tuniform\tkey=$k")
 	      end
           end
-          if isa(viz,(RenderObject...))
+          if isa(viz,(Any...))
              for v in viz
-              dumpIntern(v)                 
+              isa(v,RenderObject) ?  dumpIntern(v) : @show v
              end
-          else
+          elseif isa(viz,RenderObject)
               dumpIntern(viz)
+          else
+              @show viz
           end
        end
 
@@ -327,14 +329,15 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        haskey(ssc.attrib,ROConnects )  || return
        haskey(ssc.attrib,RObjFn )  || return
 
-       #recover the connector
-       connectTo::Connector     = ssc.attrib[ROConnects]
-       #this connector is by necessity incomplete, must be completed
-       connectTo.to           = ssc.attrib[ROProper]
-       #go from screen to RenderObject (is this really needed here ??)
-       connectTo.from         = connectTo.from.attrib[ROProper]
-
-       dodebug( 0x04 ) && println("At index=$indx, mouse follows connector=$connectTo")       
+       #recover the connector list
+       connectTo::Array{Connector,1}     = ssc.attrib[ROConnects]
+       #these connectors are by necessity incomplete, must be completed
+       for conn in  connectTo
+            conn.to           = ssc.attrib[ROProper]
+            #go from screen to RenderObject (is this really needed here ??)
+            conn.from         = conn.from.attrib[ROProper]
+       end
+       dodebug( 0x04 ) && println("At index=$indx, connector list=$connectTo")       
        connect!(connectTo)
 
     end #  function fnWalk4

@@ -143,6 +143,12 @@ runXML:      progs subscreenSpec.xml
 runXML2:      progs subscreenSpec2.xml
 	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec2.xml --log=/tmp/RomeoLumber01.log
 
+runXML3:      progs subscreenSpec3.xml
+	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec3.xml --log=/tmp/RomeoLumber01.log
+
+runXML4:      progs subscreenSpec4.xml
+	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec4.xml --log=/tmp/RomeoLumber01.log
+
 run3D:       progs 
 	$(JULIAPGM) RomeoVolume.jl --dim=3 --log=/tmp/RomeoLumber01.log
 
