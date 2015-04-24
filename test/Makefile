@@ -8,68 +8,73 @@ JULIAPGM=Julia4
 DOCUTILDIR=../src/docUtil
 DOCUNITTEST=unitTests
 
+TSTAMP=.strip.timestamp
+
 ifeq ($(STRIP),)
   STRIPLINECMD=cat
 else
   STRIPLINECMD=egrep -v -E "[-][-]line [0-9]+ --.*from :" 
 endif
 
-.PHONY:help
+.PHONY:help ts
 
 help:
 	@echo "set var STRIP when source line numbering not needed (for git)"
 	@echo make STRIP=YES....
 	echo STRIPLINECMD = $(STRIPLINECMD)
 
-RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl
+ts:
+	echo TIME STAMP `date` >  $(TSTAMP)
+
+RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl
+$(DOCUTILDIR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/DocCompat.jl: $(JULIAENV)/DocCompat.jl
+$(DOCUTILDIR)/DocCompat.jl: $(JULIAENV)/DocCompat.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/ManipStreams.jl: $(JULIAENV)/ManipStreams.jl
+$(DOCUTILDIR)/ManipStreams.jl: $(JULIAENV)/ManipStreams.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/RomeoLibSimple.jl: $(JULIATRY)/RomeoLibSimple.jl
+$(DOCUTILDIR)/RomeoLibSimple.jl: $(JULIATRY)/RomeoLibSimple.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl
+$(DOCUTILDIR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/MatrixMathPlus.jl: $(JULIATRY)/MatrixMathPlus.jl
+$(DOCUTILDIR)/MatrixMathPlus.jl: $(JULIATRY)/MatrixMathPlus.jl    $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/SubScreens.jl: $(JULIATRY)/SubScreens.jl
+$(DOCUTILDIR)/SubScreens.jl: $(JULIATRY)/SubScreens.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/Connectors.jl: $(JULIATRY)/Connectors.jl
+$(DOCUTILDIR)/Connectors.jl: $(JULIATRY)/Connectors.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/SimpleSubScreens.jl: $(JULIATRY)/SimpleSubScreens.jl
+$(DOCUTILDIR)/SimpleSubScreens.jl: $(JULIATRY)/SimpleSubScreens.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/XtraRenderObjOGL.jl: $(JULIATRY)/XtraRenderObjOGL.jl
+$(DOCUTILDIR)/XtraRenderObjOGL.jl: $(JULIATRY)/XtraRenderObjOGL.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/ROGeomOps.jl: $(JULIATRY)/ROGeomOps.jl
+$(DOCUTILDIR)/ROGeomOps.jl: $(JULIATRY)/ROGeomOps.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/VirtualOGLGeom.jl: $(JULIATRY)/VirtualOGLGeom.jl
+$(DOCUTILDIR)/VirtualOGLGeom.jl: $(JULIATRY)/VirtualOGLGeom.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/TBCompletedM.jl: $(JULIATRY)/TBCompletedM.jl
+$(DOCUTILDIR)/TBCompletedM.jl: $(JULIATRY)/TBCompletedM.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/ParseXMLSubscreen.jl: $(JULIATRY)/ParseXMLSubscreen.jl
+$(DOCUTILDIR)/ParseXMLSubscreen.jl: $(JULIATRY)/ParseXMLSubscreen.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/SemXMLSubscreen.jl: $(JULIATRY)/SemXMLSubscreen.jl
+$(DOCUTILDIR)/SemXMLSubscreen.jl: $(JULIATRY)/SemXMLSubscreen.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/Constants.jl: $(JULIATRY)/Constants.jl
+$(DOCUTILDIR)/Constants.jl: $(JULIATRY)/Constants.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/subscreenSchema.xsd: $(JULIATRY)/subscreenSchema.xsd
@@ -84,16 +89,16 @@ subscreenSpec2.xml: $(JULIATRY)/subscreenSpec2.xml
 $(DOCUTILDIR)/Changelog: $(JULIAENV)/Changelog
 	cat $< |cpif $@
 
-$(DOCUNITTEST)/testSubScreen.jl :$(JULIATRY)/testSubScreen.jl
+$(DOCUNITTEST)/testSubScreen.jl :$(JULIATRY)/testSubScreen.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUNITTEST)/testLumberjack.jl :$(JULIATRY)/testLumberjack.jl
+$(DOCUNITTEST)/testLumberjack.jl :$(JULIATRY)/testLumberjack.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUNITTEST)/TestOGLGeom.jl :$(JULIATRY)/TestOGLGeom.jl
+$(DOCUNITTEST)/TestOGLGeom.jl :$(JULIATRY)/TestOGLGeom.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl
+$(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
 

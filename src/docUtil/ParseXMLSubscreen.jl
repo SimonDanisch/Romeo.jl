@@ -297,8 +297,10 @@ function accept(tt::Token{:connection}, xnd::XMLNode, depth::Int=0)
     pretty(depth, "C>\t",name(xnd))
     attrs = getAttr(xnd)
     for chld in child_nodes(xnd)
-        checkSymbol (name(chld) , (:inSig, :outSig,:text ))
-        attrs[Token(name(chld))] = accept(Token(name(chld)), chld, depth+1)
+        checkSymbol (name(chld) , (:inSig, :outSig,:text, :comment ))
+        if Symbol(name(chld)) != :comment 
+           attrs[Symbol(name(chld))] = accept(Token(name(chld)), chld, depth+1)
+        end
     end
     SemNode((:connection,attrs))
 end
@@ -308,9 +310,13 @@ function accept(tt::Union(Token{:inSig},Token{:outSig}),
     pretty(depth, "SIG>\t",name(xnd))
     lst=Array{Any,1}(0)
     for chld in child_nodes(xnd)
-      push!(lst, string(chld))
+      spl=map (split(string(chld),",")) do y
+          x = strip(y) 
+          x[1]==':' ? x[2:end] : x
+      end
+      append!(lst, map(Symbol,spl))
     end    
-    SemNode((name(xnd),lst))
+    SemNode((Symbol(name(xnd)),lst))
 
 end
 function accept(tt::Token{:rotateModel},  xnd::XMLNode, depth::Int=0)
@@ -321,8 +327,9 @@ function accept(tt::Token{:rotateModel},  xnd::XMLNode, depth::Int=0)
     SemNode((:rotateModel,acc0))
 end
 function accept(tt::Token{:dump},  xnd::XMLNode, depth::Int=0)
-    pretty(depth, "Dump>\t",name(xnd))        
-    SemNode("TBD:Dump")
+    pretty(depth, "Dump>\t",name(xnd))
+    attrs = getAttr(xnd)        
+    SemNode((:dump,attrs))
 end
 function accept(tt::Token{:listInt},  xnd::XMLNode, depth::Int=0)
     lst=Array{Int64,1}(0)
@@ -363,10 +370,11 @@ end
 
 function accept(tt::Token{:debug}, xnd::XMLNode, depth::Int=0)
     pretty(depth, "D>\t",name(xnd))
+    lst = Array{SemNode,1}(0)
     for chld in child_nodes(xnd)
-        accept(Token(name(chld)), chld, depth+1)
+        push!(lst,accept(Token(name(chld)), chld, depth+1))       
     end
-    SemNode((:debug,"TBD:debug"))
+    SemNode((:debug,lst))
 end
 # this transform accumulated vector of vectors into 2D table
 function subsTblSimplify!(bld::Dict{Symbol,SemNode})

@@ -4,3 +4,4 @@
 *.orig
 # Editor made copies
 *~
+*.timestamp

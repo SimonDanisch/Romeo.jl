@@ -1,4 +1,4 @@
-# Beginner with Romeo, an interactive scripting environment featuring OpenGL
+# Add-ons for  Romeo, an interactive scripting environment featuring OpenGL
 
 The original page for Romeo is <A HREF="https://github.com/SimonDanisch/Romeo.jl">https://github.com/SimonDanisch/Romeo.jl</A>
 

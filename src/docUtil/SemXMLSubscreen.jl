@@ -20,7 +20,7 @@ using ParseXMLSubscreen
 using SubScreens
 using GLAbstraction
 using ROGeomOps
-
+using Connectors
 export  setDebugLevels,  
 	buildFromParse
 
@@ -309,8 +309,7 @@ function graftSubTrees( sc::subscreenContext )
 end
 function         processSetplot(ast::SemNode, sc::subscreenContext, 
 			        fnDict::Dict{String,Function})
-    dodebug(0x08) && println("In  processSetplot")
-    println("In  processSetplot ast=$ast")
+    dodebug(0x08) && println("In  processSetplot\tast=$ast")
 
     #locate the insertion pt in the subscreen tree
     (id, tree, indx) = getTreeSetPtr(ast.nd[3]["ref"],sc)
@@ -318,12 +317,8 @@ function         processSetplot(ast::SemNode, sc::subscreenContext,
     fn = fnDict[ast.nd[3]["fn"]]
     tree[indx...].attrib[RObjFn] = fn
 
-    # TBD might need other actions in setplot
-    println("TBD:other setplot functions")
     lstCh = ast.nd[2]
-    @show lstCh
     for itm in lstCh
-        @show itm
         item=itm.nd
         if item[1] == :text
            txt=item[2]
@@ -338,12 +333,29 @@ function         processSetplot(ast::SemNode, sc::subscreenContext,
 end
 
 function         processConnection(ast::SemNode,sc::subscreenContext)
-    println("In processConnection")
+    dodebug(0x08) && println("In processConnection")
     @show ast
+
+   (fromId, fromTree, fromIndx) = getTreeSetPtr(ast.nd[2]["from"],sc)
+   (toId,   toTree,   toIndx)   = getTreeSetPtr(ast.nd[2]["to"],sc)
+   inS  = tuple(ast.nd[2][:inSig].nd[2]...)
+   outS = tuple(ast.nd[2][:outSig].nd[2]...)
+   toTree[toIndx...].attrib[ROConnects] =  InputConnect( fromTree[fromIndx...], inS, outS)
 end
 
 function         processDebug(ast::SemNode,sc::subscreenContext)
-    println("In processDebug")
-    @show ast
+    dodebug(0x08) && println("In processDebug")
+    for elDbg in ast.nd[2]
+        elSym = elDbg.nd[1]
+        elInfo = elDbg.nd[2]
+        if  elDbg.nd[1] == :text
+           ismatch( r"^[\s\n]*$", "$elInfo") || error("Unexpected \"$elInfo\" text in <debug>")
+        elseif  elDbg.nd[1] == :dump
+           (id, tree, indx) = getTreeSetPtr(elInfo["ref"],sc)
+            tree[indx...].attrib[RODumpMe]=true
+        else
+           error("Unexpected tag in <debug>")
+        end
+    end
 end
 end  # module SemXMLSubscreen

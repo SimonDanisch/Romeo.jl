@@ -41,7 +41,7 @@
 <!-- Subscreen contents -->
 
  <setplot  ref="A1"  fn="doEdit"/>
- <setplot  ref="A2"  fn="doVol"/>
+ <setplot  ref="A2"  fn="doPlot"/>
  <setplot  ref="B1"  fn="doPlot"/>
 
  <setplot  ref="IA1"  fn="doColorBtn"/>
@@ -56,9 +56,9 @@
  </setplot>
 
  <!-- Connectors -->
- <connection from="A2" to="B1"> 
-            <inSig>:view,:projection</inSig>
-            <outSig>:view,:projection</outSig>
+ <connection from="B1" to="A2"> 
+            <inSig>:view  </inSig> <!-- , :projection,    :projectionview, :projection-->
+            <outSig>:view </outSig> <!-- , :projectionview,:projection,    :projection-->
  </connection>
 
  <!-- Debug options -->

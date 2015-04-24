@@ -22,6 +22,11 @@
      </xsd:restriction>
   </xsd:simpleType>
 
+  <xsd:simpleType name="listofFLoatExprType">
+      <!--here we admit a list of Julia expressions -->
+  </xsd:simpleType>
+
+
 
   <xsd:element name="scene" type="sceneType"/>
   <xsd:complexType name="sceneType">
@@ -76,7 +81,21 @@
     </xsd:sequence>
   </xsd:complexType>
 
+  <!-- instruct to print a dump of a subscreen at the end of XML 
+       semantics processing 
+   -->
+  <xsd:element name="dump" type="dumpType"/>
+  <xsd:complexType name="dumpType">
+    <xsd:attribute name="ref" type="xsd:string"/>
+  </xsd:complexType>
 
+  <!--Perform a set of debug actions -->
+  <xsd:element name="debug" type="debugType"/>
+  <xsd:complexType name="debugType">
+    <xsd:sequence>
+      <xsd:element name="dump" type="dumpType"/>
+    </xsd:sequence>
+  </xsd:complexType>
 
 </xsd:schema>
 

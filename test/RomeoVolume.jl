@@ -16,7 +16,7 @@ using Compat
 using LightXML
 
 using  XtraRenderObjOGL
-include("../src/docUtil/RomeoLib.jl")
+using RomeoLib
 
 @doc """
         This function fills the (global) vizObjArray  with functions taking
@@ -214,7 +214,7 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
 
    xdoc = parse_file(xml)
    parseTree = acDoc(xdoc)
-   SemXMLSubscreen.setDebugLevels(true,31)   #debug
+   SemXMLSubscreen.setDebugLevels(true,8)   #debug
    vizObj = buildFromParse( parseTree, fnDict)
    
 

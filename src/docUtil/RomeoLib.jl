@@ -1,6 +1,36 @@
+module RomeoLib
+
 using SubScreens
 using TBCompletedM
+using Romeo,  GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
+using ImmutableArrays
 
+export init_romeo, interact_loop,
+       clear!,
+       setDebugLevels
+debugFlagOn  = false
+debugLevel   = 0::Int64
+
+#==       Level (ORed bit values)
+           0x01: Show progress in fnWalk* functions (walk subscreen tree)
+              2: Show debugging information related to pushing onto renderlist
+              4: Debug connector
+              8: 
+           0x10: 
+==#
+ 
+#==  Set the debug parameters
+==#
+function setDebugLevels(flagOn::Bool,level::Int)
+    global debugFlagOn
+    global debugLevel
+    debugFlagOn = flagOn
+    debugLevel  = flagOn ? level : 0
+end
+
+dodebug(b::UInt8)  = debugFlagOn && ( debugLevel & Int64(b) != 0 )
+dodebug(b::UInt32) = debugFlagOn && ( debugLevel & Int64(b) != 0 )
+dodebug(b::UInt64) = debugFlagOn && ( debugLevel & Int64(b) != 0 )
 @doc """   Empty the vector of renderers passed in argument, 
            and delete individually    each element.
      """   ->
@@ -14,6 +44,7 @@ using DebugTools
 using ROGeomOps       ## geometric OpenGL transformations on RenderObjects
 using VirtualOGLGeom  ## tools to effect transformations on RenderObjects via
                       ## interfaces
+using Connectors
 
 @doc """  Performs a number of initializations
           Construct all RenderObjects (suitably parametrized) and inserts them in
@@ -123,8 +154,7 @@ end
           to set up the subscreens; all new objects are referenced via the SubScreen
           tree attrib dictionnaries.
 
-          NOTE: THIS VERSION CORRESPONDS RECURSIVE GRIDDING
-                ** IN DEVELOPMENT**
+          NOTE: THIS VERSION CORRESPONDS RECURSIVE GRIDDING: CURRENT LIBRARY CODE
      """  -> 
 function init_romeo( vObjT::SubScreen; pcamSel=true)
     root_area = Romeo.ROOT_SCREEN.area
@@ -144,7 +174,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
               lift (Romeo.ROOT_SCREEN.area,  screen_height_width) do ar,screenDims
                        RectangleProp(ssc,screenDims) 
                     end
-           println("In fnWalk1 at$indx: sigArea=", ssc.attrib[sigArea ])
+          dodebug(0x01) && println("In fnWalk1 at$indx: sigArea=", ssc.attrib[sigArea ])
     end
     treeWalk!(vObjT,  fnWalk1)
 
@@ -276,7 +306,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
                      # discard the Lift.... ? Good or Bad??
 
                      # Here  we set an attribute (we could use a signal)
-                     #chkDump(v,true)
+                     dodebug(0x02) && chkDump(v,true)
                      v.uniforms[:swatchsize]=Input(4.0f0)
                 end
             end
@@ -304,7 +334,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        #go from screen to RenderObject (is this really needed here ??)
        connectTo.from         = connectTo.from.attrib[ROProper]
 
-       println("At index=$indx, mouse follows connector=$connectTo")       
+       dodebug( 0x04 ) && println("At index=$indx, mouse follows connector=$connectTo")       
        connect!(connectTo)
 
     end #  function fnWalk4
@@ -322,3 +352,4 @@ function interact_loop()
    end
    GLFW.Terminate()
 end
+end # 		module RomeoLib
