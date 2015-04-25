@@ -116,7 +116,7 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TABLE>
 <TR><TD>master
     <TD>Eventually corresponds to master on the upstream tree 
-        (S.Danish development)
+        (S.Danisch development)
 <TR><TD>newScrMgr
     <TD>Manage multiple subscreens, and provide inter-subscreen or interaction
         related functionality
