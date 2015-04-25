@@ -6,6 +6,7 @@ JULIAENV=$(PAMDIR)/JULIA-ENV
 JULIAPGM=Julia4
 
 DOCUTILDIR=../src/docUtil
+DOCXMLSCR=../src/XMLScreens
 DOCUNITTEST=unitTests
 
 TSTAMP=.strip.timestamp
@@ -29,7 +30,7 @@ ts:
 RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl  $(TSTAMP)
+$(DOCXMLSCR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUTILDIR)/DocCompat.jl: $(JULIAENV)/DocCompat.jl  $(TSTAMP)
@@ -38,46 +39,46 @@ $(DOCUTILDIR)/DocCompat.jl: $(JULIAENV)/DocCompat.jl  $(TSTAMP)
 $(DOCUTILDIR)/ManipStreams.jl: $(JULIAENV)/ManipStreams.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/RomeoLibSimple.jl: $(JULIATRY)/RomeoLibSimple.jl   $(TSTAMP)
+$(DOCXMLSCR)/RomeoLibSimple.jl: $(JULIATRY)/RomeoLibSimple.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl     $(TSTAMP)
+$(DOCXMLSCR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/MatrixMathPlus.jl: $(JULIATRY)/MatrixMathPlus.jl    $(TSTAMP)
+$(DOCXMLSCR)/MatrixMathPlus.jl: $(JULIATRY)/MatrixMathPlus.jl    $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/SubScreens.jl: $(JULIATRY)/SubScreens.jl     $(TSTAMP)
+$(DOCXMLSCR)/SubScreens.jl: $(JULIATRY)/SubScreens.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/Connectors.jl: $(JULIATRY)/Connectors.jl     $(TSTAMP)
+$(DOCXMLSCR)/Connectors.jl: $(JULIATRY)/Connectors.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/SimpleSubScreens.jl: $(JULIATRY)/SimpleSubScreens.jl  $(TSTAMP)
+$(DOCXMLSCR)/SimpleSubScreens.jl: $(JULIATRY)/SimpleSubScreens.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/XtraRenderObjOGL.jl: $(JULIATRY)/XtraRenderObjOGL.jl  $(TSTAMP)
+$(DOCXMLSCR)/XtraRenderObjOGL.jl: $(JULIATRY)/XtraRenderObjOGL.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/ROGeomOps.jl: $(JULIATRY)/ROGeomOps.jl   $(TSTAMP)
+$(DOCXMLSCR)/ROGeomOps.jl: $(JULIATRY)/ROGeomOps.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/VirtualOGLGeom.jl: $(JULIATRY)/VirtualOGLGeom.jl   $(TSTAMP)
+$(DOCXMLSCR)/VirtualOGLGeom.jl: $(JULIATRY)/VirtualOGLGeom.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/TBCompletedM.jl: $(JULIATRY)/TBCompletedM.jl   $(TSTAMP)
+$(DOCXMLSCR)/TBCompletedM.jl: $(JULIATRY)/TBCompletedM.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/ParseXMLSubscreen.jl: $(JULIATRY)/ParseXMLSubscreen.jl   $(TSTAMP)
+$(DOCXMLSCR)/ParseXMLSubscreen.jl: $(JULIATRY)/ParseXMLSubscreen.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/SemXMLSubscreen.jl: $(JULIATRY)/SemXMLSubscreen.jl   $(TSTAMP)
+$(DOCXMLSCR)/SemXMLSubscreen.jl: $(JULIATRY)/SemXMLSubscreen.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/Constants.jl: $(JULIATRY)/Constants.jl   $(TSTAMP)
+$(DOCXMLSCR)/Constants.jl: $(JULIATRY)/Constants.jl   $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/subscreenSchema.xsd: $(JULIATRY)/subscreenSchema.xsd
+$(DOCXMLSCR)/subscreenSchema.xsd: $(JULIATRY)/subscreenSchema.xsd
 	cat $< |cpif $@
 
 subscreenSpec.xml: $(JULIATRY)/subscreenSpec.xml
@@ -86,7 +87,7 @@ subscreenSpec.xml: $(JULIATRY)/subscreenSpec.xml
 subscreenSpec2.xml: $(JULIATRY)/subscreenSpec2.xml
 	cat $< |cpif $@
 
-$(DOCUTILDIR)/Changelog: $(JULIAENV)/Changelog
+$(DOCXMLSCR)/Changelog: $(JULIAENV)/Changelog
 	cat $< |cpif $@
 
 $(DOCUNITTEST)/testSubScreen.jl :$(JULIATRY)/testSubScreen.jl  $(TSTAMP)
@@ -108,24 +109,24 @@ $(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl  $(TSTAMP)
         editTest2
 
 progs :  RomeoVolume.jl \
-        $(DOCUTILDIR)/RomeoLib.jl \
-        $(DOCUTILDIR)/RomeoLibSimple.jl \
-        $(DOCUTILDIR)/DebugTools.jl \
-        $(DOCUTILDIR)/TBCompletedM.jl \
-        $(DOCUTILDIR)/MatrixMathPlus.jl \
-        $(DOCUTILDIR)/SubScreens.jl \
-        $(DOCUTILDIR)/Connectors.jl \
-        $(DOCUTILDIR)/SimpleSubScreens.jl \
-        $(DOCUTILDIR)/XtraRenderObjOGL.jl \
-	$(DOCUTILDIR)/VirtualOGLGeom.jl \
-	$(DOCUTILDIR)/ROGeomOps.jl \
-        $(DOCUTILDIR)/Changelog \
-        $(DOCUTILDIR)/ParseXMLSubscreen.jl \
-        $(DOCUTILDIR)/SemXMLSubscreen.jl \
-        $(DOCUTILDIR)/Constants.jl \
+        $(DOCXMLSCR)/RomeoLib.jl \
+        $(DOCXMLSCR)/RomeoLibSimple.jl \
+        $(DOCXMLSCR)/DebugTools.jl \
+        $(DOCXMLSCR)/TBCompletedM.jl \
+        $(DOCXMLSCR)/MatrixMathPlus.jl \
+        $(DOCXMLSCR)/SubScreens.jl \
+        $(DOCXMLSCR)/Connectors.jl \
+        $(DOCXMLSCR)/SimpleSubScreens.jl \
+        $(DOCXMLSCR)/XtraRenderObjOGL.jl \
+	$(DOCXMLSCR)/VirtualOGLGeom.jl \
+	$(DOCXMLSCR)/ROGeomOps.jl \
+        $(DOCXMLSCR)/Changelog \
+        $(DOCXMLSCR)/ParseXMLSubscreen.jl \
+        $(DOCXMLSCR)/SemXMLSubscreen.jl \
+        $(DOCXMLSCR)/Constants.jl \
         $(DOCUTILDIR)/ManipStreams.jl \
         $(DOCUTILDIR)/DocCompat.jl \
-        $(DOCUTILDIR)/subscreenSchema.xsd 
+        $(DOCXMLSCR)/subscreenSchema.xsd 
 
 
 progtests: $(DOCUNITTEST)/testSubScreen.jl \

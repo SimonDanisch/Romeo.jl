@@ -5,8 +5,8 @@
 <!-- Subscreen description -->
 
  <subscreen rows="2" cols="2" name="MAIN">
-  <rowsizes>1,4</rowsizes>
-  <colsizes>4,1</colsizes>
+  <rowsizes>1,3</rowsizes>
+  <colsizes>4,3</colsizes>
   <table>
     <tr>
      <subscreen name="A1"/>

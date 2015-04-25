@@ -17,6 +17,13 @@ import Mustache
 const sourcedir = Pkg.dir("Romeo", "src")
 const shaderdir = joinpath(sourcedir, "shader")
 
+# support for subscreen mgt extensions
+const xmldir    =  Pkg.dir("Romeo", "src", "XMLScreens")
+const docutildir=  Pkg.dir("Romeo", "src", "docUtil")
+push!(LOAD_PATH, xmldir)
+push!(LOAD_PATH, docutildir)
+# end subscreen mgt extensions
+
 function maxper(v0::Vector3, v1::Vector3)
 	return Vector3(max(v0[1], v1[1]),
             max(v0[2], v1[2]),

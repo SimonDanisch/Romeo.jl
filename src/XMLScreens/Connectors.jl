@@ -1,8 +1,11 @@
 module Connectors
 using GLAbstraction
+using RomeoLib
 
 using DebugTools
 export Connector, InputConnect, connect!
+
+dodebug=RomeoLib.dodebug
 
 type Connector
      to ::Any
@@ -18,9 +21,11 @@ InputConnect(from::Any,selIn::(Symbol...),selOut::(Symbol...))=
 function connect!(a::Connector)
      to   = a.to
      from = a.from
-     println("In connect!, with Connector=$a")
-     println("\t typeof(to)=\t",typeof(to))
-     println("\t typeof(from)=\t",typeof(from))
+     if dodebug(0x04)
+        println("In connect!, with Connector=$a")
+        println("\t typeof(to)=\t",typeof(to))
+        println("\t typeof(from)=\t",typeof(from))
+     end
      if isa(to, (Connector...))
         map(x -> connect!(a,x,from), to)
      elseif  isa(from, (Connector...))
@@ -35,19 +40,13 @@ connect!(a::Connector, to::RenderObject, from::(Any...)) = map(x -> connect!(a,t
 connect!(a::Connector, to::(Any...), from::RenderObject) = map(x -> connect!(a,x,from), to)
 # this performs the connection proper
 function connect!(a::Connector, to::RenderObject, from::RenderObject)
-     println("In connect!, with Connector=$a")
-     #@show from
-     #@show to
-
-     #println("** FOLLOWER (TO)\t[$a.selectIn]\t**")
-     #chkDump(to,false)
-     #println("** PRIMARY  (FROM)\t[$a.selectOut]\t**")
-     #chkDump(from,false)
-
-     @show sort(collect(keys(from.uniforms)))
-     @show sort(collect(keys(to.uniforms)))
-     @show a.selectIn
-     @show a.selectOut
+     if  dodebug(0x04)
+       println("In connect!, with Connector=$a")
+       @show sort(collect(keys(from.uniforms)))
+       @show sort(collect(keys(to.uniforms)))
+       @show a.selectIn
+       @show a.selectOut
+     end
      found=false
      for i = 1 :min(length(a.selectIn),length(a.selectOut))
          if  haskey(to.uniforms,a.selectIn[i] ) && haskey(from.uniforms,a.selectOut[i]) 

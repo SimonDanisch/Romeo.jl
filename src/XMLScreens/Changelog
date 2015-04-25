@@ -1,3 +1,7 @@
+CURRENT
+    Reorganised src directories pertaining to subscreen/xml extensions. These
+	modules are now inserted in LOAD_PATH.
+	
 Date: Fri Apr 24 2015
     Added a XML screen/subscreen description facility; improved functionality
 	in the area of inter subscreen communication (connector/connection).
