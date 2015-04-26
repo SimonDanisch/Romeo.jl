@@ -1,7 +1,7 @@
 using Lumberjack
 
 using Romeo
-using DocCompat
+#using DocCompat
 using TBCompletedM
 using SubScreens
 using Connectors

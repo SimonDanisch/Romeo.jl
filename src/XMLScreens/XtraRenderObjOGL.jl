@@ -3,7 +3,7 @@ module XtraRenderObjOGL
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
 using ImmutableArrays
 using Compat
-using DocCompat
+#using DocCompat
 
 
 export  mkCube

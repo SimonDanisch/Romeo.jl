@@ -141,9 +141,20 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>
     <TD>Fri Apr 24 2015
     <TD>XML not validated against the xsd; xsd also needs validation
-<TR><TD>
-    <TD>
-    <TD>
+<TR><TD>Julia Version 0.4.0-dev+4500 (Commit 30b94a1*) (tried, abandonned, back to  bd748b9*)
+    <TD>2015-04-25 15:54 UTC
+    <TD>Issues:Reactive:does not pass its test, GLAbstraction: seem to require
+        update (upstream/julia04 ?).
+<TR><TD>Reactive  ad6234e1b739d34*
+    <TD>Mon Apr 20 22:38:30 2015 +0530
+    <TD>Issue : does not pass its test.
+<TR><TD>Romeo 
+    <TD>merge upstream/julia04
+    <TD>merge conflicts in src/GLUniforms.jl, src/GLTypes.jl, src/GLMatrixMath.jl, src/GLCamera.jl
+<TR><TD>GLAbstraction
+    <TD>merged Commit 5aee885f* (Wed Apr 22 21:09:10 2015)
+    <TD>Needed to add again manipVirtual field in RenderObject to support RenderObject transformations,
+        Requires AbstractGPUArray which is something new.
 </TABLE>
 
 
@@ -181,5 +192,12 @@ The following branches in the Git tree have specific meaning (At least planned):
      <TD> 2015-04-16 09:12 UTC
      <TD> Rebuild from source tree
      <TD> Commit bd748b9*; x86_64-linux-gnu
+<TR> 
+     <TD>Version 0.4.0-dev+4500
+     <TD>2015-04-25 15:54 UTC
+     <TD> Rebuild from source tree. Requires updates in multiple libraries (rocky): Reactive,
+          GLAbstraction
+     <TD> Commit  30b94a1*; x86_64-linux-gnu
 </TABLE>
+
 

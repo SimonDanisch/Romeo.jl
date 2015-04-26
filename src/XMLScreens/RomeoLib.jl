@@ -276,6 +276,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
             end
        end
 
+
        # this way the user can request a dump 
        if haskey(ssc.attrib,RODumpMe)
           println("Dump for object viz of type = ",typeof(viz),"")
