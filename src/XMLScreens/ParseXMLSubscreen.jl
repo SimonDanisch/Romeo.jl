@@ -54,16 +54,16 @@ function prettyError(depth::Int,xmlel,expected)
     println("Error at depth $depth found=$xmlel\texpected=$expected")
     throw (LightXML.XMLParseError ("XML Syntax error"))
 end
-function checkSymbol(nm::Symbol,ls::(Symbol...))
+function checkSymbol(nm::Symbol,ls::Tuple{Vararg{Symbol}})
    in (nm, ls) && return
    throw (LightXML.XMLParseError ("Unexpected symbol $nm not in $ls"))
 end
-checkSymbol(nm::String,ls::(Symbol...)) = checkSymbol(Symbol(nm),ls)
+checkSymbol(nm::String,ls::Tuple{Vararg{Symbol}}) = checkSymbol(Symbol(nm),ls)
 
-function testSymbol(nm::Symbol,ls::(Symbol...))
+function testSymbol(nm::Symbol,ls::Tuple{Vararg{Symbol}})
    return (in (nm, ls))
 end
-testSymbol(nm::String,ls::(Symbol...)) = testSymbol(Symbol(nm),ls)
+testSymbol(nm::String,ls::Tuple{Vararg{Symbol}}) = testSymbol(Symbol(nm),ls)
 
 
 function getAttr(node::XMLNode)
@@ -91,7 +91,7 @@ end
 """ ->
 function stateTrans(state::Symbol, 
                      stateIndic::Symbol, 
-                     stateTrans::((Symbol,Symbol,Symbol)...))
+                     stateTrans::Tuple{Vararg{Tuple{Symbol,Symbol,Symbol}}})
    for (stState,stIndic,stNew) in stateTrans
        if state == stState && stateIndic == stIndic
          debugFlagOn && debugLevel & 4 != 0 && println( 

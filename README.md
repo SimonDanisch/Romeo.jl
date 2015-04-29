@@ -117,15 +117,12 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>master
     <TD>Eventually corresponds to master on the upstream tree 
         (S.Danish development)
-<TR><TD>newScrMgr
-    <TD>Manage multiple subscreens, and provide inter-subscreen or interaction
-        related functionality
-<TR><TD>relateSubscreens
-    <TD>Establish communications between subscreens(obey same mouse actions), 
-        statically rotate the view in some subscreen. Generalization
-        to other signals via *Connectors* and the *connection* tag .
-<TR><TD>XML
-    <TD>Support description of screen in an XML file as shown above.
+<TR><TD>Julia04
+    <TD>Move to new Tuple syntax and  recent commits on Julia tree; also contains
+        development done previously in branches XML, and relateSubscreens.
+
+       Adds: Management of multiple subscreens, and inter-subscreen  interaction.
+             Generalization to other signals via *Connectors* and the *connection* tag .        
 </TABLE>
 
 
@@ -155,6 +152,9 @@ The following branches in the Git tree have specific meaning (At least planned):
     <TD>merged Commit 5aee885f* (Wed Apr 22 21:09:10 2015)
     <TD>Needed to add again manipVirtual field in RenderObject to support RenderObject transformations,
         Requires AbstractGPUArray which is something new.
+<TR><TD>XML Schema based validation 
+    <TD> uses xmllint
+    <TD> Remaining namespace related issues in XML
 </TABLE>
 
 

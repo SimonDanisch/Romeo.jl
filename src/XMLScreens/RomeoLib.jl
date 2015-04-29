@@ -124,7 +124,7 @@ function init_romeo(subScreenGeom, vizObjArray; pcamSel=true)
            else
               # do not visualize RenderObjects!
               if ! (   isa(vo[:render],RenderObject) 
-                    || isa(vo[:render],(RenderObject...)))
+                    || isa(vo[:render],Tuple{Vararg{RenderObject}}))
                  visualize(vo, screen=scr)
               else
                  vo
@@ -133,7 +133,7 @@ function init_romeo(subScreenGeom, vizObjArray; pcamSel=true)
 
        #chkDump(viz,true) #debug (may be make this parameterized)
 
-       if isa(viz,(RenderObject...))
+       if isa( viz, Tuple{ Vararg{ RenderObject}})
             for v in viz
                 push!(scr.renderlist, v)
             end
@@ -268,9 +268,9 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        # Check availability, this will use an external function (in ad hoc module!)
        #TBD!!!
        if  marker  != 0
-            if isa(viz,RenderObject) && haskey(viz.manipVirtuals, ROReqVirtUser)
+            if isa(viz,RenderObject) && hasManipVirt(viz, ROReqVirtUser)
                println("Need to check avail of $marker in",
-                        viz.manipVirtuals[ROReqVirtUser]  )
+                        manipVirt(viz, ROReqVirtUser)  )
             else
                warn("Cannot check availability of feature $marker in $viz")
             end

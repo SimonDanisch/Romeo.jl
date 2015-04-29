@@ -1,0 +1,50 @@
+#!/bin/bash
+
+function help()  {
+    echo "Calling sequence"
+    echo "1) for validation against an xsd"
+    echo "   xmlValid xmlfile xsdfile"
+    echo "2) for validation of an xsd"
+    echo "   xmlValid xsdfile"
+    echo "option flags, options precede positional args"
+    echo "    -h  | --help  : print this help"
+}
+
+function validXML {
+    echo validating XML: $1   against XSD: $2
+    echo xmllint --valid --noout $1 --schema $2
+    xmllint --valid --noout $1 --schema $2
+    exit $?
+}
+
+function validXSD {
+    echo validating XSD: $1
+    echo xmllint --noout --dtdvalid http://www.w3.org/2001/XMLSchema.dtd $1
+    xmllint --noout --dtdvalid http://www.w3.org/2001/XMLSchema.dtd $1
+    exit $?
+}
+
+if [ $# == 0 ] ; then
+    help
+    echo expected some args
+    exit 2
+fi
+
+while [ $# > 0 ] ; do
+    case $1 in 
+        -h|--help)  
+                help ;
+                shift ;;
+        *) if [ $# == 2 ] ;  then
+             validXML $*
+             exit 0
+           elif [ $# == 1 ] ;  then
+             validXSD $*
+             exit 0
+           else
+             echo "Unexpected args:" "$@"
+             exit 1
+           fi ;;
+    esac
+done
+

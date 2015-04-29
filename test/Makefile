@@ -6,8 +6,11 @@ JULIAENV=$(PAMDIR)/JULIA-ENV
 JULIAPGM=Julia4
 
 DOCUTILDIR=../src/docUtil
+TOOLSDIR=tools
 DOCXMLSCR=../src/XMLScreens
 DOCUNITTEST=unitTests
+
+CMDXMLVALID=tools/xmlValid
 
 TSTAMP=.strip.timestamp
 
@@ -102,7 +105,8 @@ $(DOCUNITTEST)/TestOGLGeom.jl :$(JULIATRY)/TestOGLGeom.jl  $(TSTAMP)
 $(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-
+$(TOOLSDIR)/xmlValid:~/bin/xmlValid
+	cat $< |cpif $@
 
 .PHONY: run run3D runXML runD runDI runSingle runSingle3D runSingleD runSingleI \
 	eprogs tests progtests \
@@ -126,17 +130,30 @@ progs :  RomeoVolume.jl \
         $(DOCXMLSCR)/Constants.jl \
         $(DOCUTILDIR)/ManipStreams.jl \
         $(DOCUTILDIR)/DocCompat.jl \
-        $(DOCXMLSCR)/subscreenSchema.xsd 
-
+        $(DOCXMLSCR)/subscreenSchema.xsd \
+	$(TOOLSDIR)/xmlValid
 
 progtests: $(DOCUNITTEST)/testSubScreen.jl \
 	    $(DOCUNITTEST)/testLumberjack.jl \
 	    $(DOCUNITTEST)/TestOGLGeom.jl \
-	    $(DOCUNITTEST)/testVirtOGLGeom.jl
-
+	    $(DOCUNITTEST)/testVirtOGLGeom.jl \
+	    $(TOOLSDIR)/xmlValid
 
 run:         progs 
 	$(JULIAPGM) RomeoVolume.jl --log=/tmp/RomeoLumber01.log
+
+./PHONY : validXML  validXML2  validXML3 validXML4 
+validXML: subscreenSpec.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+	$(CMDXMLVALID) subscreenSpec.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+
+validXML2:subscreenSpec2.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+	$(CMDXMLVALID) subscreenSpec2.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+
+validXML3:subscreenSpec3.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+	$(CMDXMLVALID) subscreenSpec3.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+
+validXML4:subscreenSpec4.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+	$(CMDXMLVALID) subscreenSpec4.xml  $(DOCXMLSCR)/subscreenSchema.xsd
 
 runXML:      progs subscreenSpec.xml
 	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log

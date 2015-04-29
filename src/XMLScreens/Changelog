@@ -1,6 +1,8 @@
 CURRENT
     Reorganised src directories pertaining to subscreen/xml extensions. These
 	modules are now inserted in LOAD_PATH.
+    Improvement in XML/XSD validation using xmllint
+    Transition to new features of Julia 0.4 incompatible with previous syntax (Tuple types)
 	
 Date: Fri Apr 24 2015
     Added a XML screen/subscreen description facility; improved functionality

@@ -56,12 +56,10 @@ function translationMatrix{T}(translation::Vector3{T})
 end
 
 function   modelGeomApply{T}(ro::RenderObject, matrix::Matrix4x4{T})
-    # basic philosophy: look into ro's Virtual Function Table, grab the
-    # transformation and apply it or throw error (geom transf non supported)
-    vfns = ro.manipVirtuals
-    haskey(vfns,VFXTransformModel) || error( 
+
+    hasManipVirt(ro, VFXTransformModel )|| error( 
       "The target RenderObject has no capability for model geometry modification" )
-    xformFn = vfns[VFXCapabilities]
+    xformFn = manipVirt( ro, VFXCapabilities)
     xformFn(ro,matrix)
 end
 modelGeomRotate{T}( ro::RenderObject,angle::T, axis::Vector3{T} )=
@@ -97,12 +95,12 @@ function effVModelGeomCamera{T}(ssc::SubScreen, eyepos::Vector3{T},
       return  eyepos, centerscene
    end
 end
-@doc """ This is performs modelSpace transformations
+@doc """ This performs modelSpace transformations
          ro :is a RenderObject which supports model space transformations
          matrix: is the transformation matrix in homogeneous coordinates 
 """ ->
 function modelSpaceXform{T}(ro::RenderObject,mat::Matrix4x4{T})
-         haskey(ro.manipVirtuals,  VFXTransformModel)
+         hasManipVirt(ro,  VFXTransformModel)
          warn("TO BE IMPLEMENTED!!! ( modelSpaceXform)")
 end
 
