@@ -116,7 +116,7 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TABLE>
 <TR><TD>master
     <TD>Eventually corresponds to master on the upstream tree 
-        (S.Danish development)
+        (S.Danisch development)
 <TR><TD>Julia04
     <TD>Move to new Tuple syntax and  recent commits on Julia tree; also contains
         development done previously in branches XML, and relateSubscreens.
@@ -150,8 +150,7 @@ The following branches in the Git tree have specific meaning (At least planned):
     <TD>merge conflicts in src/GLUniforms.jl, src/GLTypes.jl, src/GLMatrixMath.jl, src/GLCamera.jl
 <TR><TD>GLAbstraction
     <TD>merged Commit 5aee885f* (Wed Apr 22 21:09:10 2015)
-    <TD>Needed to add again manipVirtual field in RenderObject to support RenderObject transformations,
-        Requires AbstractGPUArray which is something new.
+    <TD>Do not need anymore changes in RenderObject type definition.
 <TR><TD>XML Schema based validation 
     <TD> uses xmllint
     <TD> Remaining namespace related issues in XML

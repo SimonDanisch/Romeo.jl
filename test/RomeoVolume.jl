@@ -26,47 +26,20 @@ using SemXMLSubscreen
          into subscreens.
      """  ->
 function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
-   # try with a plot
-   npts = 50 
-   function plotFn2D(i,j)
-         x = Float32(i)/Float32(npts)-0.5 
-         y = Float32(j)/Float32(npts)-0.5 
-         ret = if ( x>=0 ) && ( x>=y)
-                   4*x*x+2*y*y
-               elseif ( x<0) 
-                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
-               else
-                   0.0
-               end
-          ret
-   end
-   function doPlot2D (sc::Screen,cam::GLAbstraction.Camera)
-           TBCompleted ( Float32[ plotFn2D(i,j)  for i=0:npts, j=0:npts ],
-                         nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
-                       )
-   end  
+   # Here we need to read the XML and do whatever is needed
+   # We have moved this before the definition of the functions below
+   # because of the definition of plt below, which requires doPlot2D and
+   # doPlot3D. This is also a good test of our parse strategy for XML chunks
 
-   npts3D = 12
-   function plotFn3D(i,j,k)
-         x = Float32(i)/Float32(npts3D)-0.5 
-         y = Float32(j)/Float32(npts3D)-0.5 
-         z = Float32(k)/Float32(npts3D)-0.5 
+   xdoc = parse_file(xml)
+   parseTree = acDoc(xdoc)
+   SemXMLSubscreen.setDebugLevels(true,0x20)   #debug
+   sc = subscreenContext()
+   xmlJuliaImport(parseTree,sc)
+   
 
-         ret = if ( x>=0 ) && ( x>=y)
-                   2*x*x+3*y*y+z*z
-               elseif ( x<0) 
-                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
-               else
-                   9*x*y*z
-               end
-          ret
-   end
-   function doPlot3D (sc::Screen,cam::GLAbstraction.Camera)
-           dd = Dict{Symbol,Any}(:SetPerspectiveCam => true) 
-           TBCompleted ( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
-                                   j=0:npts3D, k=0:npts3D ],
-                         nothing, dd)
-   end  
+   # Now, we want to integrate functions defined programmatically here
+   # and others which come from the XML subscreen description
 
    plt = plotDim==2 ? doPlot2D : doPlot3D
 
@@ -93,18 +66,9 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
                                           "doColorBtn"=>colorBtn, 
                                           "doCube" => cube, 
                  			  "doPic"=>pic, 
-                                          "doPlot" => plt,
-                                          "doPlot2D" => doPlot2D,
-                                          "doPlot3D" => doPlot3D   )
-   # here we need to read the XML and do whatever is needed
+                                          "doPlot" => plt )
 
-   xdoc = parse_file(xml)
-   parseTree = acDoc(xdoc)
-   SemXMLSubscreen.setDebugLevels(true,8)   #debug
-   vizObj = buildFromParse( parseTree, fnDict)
-   
-
-
+   vizObj = buildFromParse( parseTree, fnDict, sc)
    @show vizObj
    return vizObj
 

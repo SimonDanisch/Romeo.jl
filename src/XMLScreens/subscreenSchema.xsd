@@ -35,9 +35,8 @@
   <xs:element name="scene" type="sceneType"/>
   <xs:complexType name="sceneType">
    <xs:sequence>
-    <!-- is this optional ???? -->
-    <xs:element name="rootScreen" type="subscreenType" 
-		maxOccurs="1"    minOccurs="0" />
+    <xs:element name="julia" type="juliaType" 
+		maxOccurs="unbounded"    minOccurs="0" />
     <xs:sequence>
        <xs:element name="subscreen"  type="subscreenType"
                    maxOccurs="unbounded" />
@@ -55,6 +54,36 @@
     </xs:sequence>
    </xs:sequence>
   </xs:complexType>
+
+
+  <!-- Part of syntax used to designate julia functions used and link to 
+       containing  module(s)
+   -->
+  <xs:complexType name="importType">
+    <xs:attribute name="fn" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="juliaType">
+    <xs:sequence >
+      <xs:choice maxOccurs="unbounded">
+         <xs:element name="import" type="importType" />
+         <xs:element name="inline"/>   
+                  <!-- Please note that processing instruction are
+                       simply ignored by XSD 1.0 and 1.1.
+
+		       "Searching the spec for "processing instruction" gives one 
+			hit, which is the sentence in 3.1.4 that says "The above definition 
+			means that comments and processing instructions, even in the midst of
+                        text, are ignored for all ·validation· purposes."
+
+                       We test what is accessible at the LightXML processor level.
+                  -->
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="modulename" type="xs:string"/>
+  </xs:complexType>
+  <!-- End of section related to julia function and module(s)-->
+
 
   <xs:complexType name="subscreenType">
     <xs:sequence >
@@ -132,5 +161,7 @@
   </xs:complexType>
 
 </xs:schema>
+
+
 
 

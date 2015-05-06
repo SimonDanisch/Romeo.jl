@@ -38,6 +38,8 @@ end
 Base.minimum{T, NDIM}(x::Array{Vector3{T},NDIM}) = reduce(minper, x)
 Base.maximum{T, NDIM}(x::Array{Vector3{T},NDIM}) = reduce(maxper, x)
 
+abstract AbstractFixedVector{T,C}
+
 include(joinpath(     sourcedir, "utils.jl"))
 include(joinpath(     sourcedir, "types.jl"))
 include_all(joinpath( sourcedir, "display"))

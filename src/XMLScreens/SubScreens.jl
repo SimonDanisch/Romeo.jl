@@ -1,4 +1,5 @@
 
+# --line 8495 --  -- from : "BigData.pamphlet"  
 module SubScreens
 
 using GLAbstraction ## need Rectangle
@@ -14,6 +15,7 @@ export SubScreen,
         ROVirtIfDict, ROReqVirtUser, ROConnects
 
 
+# --line 8514 --  -- from : "BigData.pamphlet"  
 # Recursive types in Julia are found in
 # http://julia.readthedocs.org/en/latest/manual/constructors/ at
 # paragraph  ``Incomplete Initialization''
@@ -22,6 +24,7 @@ export SubScreen,
 # NOTE: our notation for matrices and argument pertaining to matrices
 #       is such that line comes before column (linenum,colnum),... etc...
 
+# --line 8531 --  -- from : "BigData.pamphlet"  
 # define subscreen as a recursive type
 type SubScreen
     x::Float64
@@ -113,6 +116,7 @@ const ROConnects= :ROConnects #follow mouse actions in a different
 import Base.convert
 convert(::Type{ASCIIString},t::SSCAttribs) = string(t)
 convert(::Type{Symbol},t::SSCAttribs) = :t
+# --line 8630 --  -- from : "BigData.pamphlet"  
 @doc """ Makes a 2D array of specified dimensions with all empty values 
          which can be put in the   field children of a SubScreen.
      """ ->
@@ -125,6 +129,7 @@ function mkEmpty(t::Float64,nl,nc)
 end
 
 
+# --line 8647 --  -- from : "BigData.pamphlet"  
 @doc """  The SubScreen ssc receives the value newSubCell as 
           its child with coordinates (i,j) 
           sss.children[i,j] <- newSubCell
@@ -137,6 +142,7 @@ function insertChildren!( ssc::SubScreen, i::Int, j::Int,
    ssc.children[i,j] = newSubCell
 end
        
+# --line 8662 --  -- from : "BigData.pamphlet"  
 @doc """ Accesses the child described by idx of ssc. This
          walks down the SubScreen tree.
          here the syntax is:
@@ -146,7 +152,7 @@ end
          A syntactic helper is offered (below) to handle the
          syntax:   ssc[i1,j1]
      """ ->
-function Base.getindex(ssc::SubScreen, idx::(Int,Int)...)
+function Base.getindex(ssc::SubScreen, idx::Tuple{Int,Int}...)
        cur = ssc
        for i=1:length(idx)
            cur=cur.children[idx[i][1],idx[i][2]]
@@ -155,6 +161,7 @@ function Base.getindex(ssc::SubScreen, idx::(Int,Int)...)
 end
 # Just a syntactic helper
 Base.getindex(ssc::SubScreen,i::Int,j::Int) = Base.getindex(ssc,(i,j))
+# --line 8684 --  -- from : "BigData.pamphlet"  
 @doc """ Sets the child described by idx of ssc to the value val. 
          This  walks down the SubScreen tree.
          here the syntax is:
@@ -165,7 +172,7 @@ Base.getindex(ssc::SubScreen,i::Int,j::Int) = Base.getindex(ssc,(i,j))
          syntax:   ssc[i1,j1]=
      """ ->
 function Base.setindex!(ssc::SubScreen,val::SubScreen,
-                                     idx::(Int,Int)...)
+                                     idx::Tuple{Int,Int}...)
        cur = ssc
        for i=1:length(idx)
            if i == length(idx)
@@ -180,6 +187,7 @@ end
 #  syntactic helper
 Base.setindex!(ssc::SubScreen,val::SubScreen,i,j) =Base.setindex!(ssc,val,(i,j))
 
+# --line 8711 --  -- from : "BigData.pamphlet"  
 using Base.Enum
 
 @enum    OptsTreeWalker preOrdr postOrdr
@@ -199,7 +207,7 @@ using Base.Enum
             misc = dict
      """ ->
 function treeWalk!(ssc::SubScreen, func::Function, actOrdr:: OptsTreeWalker= preOrdr, 
-                   indx::Vector{(Int64,Int64)} = Vector{(Int64,Int64)}(0) ; 
+                   indx::Vector{Tuple{Int64,Int64}} = Vector{ Tuple{Int64,Int64}}(0) ; 
                     misc::Dict{Symbol,Any}=Dict{Symbol,Any}())
        cur = ssc
        actOrdr ==  preOrdr ?  _treeWalkPre!(ssc,func, indx; misc=misc) : 
@@ -209,7 +217,7 @@ end
 @doc """ 
      """ ->
 function _treeWalkPre!(ssc::SubScreen, func::Function,
-                       indx::Vector{(Int64,Int64)};
+                       indx::Vector{Tuple{Int64,Int64}};
 		       misc::Dict{Symbol,Any}=Dict{Symbol,Any}() )
        cur = ssc
 
@@ -251,7 +259,7 @@ end
          The function receives each SubScreen as its sole argment.
      """ ->
 function _treeWalkPost!(ssc::SubScreen, func::Function, 
-                       indx::Vector{(Int64,Int64)}; 
+                       indx::Vector{Tuple{Int64,Int64}}; 
 		       misc::Dict{Symbol,Any}=Dict{Symbol,Any}() )
        cur = ssc
 
@@ -285,6 +293,7 @@ function _treeWalkPost!(ssc::SubScreen, func::Function,
 end
 
 
+# --line 8819 --  -- from : "BigData.pamphlet"  
 @doc """ 
          Compute a Subscreen whose children are represented by an 
          array of SubScreen{Float}, each with position(x,y) and 
@@ -330,6 +339,7 @@ function prepSubscreen(linehRel::Vector{Float64}, colwRel::Vector{Float64})
     return sc
 end
 
+# --line 8867 --  -- from : "BigData.pamphlet"  
 @doc """ 
          Add rectangle dimensions to a Subscreen whose children  are 
          represented by an array of SubScreen{Float}, each with 
@@ -382,6 +392,7 @@ function prepSubscreen(linehRel::Vector{Float64}, colwRel::Vector{Float64},
      end
      return ssc
 end
+# --line 8922 --  -- from : "BigData.pamphlet"  
 @doc """ Receives 2 arguments: a frame and a rect, where the 
          rect defines its relative coordinates in the frame. 
          
@@ -395,11 +406,13 @@ function rectContextualize(frame::Rectangle{Float64}, rect::Rectangle{Float64})
 
      Rectangle{Float64}(x,y,w,h)
 end
+# --line 8938 --  -- from : "BigData.pamphlet"  
 @doc """ Extract the rectangle coordinates of a SubScreen
      """ ->
 function toRectangle(ssc::SubScreen)
      Rectangle(ssc.x, ssc.y,ssc.w,ssc.h)
 end
+# --line 8947 --  -- from : "BigData.pamphlet"  
 @doc """ Recursively builds the coordinates of the SubScreen tree,
          in the coordinate space of the root SubScreen, (where
          the root subscreen is located by its (x,y,w,h).
@@ -429,6 +442,7 @@ function computeRects(r::Rectangle{Float64},  ssc::SubScreen)
      return ssc
 end
 
+# --line 8980 --  -- from : "BigData.pamphlet"  
 @doc """  Helper for main recursive version, repackages the first 
           arg as a SubScreen.
      """ ->
@@ -439,6 +453,7 @@ function computeRects( s::SubScreen,
 end
 
 
+# --line 8457 --  -- from : "BigData.pamphlet"  
 @doc """
          Returns a Rectangle based on:
          Arg. 1:  a SubScreen for proportions 
@@ -460,6 +475,7 @@ setRectangle!{T}(ssc::SubScreen, r::Rectangle{T}) = setRectangle!( ssc,
     r.x, r.y, r.w, r.h)
 
 
+# --line 8992 --  -- from : "BigData.pamphlet"  
 end # module SubScreens
 
 

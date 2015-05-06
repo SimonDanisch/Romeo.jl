@@ -137,6 +137,8 @@ function accept(tt::Token{:scene}, xssc::XMLElement, depth::Int=0)
     state::Symbol= :scene
     const stateTransitions =  (
                          (:scene,      :subscreen, :subscreen),
+                         (:scene,      :julia,     :julia),
+                         (:julia,      :subscreen, :subscreen),
                          (:subscreen,  :setplot,   :setplot),
                          (:setplot, :connection,   :connection),
                          (:setplot, :debug,        :debug),
@@ -152,6 +154,11 @@ function accept(tt::Token{:scene}, xssc::XMLElement, depth::Int=0)
         if (   state == :scene 
             && testSymbol( nmChild , (:rootscreen, :comment, :text)))
            if snmChild == :scene   
+             push!(lst,accept(Token(nmChild), chld, depth+1))
+           end
+        elseif (   state == :julia  
+            && testSymbol( nmChild , (:julia, :comment, :text)))
+           if snmChild == :julia
              push!(lst,accept(Token(nmChild), chld, depth+1))
            end
         elseif (   state == :subscreen  
@@ -181,6 +188,88 @@ function accept(tt::Token{:scene}, xssc::XMLElement, depth::Int=0)
     end  # for loop
     SemNode(lst)
 end
+
+function accept(tt::Token{:julia}, xnd::XMLNode, depth::Int=0)
+    pretty(depth, "J>\t",name(xnd), getAttr(xnd))
+    bld = Dict{Symbol,SemNode}()
+
+    attribs = doAttrib(tt,xnd,depth)
+    bld[:attrs] = SemNode(attribs)
+    lst         = Array{SemNode,1}(0)
+    bld[:juliaCode]   = SemNode(lst)
+
+    # we use state to move between the  parts concerning subscreens, setplot
+    # connection and  debug (see subscreenSchema.xsd )
+    state::Symbol= :init
+    const stateTransitions =  (
+                         (:init,   :import, :import),
+                         (:init,   :inline, :inline),
+                         (:import, :inline, :inline),
+                         (:inline, :import, :import),)
+
+    for chld in child_nodes(xnd)
+        nmChild = name(chld)
+        snmChild = Symbol(nmChild)
+
+        # here we do all changes of state before the 'if'
+        state = stateTrans(state, Symbol(nmChild),stateTransitions)
+
+        # action according to state (we skip comment and text)
+        if (   state == :import 
+            && testSymbol( nmChild , (:import, :comment, :text)))
+           if snmChild == :import 
+                push!(lst, accept(Token(nmChild), chld, depth+1)) 
+           end
+        elseif  (state == :inline && testSymbol( nmChild , (:inline, :comment, :text))) 
+           if snmChild == :inline 
+                push!(lst, accept(Token(nmChild), chld, depth+1)) 
+           end
+        elseif  (state == :init && testSymbol( nmChild , (:comment, :text))) 
+           #here we skip initial text
+        else
+            error("Unexpected token \"$nmChild\"  in <julia> section ($state)")
+        end # if state
+    end  # for loop
+
+    SemNode((:julia,bld))
+end
+
+
+function accept(tt::Token{:import}, xnd::XMLNode, depth::Int=0)
+    pretty(depth, "J>\t",name(xnd), getAttr(xnd))
+
+    attribs = doAttrib(tt,xnd,depth)
+    ret = SemNode(attribs)
+
+    for chld in child_nodes(xnd)
+        nmChild = name(chld)
+        snmChild = Symbol(nmChild)
+        if ! testSymbol( nmChild , (:comment, :text))
+            error("Unexpected token \"$nmChild\"  in <import> section")
+        end
+    end
+
+    SemNode((:import,ret))
+end
+function accept(tt::Token{:inline}, xnd::XMLNode, depth::Int=0)
+    pretty(depth, "J>\t",name(xnd), getAttr(xnd))
+    bld = Dict{Symbol,SemNode}()
+
+    attribs = doAttrib(tt,xnd,depth)
+    bld[:attrs] = SemNode(attribs)
+    lst = Array{SemNode,1}(0)
+    bld[:juliaInline]   = SemNode(lst)
+
+    for chld in child_nodes(xnd)
+        nmChild = name(chld)
+        snmChild = Symbol(nmChild)
+
+        push!(lst, SemNode(content(chld)))         
+    end
+
+    SemNode((:inline,bld))
+end
+
 
 global subsCount=0
 function mkSubscreenId ()

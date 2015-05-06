@@ -12,7 +12,7 @@ export
              # The   contained Dict has some reserved fields
              #      :oid object_id as returned from Base.object_id
 
-RORegistry = Dict{GLushort,Dict{Symbol,Any}}()
+RORegistry = Dict{UInt16,Dict{Symbol,Any}}()
 
 function hasManipVirt(ro::RenderObject,key::Symbol)
      haskey(RORegistry,ro.id) && haskey(RORegistry[ro.id],key)
