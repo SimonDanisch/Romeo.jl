@@ -112,6 +112,14 @@ screenshot above:
 
 ```
 
+<TABLE>
+<TR>
+    <TD> Current (almost) summary of XSD for XML specification of screen
+<TR>
+    <TD><IMG SRC="test/images/XSchema.png" WIDTH=600>
+</TABLE>
+
+
 The following branches in the Git tree have specific meaning (At least planned):
 <TABLE>
 <TR><TD>master
@@ -123,6 +131,8 @@ The following branches in the Git tree have specific meaning (At least planned):
 
        Adds: Management of multiple subscreens, and inter-subscreen  interaction.
              Generalization to other signals via *Connectors* and the *connection* tag .        
+<TR><TD>XML
+    <TD>XML related functions, usually in synch with **Julia04** 
 </TABLE>
 
 
@@ -132,52 +142,18 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>ISSUES
     <TD>Date
     <TD>Description
-<TR><TD>
-    <TD>Sat Apr 04 2015
-    <TD>Not tracking development of GLAbstraction
-<TR><TD>
-    <TD>Fri Apr 24 2015
-    <TD>XML not validated against the xsd; xsd also needs validation
-<TR><TD>Julia Version 0.4.0-dev+4500 (Commit 30b94a1*) (tried, abandonned, back to  bd748b9*)
+<TR><TD>Julia Version 0.4.0-dev+4500 (Commit 30b94a1*) 
     <TD>2015-04-25 15:54 UTC
-    <TD>Issues:Reactive:does not pass its test, GLAbstraction: seem to require
-        update (upstream/julia04 ?).
-<TR><TD>Reactive  ad6234e1b739d34*
-    <TD>Mon Apr 20 22:38:30 2015 +0530
-    <TD>Issue : does not pass its test.
+    <TD>Issues:Currently working on remaining compatibility issues
 <TR><TD>Romeo 
     <TD>merge upstream/julia04
-    <TD>merge conflicts in src/GLUniforms.jl, src/GLTypes.jl, src/GLMatrixMath.jl, src/GLCamera.jl
-<TR><TD>GLAbstraction
-    <TD>merged Commit 5aee885f* (Wed Apr 22 21:09:10 2015)
-    <TD>Do not need anymore changes in RenderObject type definition.
+    <TD>Waiting to integrate more changes
 <TR><TD>XML Schema based validation 
-    <TD> uses xmllint
-    <TD> Remaining namespace related issues in XML
+    <TD> uses xmllint, xmlCopyEditor
+    <TD> 
 </TABLE>
 
 
-### Integration of upstream changes (in  <A HREF="https://github.com/SimonDanisch/Romeo.jl">https://github.com/SimonDanisch/Romeo.jl</A>):
-
-<TABLE>
-<TR> 
-     <TD>Id
-     <TD>Date
-     <TD>Issues
-     <TD>Description
-<TR> 
-     <TD>b1fe8580618ec94
-     <TD>Sat Mar 14 12:31:48 2015
-     <TD>Closed
-     <TD>Example simple_display_grid.jl clarifies screen positionning, 
-         signal. Shows capacity of synchronized signals in several subscreen,
-         for instance ensure similar rotations upon mouse signal.
-<TR> 
-     <TD>1096656709a90fb
-     <TD>ven. 10 avril 2015 10:37:41 CEST
-     <TD>
-     <TD>Solves issue with 3D plot.
-</TABLE>
 
 ### Use of Julia 0.4 (master)
 <TABLE>
@@ -194,8 +170,7 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR> 
      <TD>Version 0.4.0-dev+4500
      <TD>2015-04-25 15:54 UTC
-     <TD> Rebuild from source tree. Requires updates in multiple libraries (rocky): Reactive,
-          GLAbstraction
+     <TD> Rebuild from source tree. Requires updates in multiple libraries 
      <TD> Commit  30b94a1*; x86_64-linux-gnu
 </TABLE>
 
