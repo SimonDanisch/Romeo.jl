@@ -172,6 +172,21 @@ The following branches in the Git tree have specific meaning (At least planned):
      <TD>2015-04-25 15:54 UTC
      <TD> Rebuild from source tree. Requires updates in multiple libraries 
      <TD> Commit  30b94a1*; x86_64-linux-gnu
+<TR> 
+     <TD>Version 0.4.0-dev+4704
+     <TD>2015-05-07 03:55 UTC
+     <TD> Rebuild from source tree. 
+     <TD> Commit cd2c363* ; x86_64-linux-gnu
 </TABLE>
 
-
+Non master branches used:
+<TABLE>
+<TR> 
+     <TD>  Package <TD> Branch
+<TR> 
+     <TD>  GLAbstraction <TD>  upstream/julia04 + mods
+<TR> 
+     <TD>GLWindow  <TD>    upstream/julia04
+<TR> 
+     <TD>GLFW      <TD> ?   origin/master 5/7/15 ( not selected or merged : Julia04  3/28/15)
+</TABLE>
