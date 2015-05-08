@@ -10,12 +10,12 @@ dodebug=RomeoLib.dodebug
 type Connector
      to ::Any
      from::Any
-     selectIn::(Symbol...)
-     selectOut::(Symbol...)     
+     selectIn::Tuple{Vararg{Symbol}}
+     selectOut::Tuple{Vararg{Symbol}}
 end
 
-InputConnect(from::Any,selIn::(Symbol...),selOut::(Symbol...))=
-     Connector(nothing, from,  selIn, selOut)
+InputConnect(from::Any,selIn::Tuple{Vararg{Symbol}},
+   selOut::Tuple{Vararg{Symbol}}) =  Connector(nothing, from,  selIn, selOut)
 
 # First get rid of special cases
 function connect!(a::Connector)
@@ -26,9 +26,9 @@ function connect!(a::Connector)
         println("\t typeof(to)=\t",typeof(to))
         println("\t typeof(from)=\t",typeof(from))
      end
-     if isa(to, (Connector...))
+     if isa(to, Tuple{Vararg{Connector}})
         map(x -> connect!(a,x,from), to)
-     elseif  isa(from, (Connector...))
+     elseif  isa(from,  Tuple{Vararg{Connector}})
         map(x -> connect!(a,to,x), from)
      else 
        connect!(a,to,from)
@@ -36,8 +36,8 @@ function connect!(a::Connector)
 
 end
 connect!(ar::Array{Connector,1}) = map(connect!,ar)
-connect!(a::Connector, to::RenderObject, from::(Any...)) = map(x -> connect!(a,to,x), from)
-connect!(a::Connector, to::(Any...), from::RenderObject) = map(x -> connect!(a,x,from), to)
+connect!(a::Connector, to::RenderObject, from::Tuple{Vararg{Any}}) = map(x -> connect!(a,to,x), from)
+connect!(a::Connector, to::Tuple{Vararg{Any}}, from::RenderObject) = map(x -> connect!(a,x,from), to)
 # this performs the connection proper
 function connect!(a::Connector, to::RenderObject, from::RenderObject)
      if  dodebug(0x04)

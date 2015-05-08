@@ -1,6 +1,5 @@
 module Romeo
 
-
 using GLVisualize, AbstractGPUArray, GLAbstraction, GeometryTypes, Reactive,
       ColorTypes
 
@@ -12,7 +11,5 @@ const xmldir    =   joinpath(sourcedir, "XMLScreens")
 const docutildir=   joinpath(sourcedir,"docUtil")
 push!(LOAD_PATH, xmldir)
 push!(LOAD_PATH, docutildir)
-
-
 
 end # module

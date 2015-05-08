@@ -22,12 +22,13 @@ module SemXMLSubscreen
   using ROGeomOps
   using Connectors
 
-export  setDebugLevels,  
+export  setDebugLevels,
+        subscreenContext,  
 	buildFromParse,
         xmlJuliaImport
 
 debugFlagOn  = false
-debugLevel   = 0::Int64
+debugLevel   = UInt64(0)
 
 #==       Level (ORed bit values)
            0x01: Show steps in syntax recognition
@@ -41,17 +42,19 @@ debugLevel   = 0::Int64
  
 #==  Set the debug parameters
 ==#
-function setDebugLevels(flagOn::Bool,level::Int)
+function setDebugLevels(flagOn::Bool,level::UInt64)
     global debugFlagOn
     global debugLevel
     debugFlagOn = flagOn
-    debugLevel  = flagOn ? level : 0
+    debugLevel  = flagOn ? UInt64(level) : UInt64(0)
 end
+setDebugLevels(flagOn::Bool,level::Int) = setDebugLevels(flagOn,UInt64(level))
+setDebugLevels(flagOn::Bool,level::Int32) = setDebugLevels(flagOn,UInt64(level))
+setDebugLevels(flagOn::Bool,level::UInt8) = setDebugLevels(flagOn,UInt64(level))
 
-dodebug(b::UInt8)  = debugFlagOn && ( debugLevel & Int64(b) != 0 )
-dodebug(b::UInt32) = debugFlagOn && ( debugLevel & Int64(b) != 0 )
-dodebug(b::UInt64) = debugFlagOn && ( debugLevel & Int64(b) != 0 )
-
+dodebug(b::UInt8)  = debugFlagOn && ( debugLevel & UInt64(b) != 0 )
+dodebug(b::UInt32) = debugFlagOn && ( debugLevel & UInt64(b) != 0 )
+dodebug(b::UInt64) = debugFlagOn && ( debugLevel & UInt64(b) != 0 )
 # we use type subscreenContext to keep the context of the recursion 
 # building subscreen SemNodes.
 

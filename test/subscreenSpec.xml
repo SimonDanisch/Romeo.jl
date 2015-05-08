@@ -27,11 +27,12 @@
    <inline>
    <?julia
       module MachinChose
-      using GLAbstraction
-      #abstract Screen #for now
-      #abstract Camera #for now
-         warn ("the real thing is GLAbstraction.Camera")
-
+      using GLAbstraction, GLWindow, ModernGL, GLVisualize
+      #abstract Screen #for use in scaffolding
+      #abstract Camera #for use in scaffolding
+      warn ("GLAbstraction.Camera is not exported")
+      Camera = GLAbstraction.Camera
+      
          # try with a plot
          npts = 50 
          function plotFn2D(i,j)
@@ -51,7 +52,6 @@
                                nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
                              )
          end  
-         warn ("the real thing is GLAbstraction.Camera")
          npts3D = 12
          function plotFn3D(i,j,k)
                x = Float32(i)/Float32(npts3D)-0.5 

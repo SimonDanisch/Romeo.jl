@@ -8,6 +8,7 @@ JULIAPGM=Julia4
 DOCUTILDIR=../src/docUtil
 TOOLSDIR=tools
 DOCXMLSCR=../src/XMLScreens
+DOCXROMEOSRC=../src/
 DOCUNITTEST=unitTests
 
 CMDXMLVALID=tools/xmlValid
@@ -34,6 +35,9 @@ help:
 
 ts:
 	echo TIME STAMP `date` >  $(TSTAMP)
+
+$(DOCXROMEOSRC)/Romeo.jl : $(JULIATRY)/Romeo.jl  $(TSTAMP)
+	$(STRIPLINECMD) $< |cpif $@
 
 RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
@@ -117,7 +121,8 @@ $(TOOLSDIR)/xmlValid:~/bin/xmlValid
 	eprogs tests progtests \
         editTest2
 
-progs :  RomeoVolume.jl \
+progs :  RomeoVolume.jl subscreenSpec.xml\
+	$(DOCXROMEOSRC)/Romeo.jl \
         $(DOCXMLSCR)/RomeoLib.jl \
         $(DOCXMLSCR)/RomeoLibSimple.jl \
         $(DOCXMLSCR)/DebugTools.jl \

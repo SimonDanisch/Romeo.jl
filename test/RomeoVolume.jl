@@ -10,8 +10,8 @@ using Connectors
 using ManipStreams
 (os,ns) =  redirectNewFWrite("/tmp/julia.redirected")
 
-using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
-using ImmutableArrays
+using GLVisualize, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, ColorTypes
+using GeometryTypes
     #  Loading GLFW opens the window
 using Compat
 using LightXML
@@ -41,7 +41,10 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    # Now, we want to integrate functions defined programmatically here
    # and others which come from the XML subscreen description
 
-   plt = plotDim==2 ? doPlot2D : doPlot3D
+   # here we have a rather stringent test: doPlot2D and doPlot3D are 
+   # defined in the code inlined in XML (in module SubScreensInline)
+   eval(parse ("using SubScreensInline"))
+   plt = plotDim==2 ? SubScreensInline.doPlot2D : SubScreensInline.doPlot3D
 
    # put the cat all over the place!!!
    pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")

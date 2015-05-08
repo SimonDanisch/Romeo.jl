@@ -1,4 +1,3 @@
-# --line 8404 --  -- from : "BigData.pamphlet"  
 module SimpleSubScreens
 
 export SubScreen,  prepSubscreen, RectangleProp
@@ -20,7 +19,6 @@ type SubScreen{T <: Number}
     w::T
     h::T      
 end
-# --line 8428 --  -- from : "BigData.pamphlet"  
 @doc """ 
          prepare an array of SubScreen{Float}, each with position(x,y) and 
          width(w,h). The arguments are two vectors indicating the relative
@@ -47,7 +45,6 @@ function prepSubscreen{T}(colwRel::Vector{T},linehRel::Vector{T})
     end
     return ret
 end
-# --line 8457 --  -- from : "BigData.pamphlet"  
 @doc """
          Returns a Rectangle based on:
          Arg. 1:  a SubScreen for proportions 
@@ -70,6 +67,5 @@ setRectangle!{T}(ssc::SubScreen, r::Rectangle{T}) = setRectangle!( ssc,
 
 
 
-# --line 8483 --  -- from : "BigData.pamphlet"  
 end # module SimpleSubScreens
 
