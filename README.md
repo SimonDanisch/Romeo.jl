@@ -125,14 +125,13 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>master
     <TD>Eventually corresponds to master on the upstream tree 
         (S.Danisch development)
-<TR><TD>Julia04
-    <TD>Move to new Tuple syntax and  recent commits on Julia tree; also contains
-        development done previously in branches XML, and relateSubscreens.
-
+<TR><TD>skinny
+    <TD>Move to new organization using  GLVisualize, AbstractGPUArray, GeometryTypes, 
+        ColorTypes, Meshes, MeshIO.
+<TR><TD>XML
+    <TD>XML related functions, waiting for integration with "skinny" branch
        Adds: Management of multiple subscreens, and inter-subscreen  interaction.
              Generalization to other signals via *Connectors* and the *connection* tag .        
-<TR><TD>XML
-    <TD>XML related functions, usually in synch with **Julia04** 
 </TABLE>
 
 
@@ -146,8 +145,8 @@ The following branches in the Git tree have specific meaning (At least planned):
     <TD>2015-04-25 15:54 UTC
     <TD>Issues:Currently working on remaining compatibility issues
 <TR><TD>Romeo 
-    <TD>merge upstream/julia04
-    <TD>Waiting to integrate more changes
+    <TD>reorganized, 
+    <TD>skinned down most previous functionality moved to GLVisualize
 <TR><TD>XML Schema based validation 
     <TD> uses xmllint, xmlCopyEditor
     <TD> 
@@ -188,5 +187,5 @@ Non master branches used:
 <TR> 
      <TD>GLWindow  <TD>    upstream/julia04
 <TR> 
-     <TD>GLFW      <TD> ?   origin/master 5/7/15 ( not selected or merged : Julia04  3/28/15)
+     <TD>GLFW      <TD> ?   origin/master 5/7/15
 </TABLE>

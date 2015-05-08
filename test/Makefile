@@ -27,6 +27,11 @@ help:
 	@echo make STRIP=YES....
 	echo STRIPLINECMD = $(STRIPLINECMD)
 
+	@echo tests working after switch to GLVisualize
+	@echo testRTM2D simple 2D plot
+	@echo testRTM3D simple 2D plot
+	@echo the rest is waiting for integration
+
 ts:
 	echo TIME STAMP `date` >  $(TSTAMP)
 
@@ -194,10 +199,19 @@ editTest2:
         # barely working version of SD's runtest.jl (my mods+documentation)
 	$(JULIAPGM) runtestsDoc.jl	
 
+
+# tests  :working after switch to GLVisualize
+.PHONY: testRTM3D testRTM2D
+
+ testRTM3D:
+	$(JULIAPGM) RomeoTestMini.jl	
+
+ testRTM2D:
+	$(JULIAPGM) RomeoTestMini.jl	aa bb
+
 # -exemples found in the upstream (S.Danisch) git tree
 
-
-# --exemples sent by S.Danisch (and working)
+# --exemples sent by S.Danisch (and working  -- before swich to GLVisualize)
 .PHONY: runtt synchRot editTest gridImg
 #    show surface with mouse actions (rotations etc)
 runtt : testest.jl

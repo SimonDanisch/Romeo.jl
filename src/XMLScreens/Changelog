@@ -1,4 +1,12 @@
-CURRENT
+Date: CURRENT
+	Moved to version of Julia 0.4 requiring new Tuple type syntax
+	Moved to GLVisualize,  AbstractGPUArray, GeometryTypes,ColorTypes
+	Reorganized Romeo directories
+	Tested basic program
+	Features added in XML
+	Integration of XML in progress (not working yet)
+	
+Date: around May 5
     Reorganised src directories pertaining to subscreen/xml extensions. These
 	modules are now inserted in LOAD_PATH.
     Improvement in XML/XSD validation using xmllint
