@@ -25,7 +25,8 @@ module SemXMLSubscreen
 export  setDebugLevels,
         subscreenContext,  
 	buildFromParse,
-        xmlJuliaImport
+        xmlJuliaImport,
+        insertXMLNamespace
 
 debugFlagOn  = false
 debugLevel   = UInt64(0)
@@ -121,7 +122,7 @@ function Base.show(io::IO, sc::subscreenContext)
      print(io, reduce((x,y)->( x* "\n") * y, strs))
 end
 
-function buildFromParse(ast::SemNode, fnDict::Dict{String,Function})
+function buildFromParse(ast::SemNode, sc::subscreenContext)
    dodebug(0x1) && println("In  buildFromParse,ast=$ast")
    state::Symbol = :init
    astPos::Int = 0
@@ -134,9 +135,7 @@ function buildFromParse(ast::SemNode, fnDict::Dict{String,Function})
         (:setplot,   :debug,      :debug),
         (:connection, :debug,     :debug)
    )
-  # accumulate information about subscreens 
-  sc = subscreenContext()
-
+  
   for astItem in ast.nd
       curSym::Symbol    = astItem.nd[1]
       curAst            = astItem.nd[2]
@@ -153,7 +152,7 @@ function buildFromParse(ast::SemNode, fnDict::Dict{String,Function})
       if state == :subscreen
          processSubscreen( curAst, sc)
       elseif state == :setplot
-         processSetplot( astItem, sc, fnDict)
+         processSetplot( astItem, sc)
       elseif state == :connection
          processConnection( astItem, sc)
       elseif state == :debug
@@ -248,6 +247,9 @@ function    finalizeSubscreenSection(sc::subscreenContext)
     (i,s,t)  = getTreeSetPtr(:MAIN,sc,:name)
     newTree  = computeRects(GLAbstraction.Rectangle{Float64}(0.,0.,1.,1.), s)
     # modify this in the builtDict symbol table
+    println("In finalizeSubscreenSection\n\tcalling  scIdentSetTree!")
+    @show newTree
+    @show sc
     scIdentSetTree!( :MAIN, newTree, sc, false, :name)
 end
 
@@ -303,7 +305,7 @@ function scIdentSetTree!(nm::Symbol,tree::SubScreen,sc::subscreenContext,
      oldId = Symbol(sc.builtDict[( catSym, nm)])
      if keep
          nwId  = Symbol(mkSubscreenId())
-         sc.builtDict[(:ident,nwId)]      = (nothing,Array{(Int,Int),1}(0))     
+         sc.builtDict[(:ident,nwId)]      = (nothing,Array{Tuple{Int,Int},1}(0))     
          sc.builtDict[(:subscreen,nwId)]  =  sc.builtDict[(:subscreen,oldId)]
      end
      sc.builtDict[(:subscreen,oldId)] = tree     
@@ -324,14 +326,23 @@ function graftSubTrees( sc::subscreenContext )
          sLoc[tLoc...]=sM
      end
 end
-function         processSetplot(ast::SemNode, sc::subscreenContext, 
-			        fnDict::Dict{String,Function})
+function         processSetplot(ast::SemNode, sc::subscreenContext)
     dodebug(0x08) && println("In  processSetplot\tast=$ast")
 
     #locate the insertion pt in the subscreen tree
     (id, tree, indx) = getTreeSetPtr(ast.nd[3]["ref"],sc)
+
     #which function to insert?
-    fn = fnDict[ast.nd[3]["fn"]]
+
+    #fn = fnDict[ast.nd[3]["fn"]]
+    # The function is now found in the module Main.xmlNS as fn (unless there are 
+    #     module issues )
+    fnName = ast.nd[3]["fn"]
+    println("Looking for function ", fnName," in  Main.xmlNS")
+    println("Names(Main.xmlNS):", names(Main.xmlNS))
+    fn = eval(Main.xmlNS, parse(fnName))
+
+    # setting the function
     tree[indx...].attrib[RObjFn] = fn
 
     lstCh = ast.nd[2]
@@ -432,6 +443,28 @@ end
 import JuliaParser.Parser
 import JuliaParser.Lexer
 
+# we prepare a special module, in the Main module context to store
+# the generated modules and other objects
+function __init__()
+   println ("In SemXMLSubscreen.__init__()")
+   eval(Main, Parser.parse("module xmlNS  \t end"))
+   global xmlNS = Main.xmlNS
+end
+# Provide a function to insert the functions prepared in the application
+# code into the xmlNS
+function  insertXMLNamespace(fdict::Dict{AbstractString, Function})
+    println("In insertXMLNamespace, fdict=", fdict)
+    for  (nm, fn) in fdict
+        println("Function=$fn")
+        expr1 = Parser.parse( nm * " = _unused_ "  )
+        expr1.args[2] = fn
+        eval(Main.xmlNS, expr1)
+        eval(Main.xmlNS, Parser.parse("export " * nm ))
+    end 
+
+    println("In insertXMLNamespace, names in Main.xmlNS:", names(Main.xmlNS))
+end
+
 #here we will try to parse the provided text
 function processInline( elDtl::Dict{Symbol, SemNode}, sContext::subscreenContext,
                        attrL::Array{SemNode,1})
@@ -474,10 +507,9 @@ function processInline( elDtl::Dict{Symbol, SemNode}, sContext::subscreenContext
         rethrow()
     end
 
-    @show ast
-
     try 
-       eval(ast)
+       # we provide module Main.xmlNS as a namespace for whatever we create
+       eval(Main.xmlNS, ast)
     catch err
         println("error in eval after parsing code inlined in xml file:\n\t$err")
         # catch_backtrace()

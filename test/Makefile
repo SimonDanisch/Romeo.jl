@@ -51,8 +51,6 @@ $(DOCUTILDIR)/DocCompat.jl: $(JULIAENV)/DocCompat.jl  $(TSTAMP)
 $(DOCUTILDIR)/ManipStreams.jl: $(JULIAENV)/ManipStreams.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCXMLSCR)/RomeoLibSimple.jl: $(JULIATRY)/RomeoLibSimple.jl   $(TSTAMP)
-	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCXMLSCR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
@@ -66,8 +64,6 @@ $(DOCXMLSCR)/SubScreens.jl: $(JULIATRY)/SubScreens.jl     $(TSTAMP)
 $(DOCXMLSCR)/Connectors.jl: $(JULIATRY)/Connectors.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCXMLSCR)/SimpleSubScreens.jl: $(JULIATRY)/SimpleSubScreens.jl  $(TSTAMP)
-	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCXMLSCR)/XtraRenderObjOGL.jl: $(JULIATRY)/XtraRenderObjOGL.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
@@ -124,13 +120,11 @@ $(TOOLSDIR)/xmlValid:~/bin/xmlValid
 progs :  RomeoVolume.jl subscreenSpec.xml\
 	$(DOCXROMEOSRC)/Romeo.jl \
         $(DOCXMLSCR)/RomeoLib.jl \
-        $(DOCXMLSCR)/RomeoLibSimple.jl \
         $(DOCXMLSCR)/DebugTools.jl \
         $(DOCXMLSCR)/TBCompletedM.jl \
         $(DOCXMLSCR)/MatrixMathPlus.jl \
         $(DOCXMLSCR)/SubScreens.jl \
         $(DOCXMLSCR)/Connectors.jl \
-        $(DOCXMLSCR)/SimpleSubScreens.jl \
         $(DOCXMLSCR)/XtraRenderObjOGL.jl \
 	$(DOCXMLSCR)/VirtualOGLGeom.jl \
 	$(DOCXMLSCR)/ROGeomOps.jl \
@@ -185,19 +179,6 @@ runD:         progs
 
 runDI:         progs 
 	$(JULIAPGM) RomeoVolume.jl -i --log=/tmp/RomeoLumber01.log --debugAbs=61 --debugWin=1
-
-
-runSingle:   progs 
-	$(JULIAPGM) RomeoGridSimple.jl --log=/tmp/RomeoLumber01.log --cube
-
-runSingle3D:   progs 
-	$(JULIAPGM) RomeoGridSimple.jl  --log=/tmp/RomeoLumber01.log --dim3D
-
-runSingleD:  progs 
-	$(JULIAPGM) RomeoGridSimple.jl --cube --debugAbs=61 --debugWin=1
-
-runSingleDI:  progs 
-	$(JULIAPGM) RomeoGridSimple.jl --cube --img --debugAbs=61 --debugWin=1
 
 
 editTest2:

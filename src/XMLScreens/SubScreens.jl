@@ -13,6 +13,35 @@ export SubScreen,
         SSCAttribs, RObjFn, ROProper, sigArea, sigScreen, RORot, RODumpMe, 
         ROVirtIfDict, ROReqVirtUser, ROConnects
 
+debugFlagOn  = false
+debugLevel   = UInt64(0)
+
+#==       Level (ORed bit values)
+           0x01: Show progress in treeWalk
+              2: Show calls of user  functions
+              4: Show iterations to cover children
+              8: 
+           0x10: 
+           0x20: 
+           0x40: 
+           0x80: 
+==#
+
+#==  Set the debug parameters
+==#
+function setDebugLevels(flagOn::Bool,level::UInt64)
+    global debugFlagOn
+    global debugLevel
+    debugFlagOn = flagOn
+    debugLevel  = flagOn ? UInt64(level) : UInt64(0)
+end
+setDebugLevels(flagOn::Bool,level::Int) = setDebugLevels(flagOn,UInt64(level))
+setDebugLevels(flagOn::Bool,level::Int32) = setDebugLevels(flagOn,UInt64(level))
+setDebugLevels(flagOn::Bool,level::UInt8) = setDebugLevels(flagOn,UInt64(level))
+
+dodebug(b::UInt8)  = debugFlagOn && ( debugLevel & UInt64(b) != 0 )
+dodebug(b::UInt32) = debugFlagOn && ( debugLevel & UInt64(b) != 0 )
+dodebug(b::UInt64) = debugFlagOn && ( debugLevel & UInt64(b) != 0 )
 
 # Recursive types in Julia are found in
 # http://julia.readthedocs.org/en/latest/manual/constructors/ at
@@ -211,6 +240,7 @@ end
 function _treeWalkPre!(ssc::SubScreen, func::Function,
                        indx::Vector{Tuple{Int64,Int64}};
 		       misc::Dict{Symbol,Any}=Dict{Symbol,Any}() )
+       dodebug(0x01) && println("In  _treeWalkPre!")
        cur = ssc
 
        info=Dict{Symbol,Any}(:isDecomposed=>false)
@@ -223,15 +253,14 @@ function _treeWalkPre!(ssc::SubScreen, func::Function,
        
 
        # Pre: visit this node          
-          # @show func
-          # @show cur
-          # @show indx
-          # @show misc
-          # @show info
+          dodebug(0x02) && println("In  _treeWalkPre!: calling:",func)
           func(cur,indx,misc,info)
+          dodebug(0x02) && println("In  _treeWalkPre!: returned")
 
        # Go visit subnodes
        for i = 1:size(cur.children,1),  j = 1:size(cur.children,2)
+           dodebug(0x04) && println("Interating subnodes at  $indx\t$cur")
+
            nindx = indx==[] ? [(i,j)] : [indx,(i,j)]
 
            if cur.children[i,j] !=nothing
@@ -253,6 +282,7 @@ end
 function _treeWalkPost!(ssc::SubScreen, func::Function, 
                        indx::Vector{Tuple{Int64,Int64}}; 
 		       misc::Dict{Symbol,Any}=Dict{Symbol,Any}() )
+       dodebug(0x01) && println("In  _treeWalkPost!")
        cur = ssc
 
        info=Dict{Symbol,Any}(:isDecomposed=>false)
@@ -270,7 +300,7 @@ function _treeWalkPost!(ssc::SubScreen, func::Function,
 
            if cur.children[i,j] !=nothing
               child=cur.children[i,j]
-              _treeWalkPre!(child, func, nindx, misc=misc)
+              _treeWalkPost!(child, func, nindx, misc=misc)
            else
               println("Leaf ($i,$j) at $indx\t$cur ")
               #here we want to look at the dimensions and the attributes

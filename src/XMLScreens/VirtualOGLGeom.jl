@@ -9,7 +9,7 @@ export  rotationMatrix,
 
 # we want to use GLAbstraction's GLMatrixMath
 using GLAbstraction
-using ImmutableArrays
+using GeometryTypes
 using SubScreens
 using ROGeomOps
 using MatrixMathPlus
@@ -23,10 +23,10 @@ end
 # This one is missing in GLAbstraction.GLMatrixMath
 function rotationmatrix_y{T}(angle::T)
     Matrix4x4{T}(
-        Vector4{T}(cos(angle), 0  ,sin(angle), 0),
-        Vector4{T}(0,          1,  0,          0),
-        Vector4{T}(-sin(angle), 0  ,cos(angle), 0),
-        Vector4{T}(0, 0, 0, 1))
+        cos(angle),  0  ,sin(angle), 0 ,
+        0,           1,  0,          0,
+        -sin(angle), 0  ,cos(angle), 0,
+        0, 0, 0, 1 )
 end
 
 # This is the Euler decomposition of a 3D rotation

@@ -1,14 +1,15 @@
 # Add-ons for  Romeo, an interactive scripting environment featuring OpenGL
 
-The original page for Romeo is <A HREF="https://github.com/SimonDanisch/Romeo.jl">https://github.com/SimonDanisch/Romeo.jl</A>
+The original page for Romeo are <A HREF="https://github.com/SimonDanisch/Romeo.jl">https://github.com/SimonDanisch/Romeo.jl</A>
+and <A HREF="https://github.com/JuliaGL/GLVisualize.jl">https://github.com/JuliaGL/GLVisualize.jl</A>
 
 # Romeo
 Romeo is an interactive scripting environment, in which you can execute Julia scripts and edit the variables in 3D.
 
-Screenshots  shows current state of my development based on Romeo.jl
+Screenshots  shows current state of my extensions to Romeo, heavily using GLVisualize.jl
 <TABLE>
 <TR>
-    <TD><IMG SRC="test/images/ScreenShot0422.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0510.png" WIDTH=300>
     <TD><IMG SRC="test/images/ScreenShot0424.png" WIDTH=300>
 </TABLE>
 
@@ -16,15 +17,71 @@ The first example shows: 1 main object in largest subscreen, 3 views
 of same object from directions along the 3 axes, 1 view with movements
 synchronised with main object. Moreover the color output of the "colorbutton"
 is transfered to several of these views. This is achieved through a **XML** 
-description like the following to achieve, the result beeing shown on the last
-screenshot above:
+description like the following:
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
+<!-- Function definitions  -->
 
+<julia  modulename="SubScreensInline">
+   <inline>
+   <?julia      
+      module MachinChose  
+
+      using GLAbstraction, GLWindow, ModernGL, GLVisualize
+      using Romeo, TBCompletedM
+      export plot2D, plot3D
+
+      Camera = GLAbstraction.Camera
+      
+         # try with a plot
+         npts = 50 
+         function plotFn2D(i,j)
+               x = Float32(i)/Float32(npts)-0.5 
+               y = Float32(j)/Float32(npts)-0.5 
+               ret = if ( x>=0 ) && ( x>=y)
+                         4*x*x+2*y*y
+                     elseif ( x<0) 
+                         2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+                     else
+                         0.0
+                     end
+                ret
+         end
+         function doPlot2D (sc::Screen,cam::Camera)
+                 ret = TBCompleted ( Float32[ plotFn2D(i,j)  for i=0:npts, j=0:npts ],
+                               nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
+                             )
+                 ret
+         end  
+         npts3D = 12
+         function plotFn3D(i,j,k)
+               x = Float32(i)/Float32(npts3D)-0.5 
+               y = Float32(j)/Float32(npts3D)-0.5 
+               z = Float32(k)/Float32(npts3D)-0.5 
+
+               ret = if ( x>=0 ) && ( x>=y)
+                         2*x*x+3*y*y+z*z
+                     elseif ( x<0) 
+                         2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+                     else
+                         9*x*y*z
+                     end
+                ret
+         end
+         function doPlot3D (sc::Screen,cam::Camera)
+                 dd = Dict{Symbol,Any}(:SetPerspectiveCam => true) 
+                 ret= TBCompleted ( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
+                                         j=0:npts3D, k=0:npts3D ],
+                               nothing, dd)
+                 ret
+         end  
+      end    #  module MachinChose
+   ?>
+   </inline>
+</julia>
 <!-- Subscreen description -->
-
  <subscreen rows="2" cols="2" name="MAIN">
   <rowsizes>1,4</rowsizes>
   <colsizes>4,1</colsizes>
@@ -61,55 +118,35 @@ screenshot above:
 
 <!-- Subscreen contents -->
 
- <setplot  ref="A1"  fn="doEdit"/>
- <setplot  ref="A2"  fn="doPlot2D"/>
- <setplot  ref="B1"  fn="doPlot3D"/>
+ <setplot  ref="A1"  fn="doPlot"/>
+ <setplot  ref="A2"  fn="doPlot"/>
+ <setplot  ref="B1"  fn="doPlot"/>
 
  <setplot  ref="IA1"  fn="doColorBtn"/>
- <setplot  ref="IB1"  fn="doPlot2D"> 
+ <setplot  ref="IB1"  fn="doPlot"> 
       <rotateModel>Pi/2, 0.0, 0.0</rotateModel>
  </setplot>
- <setplot  ref="IC1"  fn="doPlot2D">
+ <setplot  ref="IC1"  fn="doPlot">
       <rotateModel>0.0, Pi/2, 0.0</rotateModel>
  </setplot>
- <setplot  ref="ID1"  fn="doPlot2D">
+ <setplot  ref="ID1"  fn="doPlot">
       <rotateModel>0.0, 0.0, Pi/2</rotateModel>
  </setplot>
 
  <!-- Connectors -->
  <connection from="B1" to="A2"> 
-            <inSig>:view   , :projection,    :projectionview, :projection</inSig>
-            <outSig>:view , :projectionview,:projection,    :projection </outSig>
+            <inSig>:view  </inSig> <!-- , :projection,    :projectionview, :projection-->
+            <outSig>:view </outSig> <!-- , :projectionview,:projection,    :projection-->
  </connection>
- <connection from="IA1" to="A2"> 
-            <inSig>:color</inSig>
-            <outSig>:color</outSig>
- </connection>
- <connection from="IA1" to="B1"> 
-            <inSig>:color</inSig>
-            <outSig>:color</outSig>
- </connection>
- <connection from="IA1" to="IC1"> 
-            <inSig>:color</inSig>
-            <outSig>:color</outSig>
- </connection>
- <connection from="IA1" to="ID1"> 
-            <inSig>:color</inSig>
-            <outSig>:color</outSig>
- </connection>
-
 
  <!-- Debug options -->
 
 <debug>
-    <dump ref="A2"/>
-    <dump ref="B1"/>
-    <dump ref="IA1"/>
+    <dump ref="IC1"/>
 </debug>
 
 </scene>
 <!-- This ends the scene-->
-
 ```
 
 <TABLE>
@@ -127,7 +164,7 @@ The following branches in the Git tree have specific meaning (At least planned):
         (S.Danisch development)
 <TR><TD>skinny
     <TD>Move to new organization using  GLVisualize, AbstractGPUArray, GeometryTypes, 
-        ColorTypes, Meshes, MeshIO.
+        ColorTypes, Meshes, MeshIO. <B>Currently, just achieved first OGL display.</B>
 <TR><TD>XML
     <TD>XML related functions, waiting for integration with "skinny" branch
        Adds: Management of multiple subscreens, and inter-subscreen  interaction.
@@ -183,9 +220,11 @@ Non master branches used:
 <TR> 
      <TD>  Package <TD> Branch
 <TR> 
-     <TD>  GLAbstraction <TD>  upstream/julia04 + mods
+     <TD>  GLVisualize <TD>  upstream/master + mods
+<TR> 
+     <TD>  GLAbstraction <TD>  upstream/julia04
 <TR> 
      <TD>GLWindow  <TD>    upstream/julia04
 <TR> 
-     <TD>GLFW      <TD> ?   origin/master 5/7/15
+     <TD>GLFW      <TD>    origin/master 5/7/15
 </TABLE>

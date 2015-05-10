@@ -25,13 +25,21 @@
 
 <julia  modulename="SubScreensInline">
    <inline>
-   <?julia
-      module MachinChose
+   <?julia      
+      module MachinChose  # test that we will be able to rename
+                          # the module according to the attribute modulename
+                          # For now we must start the processing instruction 
+			  # with the enclosing module definition. (really a bug)
       using GLAbstraction, GLWindow, ModernGL, GLVisualize
+      using Romeo, TBCompletedM
+      export plot2D, plot3D
+
       #abstract Screen #for use in scaffolding
       #abstract Camera #for use in scaffolding
       warn ("GLAbstraction.Camera is not exported")
       Camera = GLAbstraction.Camera
+
+
       
          # try with a plot
          npts = 50 
@@ -48,9 +56,12 @@
                 ret
          end
          function doPlot2D (sc::Screen,cam::Camera)
-                 TBCompleted ( Float32[ plotFn2D(i,j)  for i=0:npts, j=0:npts ],
+                 println("Entered doPlot2D")
+                 ret = TBCompleted ( Float32[ plotFn2D(i,j)  for i=0:npts, j=0:npts ],
                                nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
                              )
+                 println("Exit doPlot2D returning")
+                 ret
          end  
          npts3D = 12
          function plotFn3D(i,j,k)
@@ -68,10 +79,13 @@
                 ret
          end
          function doPlot3D (sc::Screen,cam::Camera)
+                 println("Entered doPlot3D")
                  dd = Dict{Symbol,Any}(:SetPerspectiveCam => true) 
-                 TBCompleted ( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
+                 ret= TBCompleted ( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
                                          j=0:npts3D, k=0:npts3D ],
                                nothing, dd)
+                 println("Exit doPlot3D returning")
+                 ret
          end  
       end    #  module MachinChose
    ?>
@@ -114,7 +128,7 @@
 
 <!-- Subscreen contents -->
 
- <setplot  ref="A1"  fn="doEdit"/>
+ <setplot  ref="A1"  fn="doPlot"/>
  <setplot  ref="A2"  fn="doPlot"/>
  <setplot  ref="B1"  fn="doPlot"/>
 

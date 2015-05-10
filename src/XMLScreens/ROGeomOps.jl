@@ -1,11 +1,12 @@
 module ROGeomOps
 
-using ImmutableArrays
+using GeometryTypes
 using GLAbstraction
 
 export 
-       VFRotateModel, VFTranslateModel,  
-       VFXCapabilities, VFXTransformModel
+       VFRotateModel,   VFTranslateModel,  
+       VFXCapabilities, VFXTransformModel,
+       hasManipVirt,    manipVirt
 
              # the following registry is indexed by RenderObject id (as
              # found in  field RenderObject.id)

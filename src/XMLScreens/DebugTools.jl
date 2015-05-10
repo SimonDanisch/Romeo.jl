@@ -4,7 +4,7 @@ module DebugTools
 export chkDump
 
 using GLAbstraction
-using Romeo
+using GLVisualize
 
 function unitCube{T<:Number}(zero::T)
     unitcube = Array(T,4,8)
