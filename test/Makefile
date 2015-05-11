@@ -6,8 +6,12 @@ JULIAENV=$(PAMDIR)/JULIA-ENV
 JULIAPGM=Julia4
 
 DOCUTILDIR=../src/docUtil
+TOOLSDIR=tools
 DOCXMLSCR=../src/XMLScreens
+DOCXROMEOSRC=../src/
 DOCUNITTEST=unitTests
+
+CMDXMLVALID=tools/xmlValid
 
 TSTAMP=.strip.timestamp
 
@@ -24,8 +28,15 @@ help:
 	@echo make STRIP=YES....
 	echo STRIPLINECMD = $(STRIPLINECMD)
 
+	@echo after switch to GLVisualize
+	@echo "use runXML   -- as there is no non XML program provided"
+	@echo "             -- not decided (yet?) to provide a non XML (ie API) example "
+
 ts:
 	echo TIME STAMP `date` >  $(TSTAMP)
+
+$(DOCXROMEOSRC)/Romeo.jl : $(JULIATRY)/Romeo.jl  $(TSTAMP)
+	$(STRIPLINECMD) $< |cpif $@
 
 RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
@@ -39,8 +50,6 @@ $(DOCUTILDIR)/DocCompat.jl: $(JULIAENV)/DocCompat.jl  $(TSTAMP)
 $(DOCUTILDIR)/ManipStreams.jl: $(JULIAENV)/ManipStreams.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCXMLSCR)/RomeoLibSimple.jl: $(JULIATRY)/RomeoLibSimple.jl   $(TSTAMP)
-	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCXMLSCR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
@@ -54,8 +63,6 @@ $(DOCXMLSCR)/SubScreens.jl: $(JULIATRY)/SubScreens.jl     $(TSTAMP)
 $(DOCXMLSCR)/Connectors.jl: $(JULIATRY)/Connectors.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCXMLSCR)/SimpleSubScreens.jl: $(JULIATRY)/SimpleSubScreens.jl  $(TSTAMP)
-	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCXMLSCR)/XtraRenderObjOGL.jl: $(JULIATRY)/XtraRenderObjOGL.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
@@ -81,14 +88,18 @@ $(DOCXMLSCR)/Constants.jl: $(JULIATRY)/Constants.jl   $(TSTAMP)
 $(DOCXMLSCR)/subscreenSchema.xsd: $(JULIATRY)/subscreenSchema.xsd
 	cat $< |cpif $@
 
+########## TEST MATERIAL
+
 subscreenSpec.xml: $(JULIATRY)/subscreenSpec.xml
 	cat $< |cpif $@
 
 subscreenSpec2.xml: $(JULIATRY)/subscreenSpec2.xml
 	cat $< |cpif $@
 
-$(DOCXMLSCR)/Changelog: $(JULIAENV)/Changelog
-	cat $< |cpif $@
+#   provide data (code) referenced in subscreenSpec.xml
+#   via julia processing instruction (in xml parlance)
+SubScreensModule.jl:  $(JULIATRY)/SubScreensModule.jl
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUNITTEST)/testSubScreen.jl :$(JULIATRY)/testSubScreen.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
@@ -102,21 +113,29 @@ $(DOCUNITTEST)/TestOGLGeom.jl :$(JULIATRY)/TestOGLGeom.jl  $(TSTAMP)
 $(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
+#########  TOOLS
 
+$(TOOLSDIR)/xmlValid:~/bin/xmlValid
+	cat $< |cpif $@
 
-.PHONY: run run3D runXML runD runDI runSingle runSingle3D runSingleD runSingleI \
+########  INFORMATION
+$(DOCXMLSCR)/Changelog: $(JULIAENV)/Changelog
+	cat $< |cpif $@
+
+#################### INSTALL TARGETS ##################"
+
+.PHONY: run  runXML runXMLD  \
 	eprogs tests progtests \
         editTest2
 
-progs :  RomeoVolume.jl \
+progs :  RomeoVolume.jl subscreenSpec.xml\
+	$(DOCXROMEOSRC)/Romeo.jl \
         $(DOCXMLSCR)/RomeoLib.jl \
-        $(DOCXMLSCR)/RomeoLibSimple.jl \
         $(DOCXMLSCR)/DebugTools.jl \
         $(DOCXMLSCR)/TBCompletedM.jl \
         $(DOCXMLSCR)/MatrixMathPlus.jl \
         $(DOCXMLSCR)/SubScreens.jl \
         $(DOCXMLSCR)/Connectors.jl \
-        $(DOCXMLSCR)/SimpleSubScreens.jl \
         $(DOCXMLSCR)/XtraRenderObjOGL.jl \
 	$(DOCXMLSCR)/VirtualOGLGeom.jl \
 	$(DOCXMLSCR)/ROGeomOps.jl \
@@ -126,20 +145,38 @@ progs :  RomeoVolume.jl \
         $(DOCXMLSCR)/Constants.jl \
         $(DOCUTILDIR)/ManipStreams.jl \
         $(DOCUTILDIR)/DocCompat.jl \
-        $(DOCXMLSCR)/subscreenSchema.xsd 
-
+        $(DOCXMLSCR)/subscreenSchema.xsd \
+	$(TOOLSDIR)/xmlValid
 
 progtests: $(DOCUNITTEST)/testSubScreen.jl \
 	    $(DOCUNITTEST)/testLumberjack.jl \
 	    $(DOCUNITTEST)/TestOGLGeom.jl \
-	    $(DOCUNITTEST)/testVirtOGLGeom.jl
+	    $(DOCUNITTEST)/testVirtOGLGeom.jl \
+	    $(TOOLSDIR)/xmlValid
 
+#################### TEST TARGETS ##################"
 
-run:         progs 
+run:         runXML 
 	$(JULIAPGM) RomeoVolume.jl --log=/tmp/RomeoLumber01.log
+
+./PHONY : validXML  validXML2  validXML3 validXML4 
+validXML: subscreenSpec.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+	$(CMDXMLVALID) subscreenSpec.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+
+validXML2:subscreenSpec2.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+	$(CMDXMLVALID) subscreenSpec2.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+
+validXML3:subscreenSpec3.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+	$(CMDXMLVALID) subscreenSpec3.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+
+validXML4:subscreenSpec4.xml  $(DOCXMLSCR)/subscreenSchema.xsd
+	$(CMDXMLVALID) subscreenSpec4.xml  $(DOCXMLSCR)/subscreenSchema.xsd
 
 runXML:      progs subscreenSpec.xml
 	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
+
+runXMLD:      progs subscreenSpec.xml
+	$(JULIAPGM) RomeoVolume.jl --debugRLib=0xFF --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
 
 runXML2:      progs subscreenSpec2.xml
 	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec2.xml --log=/tmp/RomeoLumber01.log
@@ -150,37 +187,24 @@ runXML3:      progs subscreenSpec3.xml
 runXML4:      progs subscreenSpec4.xml
 	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec4.xml --log=/tmp/RomeoLumber01.log
 
-run3D:       progs 
-	$(JULIAPGM) RomeoVolume.jl --dim=3 --log=/tmp/RomeoLumber01.log
-
-runD:         progs 
-	$(JULIAPGM) RomeoVolume.jl --log=/tmp/RomeoLumber01.log --debugAbs=61 --debugWin=1
-
-runDI:         progs 
-	$(JULIAPGM) RomeoVolume.jl -i --log=/tmp/RomeoLumber01.log --debugAbs=61 --debugWin=1
-
-
-runSingle:   progs 
-	$(JULIAPGM) RomeoGridSimple.jl --log=/tmp/RomeoLumber01.log --cube
-
-runSingle3D:   progs 
-	$(JULIAPGM) RomeoGridSimple.jl  --log=/tmp/RomeoLumber01.log --dim3D
-
-runSingleD:  progs 
-	$(JULIAPGM) RomeoGridSimple.jl --cube --debugAbs=61 --debugWin=1
-
-runSingleDI:  progs 
-	$(JULIAPGM) RomeoGridSimple.jl --cube --img --debugAbs=61 --debugWin=1
-
 
 editTest2:
         # barely working version of SD's runtest.jl (my mods+documentation)
 	$(JULIAPGM) runtestsDoc.jl	
 
-# -exemples found in the upstream (S.Danisch) git tree
 
+# tests  : simple tests using GLVisualize
+.PHONY: testRTM3D testRTM2D
 
-# --exemples sent by S.Danisch (and working)
+ testRTM3D:
+	$(JULIAPGM) RomeoTestMini.jl	
+
+ testRTM2D:
+	$(JULIAPGM) RomeoTestMini.jl	aa bb
+
+# -EXEMPLES found in the upstream (S.Danisch) git tree
+
+# --EXEMPLES sent by S.Danisch (and working  -- before swich to GLVisualize)
 .PHONY: runtt synchRot editTest gridImg
 #    show surface with mouse actions (rotations etc)
 runtt : testest.jl
@@ -197,7 +221,7 @@ editTest: runtests.jl
 gridImg: simple_display_grid.jl
 	$(JULIAPGM) simple_display_grid.jl
 
-#### non working examples
+#### NON WORKING EXAMPLES
 # felix.jl
 #	LoadError: MethodError: `edit` has no method matching edit(::Dict{Symbol,Any})
 

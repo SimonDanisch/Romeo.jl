@@ -4,8 +4,8 @@
      Julia4 RomeoTestMini.jl      : shows pb with 3D data
      Julia4 RomeoTestMini.jl any args here   : works with 2D Plot
 ==#
-using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color,
-      ImmutableArrays
+using Romeo, GLVisualize, AbstractGPUArray, GLAbstraction, GeometryTypes, Reactive,
+      ColorTypes, Meshes, MeshIO, GLWindow, ModernGL
 
 function mkVol(screen)
    npts3D = 12
@@ -29,12 +29,12 @@ end
 
 function mkSurf(screen)
     visualize(Float32[sin(i)sin(j) for i=0:0.1:5,
-                                       j=0:0.1:5], primitive=SURFACE(),
+                                       j=0:0.1:5],  :surface,
                                        screen=screen)
 end    
 
 function setup(dovol)
-    root_screen = Romeo.ROOT_SCREEN
+    root_screen = GLVisualize.ROOT_SCREEN
 
     screenArea = lift(root_screen.area) do area
         Rectangle{Int}(0, 0, area.w, area.h)
@@ -62,10 +62,21 @@ end
 # Select version
 length(ARGS) <= 1 ? setup(true) : setup(false)
 
-while Romeo.ROOT_SCREEN.inputs[:open].value
+
+#== This works
+renderloop()
+==#
+
+#   Is this better than renderloop() ???
+
+while GLVisualize.ROOT_SCREEN.inputs[:open].value
     glEnable(GL_SCISSOR_TEST)
-    Romeo.renderloop(Romeo.ROOT_SCREEN)
+    GLVisualize.renderloop(GLVisualize.ROOT_SCREEN)
     sleep(0.0001)
 end
 
 GLFW.Terminate()
+
+
+
+

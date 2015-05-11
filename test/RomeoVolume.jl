@@ -1,17 +1,18 @@
 using Lumberjack
 
 using Romeo
-using DocCompat
-using TBCompletedM
-using SubScreens
-using Connectors
 
 # try to avoid the numerous "deprecated warnings/messages"
 using ManipStreams
 (os,ns) =  redirectNewFWrite("/tmp/julia.redirected")
 
-using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
-using ImmutableArrays
+using GLVisualize, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, ColorTypes
+
+using GeometryTypes
+using TBCompletedM
+using SubScreens
+using Connectors
+
     #  Loading GLFW opens the window
 using Compat
 using LightXML
@@ -21,54 +22,41 @@ using RomeoLib
 
 using ParseXMLSubscreen
 using SemXMLSubscreen
-
+using ColorTypes
 @doc """ This function uses the XML interface to define a screen organized
          into subscreens.
      """  ->
 function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
-   # try with a plot
-   npts = 50 
-   function plotFn2D(i,j)
-         x = Float32(i)/Float32(npts)-0.5 
-         y = Float32(j)/Float32(npts)-0.5 
-         ret = if ( x>=0 ) && ( x>=y)
-                   4*x*x+2*y*y
-               elseif ( x<0) 
-                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
-               else
-                   0.0
-               end
-          ret
-   end
-   function doPlot2D (sc::Screen,cam::GLAbstraction.Camera)
-           TBCompleted ( Float32[ plotFn2D(i,j)  for i=0:npts, j=0:npts ],
-                         nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
-                       )
-   end  
+   # Here we need to read the XML and do whatever is needed
+   # We have moved this before the definition of the functions below
+   # because of the definition of plt below, which requires doPlot2D and
+   # doPlot3D. This is also a good test of our parse strategy for XML chunks
 
-   npts3D = 12
-   function plotFn3D(i,j,k)
-         x = Float32(i)/Float32(npts3D)-0.5 
-         y = Float32(j)/Float32(npts3D)-0.5 
-         z = Float32(k)/Float32(npts3D)-0.5 
+   xdoc = parse_file(xml)
+   parseTree = acDoc(xdoc)
+   SemXMLSubscreen.setDebugLevels(true,0x20)   #debug
+   sc = subscreenContext()
 
-         ret = if ( x>=0 ) && ( x>=y)
-                   2*x*x+3*y*y+z*z
-               elseif ( x<0) 
-                   2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
-               else
-                   9*x*y*z
-               end
-          ret
-   end
-   function doPlot3D (sc::Screen,cam::GLAbstraction.Camera)
-           dd = Dict{Symbol,Any}(:SetPerspectiveCam => true) 
-           TBCompleted ( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
-                                   j=0:npts3D, k=0:npts3D ],
-                         nothing, dd)
-   end  
+   # process the inline xml processing instructions
+   xmlJuliaImport(parseTree,sc)
+   
 
-   plt = plotDim==2 ? doPlot2D : doPlot3D
+   # Now, we want to integrate functions defined programmatically here
+   # and others which come from the XML subscreen description
+
+   # here we have a rather stringent test: doPlot2D and doPlot3D are 
+   # defined in the code inlined in XML (in module SubScreensInline)
+
+   # Since it is created by parse, the module SubScreensInline is known
+   # inside the context of the module specified when calling parse in 
+   # SemXMLSubscreen.processInline. The function 
+   # SemXMLSubscreen.__init__() provides the special module Main.xmlNS
+   # for this context.
+   SubScreensInline =  xmlNS.SubScreensInline
+
+   println("names module xmlNS", names(xmlNS))
+   println("names module SubScreensInline", names(SubScreensInline))
+   plt = plotDim==2 ? SubScreensInline.doPlot2D : SubScreensInline.doPlot3D
 
    # put the cat all over the place!!!
    pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
@@ -77,8 +65,10 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    cube = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
 
    # color
+   # Unable to convert this function to GLVisualize
    function doColorChooser(sc::Screen,cam::GLAbstraction.Camera)
-          TBCompleted (AlphaColorValue(RGB{Float32}(0.8,0.2,0.2), float32(0.5)),
+          TBCompleted (ColorTypes.AlphaColorValue( 
+                       ColorTypes.RGB24(0xE0,0x10,0x10), float32(0.5)),
                        nothing, Dict{Symbol,Any}(:doColorChooser=> true))
    end
    colorBtn = doColorChooser
@@ -88,23 +78,17 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    function doEdit(sc::Screen,cam::GLAbstraction.Camera)
      "barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n"
    end
-   # I suppose that after a while, this will be prepared by macros
-   fnDict = Dict{AbstractString,Function}("doEdit"=>doEdit, 
-                                          "doColorBtn"=>colorBtn, 
-                                          "doCube" => cube, 
+   # This is a table of provided functions, other have been already found when
+   # parsing the xml
+   fnDict = Dict{AbstractString,Function}("doEdit"=>pic, 
+                                          "doColorBtn"=>plt, 
+                                          "doCube" => plt, 
                  			  "doPic"=>pic, 
-                                          "doPlot" => plt,
-                                          "doPlot2D" => doPlot2D,
-                                          "doPlot3D" => doPlot3D   )
-   # here we need to read the XML and do whatever is needed
-
-   xdoc = parse_file(xml)
-   parseTree = acDoc(xdoc)
-   SemXMLSubscreen.setDebugLevels(true,8)   #debug
-   vizObj = buildFromParse( parseTree, fnDict)
-   
-
-
+                                          "doPlot" => plt )
+   # We insert these definitions in the namespace use by xml
+   insertXMLNamespace(fnDict)
+   println("After insertXMLNamespace names in Main.xmlNS:",names(Main.xmlNS))
+   vizObj = buildFromParse( parseTree, sc)
    @show vizObj
    return vizObj
 
@@ -118,10 +102,11 @@ end
      """ ->
 function realMain(onlyImg::Bool; pcamSel=true, plotDim=2,  xml::String="")
    init_glutils()
-
    vizObjSC   =        init_graph_gridXML(onlyImg, plotDim, xml)
+   println("Entering  init_romeo")
    init_romeo( vizObjSC; pcamSel = pcamSel )
 
+   println("Entering  interact_loop")
    interact_loop()
 end
 
@@ -137,35 +122,52 @@ function main(args)
        "--img","-i"   
                help="Use image instead of other graphics/scenes"
                action = :store_true
-       "--debugAbs","-d"
-               help="show debugging output (in particular from GLRender)"
-               arg_type = Int
        "--xml","-x"
                help="enter the filename of the XML subscreen description"
                arg_type = String
-       "--debugWin","-D"
-               help="show debugging output (in particular from GLRender)"
-               arg_type = Int
       "--ortho", "-o"       
                help ="Use orthographic camera instead of perspective"
                action = :store_true
        "--log","-l"
                help ="Use lumberjack log"
                arg_type = String
+       "--debugRLib"
+               help="show debugging output (in particular from GLRender)"
+               arg_type = Int
+       "--debugSC"
+               help="show debugging output (in particular from GLRender)"
+               arg_type = Int
+       "--debugSX"
+               help="show debugging output from SemXMLSubscreen"
+               arg_type = Int
 
      end    
 
      s.epilog = """
-       GLAbstraction debug levels (ORed bit values)
-        Ox01     1 : add traceback for constructors and related
-        0x04     4 : print uniforms
-        0x08     8 : print vertices
-        0x10    16 : reserved for GLTypes.GLVertexArray
-        0x10    32 : reserved for postRenderFunctions
+       RomeoLib debug levels (ORed bit values):
+           0x01: Show information about user provided function calls
+              2: Show debugging information related to pushing onto renderlist
+              4: Debug connector
+              8: Debug calls to visualize
+           0x10: Show progress in fnWalk1 functions (walk subscreen tree)
+           0x20: Show progress in fnWalk2 functions (walk subscreen tree)
+           0x40: Show progress in fnWalk3 functions (walk subscreen tree)
+           0x80: Show progress in fnWalk4 functions (walk subscreen tree)
 
-       GLWindow debug :
-               flagOn : on / off
-               *** Level (ORed bit values) :to be allocated ***
+       SubScreens debug levels (ORed bit values):
+           0x01: Show progress in treeWalk
+              2: Show calls of user  functions
+              4: Show iterations to cover children
+
+       SemXMLSubscreen debug levels (ORed bit values):
+           0x01: Show steps in syntax recognition
+              2: Show final AST
+              4: Show state transitions when state automata use fn. stateTrans
+              8: Show steps in semantics (transition from XML to actions 
+                      on subscreen tree)
+           0x10: Show steps in subscreen tree indexing or manipulation
+           0x20: Debug julia code inclusion and referencing
+
      """
     parsed_args = parse_args(s) # the result is a Dict{String,Any}
 
@@ -185,13 +187,14 @@ function main(args)
           Lumberjack.log("debug", "starting main with args")
     end
 
-    parsed_args["debugAbs"] != nothing && GLAbstraction.setDebugLevels( true,  
-                                                      parsed_args["debugAbs"])
-    parsed_args["debugWin"] != nothing && GLWindow.setDebugLevels( true, 
-                                                      parsed_args["debug"])
+    parsed_args["debugSX"] != nothing &&   SemXMLSubscreen.setDebugLevels(true,
+				parsed_args["debugSX"])
+    parsed_args["debugSC"] != nothing &&   SubScreens.setDebugLevels(true,
+				parsed_args["debugSC"])
+    parsed_args["debugRLib"] != nothing && RomeoLib.setDebugLevels(true,
+				parsed_args["debugRLib"])
 
-    ### NOW, run the program 
-    realMain(onlyImg, pcamSel=pcamSel,  plotDim=plotDim, xml=xml)    
+    realMain(onlyImg, pcamSel=pcamSel,  plotDim=plotDim, xml=xml )    
 end
 
 main(ARGS)

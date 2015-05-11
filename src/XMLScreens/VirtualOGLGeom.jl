@@ -9,7 +9,7 @@ export  rotationMatrix,
 
 # we want to use GLAbstraction's GLMatrixMath
 using GLAbstraction
-using ImmutableArrays
+using GeometryTypes
 using SubScreens
 using ROGeomOps
 using MatrixMathPlus
@@ -23,10 +23,10 @@ end
 # This one is missing in GLAbstraction.GLMatrixMath
 function rotationmatrix_y{T}(angle::T)
     Matrix4x4{T}(
-        Vector4{T}(cos(angle), 0  ,sin(angle), 0),
-        Vector4{T}(0,          1,  0,          0),
-        Vector4{T}(-sin(angle), 0  ,cos(angle), 0),
-        Vector4{T}(0, 0, 0, 1))
+        cos(angle),  0  ,sin(angle), 0 ,
+        0,           1,  0,          0,
+        -sin(angle), 0  ,cos(angle), 0,
+        0, 0, 0, 1 )
 end
 
 # This is the Euler decomposition of a 3D rotation
@@ -56,12 +56,10 @@ function translationMatrix{T}(translation::Vector3{T})
 end
 
 function   modelGeomApply{T}(ro::RenderObject, matrix::Matrix4x4{T})
-    # basic philosophy: look into ro's Virtual Function Table, grab the
-    # transformation and apply it or throw error (geom transf non supported)
-    vfns = ro.manipVirtuals
-    haskey(vfns,VFXTransformModel) || error( 
+
+    hasManipVirt(ro, VFXTransformModel )|| error( 
       "The target RenderObject has no capability for model geometry modification" )
-    xformFn = vfns[VFXCapabilities]
+    xformFn = manipVirt( ro, VFXCapabilities)
     xformFn(ro,matrix)
 end
 modelGeomRotate{T}( ro::RenderObject,angle::T, axis::Vector3{T} )=
@@ -97,12 +95,12 @@ function effVModelGeomCamera{T}(ssc::SubScreen, eyepos::Vector3{T},
       return  eyepos, centerscene
    end
 end
-@doc """ This is performs modelSpace transformations
+@doc """ This performs modelSpace transformations
          ro :is a RenderObject which supports model space transformations
          matrix: is the transformation matrix in homogeneous coordinates 
 """ ->
 function modelSpaceXform{T}(ro::RenderObject,mat::Matrix4x4{T})
-         haskey(ro.manipVirtuals,  VFXTransformModel)
+         hasManipVirt(ro,  VFXTransformModel)
          warn("TO BE IMPLEMENTED!!! ( modelSpaceXform)")
 end
 

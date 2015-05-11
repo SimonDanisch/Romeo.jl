@@ -1,101 +1,167 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+            elementFormDefault="qualified" >
 
-  <xsd:annotation>
-    <xsd:documentation xml:lang="en">
+  <xs:annotation>
+    <xs:documentation xml:lang="en">
       Part of extensions for Romeo.jl
-    </xsd:documentation>
-  </xsd:annotation>
+    </xs:documentation>
+  </xs:annotation>
 
 
   <!-- Comma separated lists of numbers -->
-  <xsd:simpleType name="listofIntsType">
-     <xsd:restriction base="xsd:string">
-        <xsd:pattern value="(\d,)*\d"/>
-     </xsd:restriction>
-  </xsd:simpleType>
+  <xs:simpleType name="listofIntsType">
+     <xs:restriction base="xs:string">
+        <xs:pattern value="(\d,)*\d"/>
+     </xs:restriction>
+  </xs:simpleType>
 
 
-  <xsd:simpleType name="listofFLoatsType">
-     <xsd:restriction base="xsd:string">
-        <xsd:pattern value="(\d.\d,)*\d.\d"/>
-     </xsd:restriction>
-  </xsd:simpleType>
+  <xs:simpleType name="listofFLoatsType">
+     <xs:restriction base="xs:string">
+        <xs:pattern value="(\d(.\d,)?)*\d(.\d)?"/>
+     </xs:restriction>
+  </xs:simpleType>
 
-  <xsd:simpleType name="listofFLoatExprType">
-      <!--here we admit a list of Julia expressions -->
-  </xsd:simpleType>
-
-
-
-  <xsd:element name="scene" type="sceneType"/>
-  <xsd:complexType name="sceneType">
-    <xsd:element name="rootScreen" type="subscreenType"/>
-    <xsd:attribute name="name" type="xsd:string"/>
-
-    <xsd:list itemType="subscreenType">
-    <xsd:list itemType="setplotType">
-    <xsd:list itemType="connectionType">
-    <xsd:list itemType="debugType">
-  </xsd:complexType>
-
-  <xsd:element name="subscreen" type="subscreenType"/>
-  <xsd:complexType name="subscreenType">
-    <xsd:sequence>
-      <xsd:element name="rowsizes" type="listofFLoatsType"/>
-      <xsd:element name="colsizes" type="listofFLoatsType"/>
-      <xsd:element name="table" type="TableType"/>
-    </xsd:sequence>
-    <xsd:attribute name="rows" type="xsd:number"/>
-    <xsd:attribute name="cols" type="xsd:number"/>
-    <xsd:attribute name="name" type="xsd:string"/>
-  </xsd:complexType>
+  <xs:simpleType name="listofFLoatExprType">
+      <!--here we admit a list of Julia expressions , may be the pattern is
+          too permissive ?? -->
+     <xs:restriction base="xs:string">
+        <xs:pattern value=".*"/>
+     </xs:restriction>
+  </xs:simpleType>
 
 
-  <xsd:element name="table" type="TableType"/>
-  <xsd:simpleType name="TableType">  
-    <xsd:list itemType="TableRowType"/>
-  </xsd:simpleType>
+  <xs:element name="scene" type="sceneType"/>
+  <xs:complexType name="sceneType">
+   <xs:sequence>
+    <xs:element name="julia" type="juliaType" 
+		maxOccurs="unbounded"    minOccurs="0" />
+    <xs:sequence>
+       <xs:element name="subscreen"  type="subscreenType"
+                   maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:sequence>
+       <xs:element name="setplot" type="setplotType"
+                   maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:sequence>
+      <xs:element name="connection" type="connectionType"
+                  maxOccurs="unbounded"  minOccurs="0"/>
+    </xs:sequence>
+    <xs:sequence>
+     <xs:element name="debug" type="debugType"/>
+    </xs:sequence>
+   </xs:sequence>
+  </xs:complexType>
 
 
-  <xsd:element name="tr" type="TableRowType"/>
-  <xsd:simpleType name="TableRowType">  
-    <xsd:list itemType="subscreenType"/>
-  </xsd:simpleType>
+  <!-- Part of syntax used to designate julia functions used and link to 
+       containing  module(s)
+   -->
+  <xs:complexType name="importType">
+    <xs:attribute name="fn" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="juliaType">
+    <xs:sequence >
+      <xs:choice maxOccurs="unbounded">
+         <xs:element name="import" type="importType" />
+         <xs:element name="inline"/>   
+                  <!-- Please note that processing instruction are
+                       simply ignored by XSD 1.0 and 1.1.
+
+		       "Searching the spec for "processing instruction" gives one 
+			hit, which is the sentence in 3.1.4 that says "The above definition 
+			means that comments and processing instructions, even in the midst of
+                        text, are ignored for all ·validation· purposes."
+
+                       We test what is accessible at the LightXML processor level.
+                  -->
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="modulename" type="xs:string"/>
+  </xs:complexType>
+  <!-- End of section related to julia function and module(s)-->
 
 
-  <xsd:complexType name="setplotType">
-    <xsd:sequence>
-      <xsd:element name="rotateModel" type="listofFLoatsType"/>
-    </xsd:sequence>
-    <xsd:attribute name="ref" type="xsd:string"/>
-    <xsd:attribute name="fn" type="xsd:string"/>
-  </xsd:complexType>
+  <xs:complexType name="subscreenType">
+    <xs:sequence >
+      <xs:element name="rowsizes" type="listofFLoatsType" 
+                  maxOccurs="1"    minOccurs="0" />
+      <xs:element name="colsizes" type="listofFLoatsType"
+                  maxOccurs="1"    minOccurs="0" />
+      <xs:element name="table" type="TableType"
+                  maxOccurs="1"    minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="rows" type="xs:integer"/>
+    <xs:attribute name="cols" type="xs:integer"/>
+    <xs:attribute name="name" type="xs:string"/>
+  </xs:complexType>
 
-  <xsd:complexType name="connectionType">
-    <xsd:sequence>
-      <xsd:element name="from" />
-      <xsd:element name="to" />
-      <xsd:element name="inSig" type="listofSignals"/>
-      <xsd:element name="outSig" type="listofSignals"/>
-    </xsd:sequence>
-  </xsd:complexType>
+  <xs:element name="table" type="TableType"/>
+  <xs:complexType name="TableType">  
+    <xs:sequence>
+          <xs:element name="tr"  type="TableRowType"
+                      maxOccurs="unbounded"  />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TableRowType">  
+    <xs:sequence>
+           <xs:element name="subscreen" type="subscreenType"
+                       maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:complexType name="setplotType">
+    <xs:sequence>
+      <xs:element name="rotateModel" type="listofFLoatExprType"
+                  minOccurs="0" />
+    </xs:sequence>
+    <xs:attribute name="ref" type="xs:string"/>
+    <xs:attribute name="fn" type="xs:string"/>
+  </xs:complexType>
+
+
+  <xs:simpleType name="listofSignals">
+      <!--here we admit a list of Symbols (in Julia syntax ":xxxxx"
+          this pattern is too permissive ?? -->
+     <xs:restriction base="xs:string">
+        <xs:pattern value=".*"/>
+     </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="connectionType">
+    <xs:sequence>
+      <xs:element name="inSig" type="listofSignals"/>
+      <xs:element name="outSig" type="listofSignals"/>
+    </xs:sequence>
+    <xs:attribute name="from" type="xs:string"/>
+    <xs:attribute name="to"   type="xs:string"/>
+  </xs:complexType>
+
+
 
   <!-- instruct to print a dump of a subscreen at the end of XML 
        semantics processing 
    -->
-  <xsd:element name="dump" type="dumpType"/>
-  <xsd:complexType name="dumpType">
-    <xsd:attribute name="ref" type="xsd:string"/>
-  </xsd:complexType>
+  <xs:element name="dump" type="dumpType"/>
+  <xs:complexType name="dumpType">
+    <xs:attribute name="ref" type="xs:string"/>
+  </xs:complexType>
 
   <!--Perform a set of debug actions -->
-  <xsd:element name="debug" type="debugType"/>
-  <xsd:complexType name="debugType">
-    <xsd:sequence>
-      <xsd:element name="dump" type="dumpType"/>
-    </xsd:sequence>
-  </xsd:complexType>
+  <xs:complexType name="debugType">
+    <xs:sequence>
+      <xs:element name="dump" type="dumpType" 
+                  maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
 
-</xsd:schema>
+</xs:schema>
+
+
+
 

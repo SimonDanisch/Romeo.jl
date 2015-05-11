@@ -3,9 +3,9 @@ module MatrixMathPlus
 export norm2S,  frobNorm, 
       xtend4, xtendH, unXtend4, affineProjH    # to and from projective/homog
 
-using ImmutableArrays
+using GeometryTypes
 
-# L2 norm handled by ImmutableArrays
+# L2 norm handled by GeometryTypes
 # L2 norm square
 
 mydot{VT}(v1::VT,v2::VT) = sum(v1.*conj(v2))

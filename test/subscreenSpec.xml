@@ -1,9 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
+<!-- Function definitions  -->
 
+<julia   modulename="SubScreensModule">
+   <import fn="doPlot2D"/>
+   <import fn="doPlot3D"/>
+</julia>
+
+<julia  >
+   <inline>
+   <?julia
+      begin  #list of functions
+      function tyty(x,y)
+           println("In tyty x=$x,y=$y")
+      end
+      function tyty2(x,y)
+           println("In tyty2 x=$x,y=$y")
+      end
+      end  #list of functions
+   ?>
+   </inline>
+</julia>
+
+<julia  modulename="SubScreensInline">
+   <inline>
+   <?julia      
+      module MachinChose  # test that we will be able to rename
+                          # the module according to the attribute modulename
+                          # For now we must start the processing instruction 
+			  # with the enclosing module definition. (really a bug)
+      using GLAbstraction, GLWindow, ModernGL, GLVisualize
+      using Romeo, TBCompletedM
+      export plot2D, plot3D
+
+      #abstract Screen #for use in scaffolding
+      #abstract Camera #for use in scaffolding
+      warn ("GLAbstraction.Camera is not exported")
+      Camera = GLAbstraction.Camera
+
+
+      
+         # try with a plot
+         npts = 50 
+         function plotFn2D(i,j)
+               x = Float32(i)/Float32(npts)-0.5 
+               y = Float32(j)/Float32(npts)-0.5 
+               ret = if ( x>=0 ) && ( x>=y)
+                         4*x*x+2*y*y
+                     elseif ( x<0) 
+                         2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+                     else
+                         0.0
+                     end
+                ret
+         end
+         function doPlot2D (sc::Screen,cam::Camera)
+                 println("Entered doPlot2D")
+                 ret = TBCompleted ( Float32[ plotFn2D(i,j)  for i=0:npts, j=0:npts ],
+                               nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
+                             )
+                 println("Exit doPlot2D returning")
+                 ret
+         end  
+         npts3D = 12
+         function plotFn3D(i,j,k)
+               x = Float32(i)/Float32(npts3D)-0.5 
+               y = Float32(j)/Float32(npts3D)-0.5 
+               z = Float32(k)/Float32(npts3D)-0.5 
+
+               ret = if ( x>=0 ) && ( x>=y)
+                         2*x*x+3*y*y+z*z
+                     elseif ( x<0) 
+                         2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+                     else
+                         9*x*y*z
+                     end
+                ret
+         end
+         function doPlot3D (sc::Screen,cam::Camera)
+                 println("Entered doPlot3D")
+                 dd = Dict{Symbol,Any}(:SetPerspectiveCam => true) 
+                 ret= TBCompleted ( Float32[ plotFn3D(i,j,k) for i=0:npts3D, 
+                                         j=0:npts3D, k=0:npts3D ],
+                               nothing, dd)
+                 println("Exit doPlot3D returning")
+                 ret
+         end  
+      end    #  module MachinChose
+   ?>
+   </inline>
+</julia>
 <!-- Subscreen description -->
-
  <subscreen rows="2" cols="2" name="MAIN">
   <rowsizes>1,4</rowsizes>
   <colsizes>4,1</colsizes>
@@ -40,7 +128,7 @@
 
 <!-- Subscreen contents -->
 
- <setplot  ref="A1"  fn="doEdit"/>
+ <setplot  ref="A1"  fn="doPlot"/>
  <setplot  ref="A2"  fn="doPlot"/>
  <setplot  ref="B1"  fn="doPlot"/>
 

@@ -16,16 +16,20 @@
     the walk in this <scene> list.
 ==#
 module SemXMLSubscreen
-using ParseXMLSubscreen
-using SubScreens
-using GLAbstraction
-using ROGeomOps
-using Connectors
-export  setDebugLevels,  
-	buildFromParse
+  using ParseXMLSubscreen
+  using SubScreens
+  using GLAbstraction
+  using ROGeomOps
+  using Connectors
+
+export  setDebugLevels,
+        subscreenContext,  
+	buildFromParse,
+        xmlJuliaImport,
+        insertXMLNamespace
 
 debugFlagOn  = false
-debugLevel   = 0::Int64
+debugLevel   = UInt64(0)
 
 #==       Level (ORed bit values)
            0x01: Show steps in syntax recognition
@@ -34,52 +38,60 @@ debugLevel   = 0::Int64
               8: Show steps in semantics (transition from XML to actions 
                       on subscreen tree)
            0x10: Show steps in subscreen tree indexing or manipulation
+           0x20: Debug julia code inclusion and referencing
 ==#
  
 #==  Set the debug parameters
 ==#
-function setDebugLevels(flagOn::Bool,level::Int)
+function setDebugLevels(flagOn::Bool,level::UInt64)
     global debugFlagOn
     global debugLevel
     debugFlagOn = flagOn
-    debugLevel  = flagOn ? level : 0
+    debugLevel  = flagOn ? UInt64(level) : UInt64(0)
 end
+setDebugLevels(flagOn::Bool,level::Int) = setDebugLevels(flagOn,UInt64(level))
+setDebugLevels(flagOn::Bool,level::Int32) = setDebugLevels(flagOn,UInt64(level))
+setDebugLevels(flagOn::Bool,level::UInt8) = setDebugLevels(flagOn,UInt64(level))
 
-dodebug(b::UInt8)  = debugFlagOn && ( debugLevel & Int64(b) != 0 )
-dodebug(b::UInt32) = debugFlagOn && ( debugLevel & Int64(b) != 0 )
-dodebug(b::UInt64) = debugFlagOn && ( debugLevel & Int64(b) != 0 )
-
+dodebug(b::UInt8)  = debugFlagOn && ( debugLevel & UInt64(b) != 0 )
+dodebug(b::UInt32) = debugFlagOn && ( debugLevel & UInt64(b) != 0 )
+dodebug(b::UInt64) = debugFlagOn && ( debugLevel & UInt64(b) != 0 )
 # we use type subscreenContext to keep the context of the recursion 
 # building subscreen SemNodes.
 
 type subscreenContext
      level::Int                   # for pretty printing and such
      tree::Union(Void,String)        
-     treeIndex::Array{(Int,Int),1} # see Base.getindex extension in SubScreens.jl
-                                  # simpler with array, extend with vcat or push!
-     builtDict::Dict{(Symbol,Symbol),Any}  
+     treeIndex::Array{ Tuple{Int,Int},1} 
+                             # see Base.getindex extension in SubScreens.jl
+                             # simpler with array, extend with vcat or push!
+     builtDict::Dict{Tuple{Symbol,Symbol},Any}  
              # access built subscreens; used in finalization to fill pure references. 
              # first symbol has values 
              #    :subscreen = value is subscreen tree
              #    :name      = value is (Symbol) name of rooted subscreen tree  
              #                   which  may not exist yet
              #    :locname   = value is (Symbol) name of subscreen subtree
+             #    :importFn=   function entry:   second el in key pair is name of function 
+             #                 which may then be used in <setplot> tags, value is callable 
+             #    :module=     module entry:   second el in key pair is name of module
+             #                 A priori module found here are loaded when  entry is added
 
-     finalize::Array{(Any,Int,Int,Symbol),1}       
+     finalize::Array{Tuple{Any,Int,Int,Symbol},1}       
                                   # keep list of actions needed in finalize, in the form
                                   # of (reference to array, index i, index j, identifier)
      function subscreenContext()
            nS=new()
            nS.level = 0; 
            nS.tree = nothing;  nS.treeIndex=[]; nS.builtDict=Dict{Symbol,Any}()
-	   nS.finalize = Array{(Any,Int,Int,Symbol),1}(0)
+	   nS.finalize = Array{ Tuple{Any,Int,Int,Symbol},1}(0)
            nS
      end
 
     #default constructor, required since no default constructor provided
      function subscreenContext(l::Int, tr::Union(Void,String),
-                    ti::Array{(Int,Int),1}, bd::Dict{(Symbol,Symbol),Any},
-                    f::Array{(Any,Int,Int,Symbol),1})
+               ti::Array{ Tuple{Int,Int},1}, bd::Dict{ Tuple{Symbol,Symbol},Any},
+               f::Array{ Tuple{Any,Int,Int,Symbol},1})
         nS=new()
         nS.level=l; nS.tree=tr; nS.treeIndex=ti; nS.builtDict=bd; nS.finalize = f
         nS
@@ -110,19 +122,20 @@ function Base.show(io::IO, sc::subscreenContext)
      print(io, reduce((x,y)->( x* "\n") * y, strs))
 end
 
-function buildFromParse(ast::SemNode, fnDict::Dict{String,Function})
+function buildFromParse(ast::SemNode, sc::subscreenContext)
    dodebug(0x1) && println("In  buildFromParse,ast=$ast")
-   state::Symbol = :subscreen
+   state::Symbol = :init
    astPos::Int = 0
    const stateTransitions    = (
+        (:init,      :subscreen,  :subscreen),
+        (:init,      :julia,      :julia),
+        (:julia,     :subscreen,  :subscreen),
         (:subscreen, :setplot,    :setplot),
         (:setplot,   :connection, :connection),
         (:setplot,   :debug,      :debug),
         (:connection, :debug,     :debug)
    )
-  # accumulate information about subscreens 
-  sc = subscreenContext()
-
+  
   for astItem in ast.nd
       curSym::Symbol    = astItem.nd[1]
       curAst            = astItem.nd[2]
@@ -139,11 +152,13 @@ function buildFromParse(ast::SemNode, fnDict::Dict{String,Function})
       if state == :subscreen
          processSubscreen( curAst, sc)
       elseif state == :setplot
-         processSetplot( astItem, sc, fnDict)
+         processSetplot( astItem, sc)
       elseif state == :connection
          processConnection( astItem, sc)
       elseif state == :debug
          processDebug( astItem, sc)
+      elseif state == :julia
+         processJuliaTag( astItem, sc)
       else
         error ("Internal error, unexpected state")
       end   # if (distinguish states)
@@ -232,6 +247,9 @@ function    finalizeSubscreenSection(sc::subscreenContext)
     (i,s,t)  = getTreeSetPtr(:MAIN,sc,:name)
     newTree  = computeRects(GLAbstraction.Rectangle{Float64}(0.,0.,1.,1.), s)
     # modify this in the builtDict symbol table
+    println("In finalizeSubscreenSection\n\tcalling  scIdentSetTree!")
+    @show newTree
+    @show sc
     scIdentSetTree!( :MAIN, newTree, sc, false, :name)
 end
 
@@ -287,7 +305,7 @@ function scIdentSetTree!(nm::Symbol,tree::SubScreen,sc::subscreenContext,
      oldId = Symbol(sc.builtDict[( catSym, nm)])
      if keep
          nwId  = Symbol(mkSubscreenId())
-         sc.builtDict[(:ident,nwId)]      = (nothing,Array{(Int,Int),1}(0))     
+         sc.builtDict[(:ident,nwId)]      = (nothing,Array{Tuple{Int,Int},1}(0))     
          sc.builtDict[(:subscreen,nwId)]  =  sc.builtDict[(:subscreen,oldId)]
      end
      sc.builtDict[(:subscreen,oldId)] = tree     
@@ -308,14 +326,23 @@ function graftSubTrees( sc::subscreenContext )
          sLoc[tLoc...]=sM
      end
 end
-function         processSetplot(ast::SemNode, sc::subscreenContext, 
-			        fnDict::Dict{String,Function})
+function         processSetplot(ast::SemNode, sc::subscreenContext)
     dodebug(0x08) && println("In  processSetplot\tast=$ast")
 
     #locate the insertion pt in the subscreen tree
     (id, tree, indx) = getTreeSetPtr(ast.nd[3]["ref"],sc)
+
     #which function to insert?
-    fn = fnDict[ast.nd[3]["fn"]]
+
+    #fn = fnDict[ast.nd[3]["fn"]]
+    # The function is now found in the module Main.xmlNS as fn (unless there are 
+    #     module issues )
+    fnName = ast.nd[3]["fn"]
+    println("Looking for function ", fnName," in  Main.xmlNS")
+    println("Names(Main.xmlNS):", names(Main.xmlNS))
+    fn = eval(Main.xmlNS, parse(fnName))
+
+    # setting the function
     tree[indx...].attrib[RObjFn] = fn
 
     lstCh = ast.nd[2]
@@ -364,4 +391,147 @@ function         processDebug(ast::SemNode,sc::subscreenContext)
         end
     end
 end
+# Normal location for this code (but we also copy it in the scaffolding 
+# for early testing (while Romeo is changing....)
+function  processJuliaTag( ast::SemNode,  sContext::subscreenContext)
+    if (false && dodebug(0x20)  )
+       println("In processJulia at level ", sContext.level)
+       println("\tast=$ast\n***** *****")
+    end
+    attrList = Array{SemNode,1}(0)
+    for (elSym,elInfo) in filter((k,v)-> k== :attrs, ast.nd[2])
+           push!(attrList,elInfo)
+    end
+    for (elSym,elInfo) in filter((k,v)-> k!= :attrs,ast.nd[2])
+        elSym == :juliaCode || error("Unexpected code $elSym in processJuliaTag")
+        elList = elInfo.nd
+        for el in elList
+            elCde = el.nd[1]
+            elDtl=  el.nd[2]
+            if elCde == :import
+                processImport( elDtl, sContext, attrList)
+            elseif  elCde == :inline
+                processInline( elDtl, sContext, attrList)
+            else
+               error("Unexpected detail code $elCde in processJuliaTag")
+            end
+        end
+    end
+end
+# for imports we simply use the symbol table already present in sContext
+function processImport( elDtl::SemNode, sContext::subscreenContext, 
+                       attrL::Array{SemNode,1})
+    # println("In processImport,elDtl=$elDtl, attrL=", attrL)
+
+    length(attrL) > 1 && error("unexpected length >1 for attrL list")
+    attrs = attrL[1].nd
+
+    impDict = sContext.builtDict
+    modnm = haskey(attrs,"modulename") ? attrs["modulename"] : "Constants"
+
+    #NOTE: for now no protection against clobbering (if multiple functions have identical name)
+    eval(parse( "using "* modnm))
+    modul = eval(parse( modnm))
+    impDict[(:module, Symbol(modnm))] = modul
+
+    for (k,fname) in elDtl.nd 
+         k == "fn" ||  warn("Unexpected key \"$k\" in <import> tag")   
+         impDict[(:importFn, Symbol(fname))] = eval(modul, parse(fname))          
+    end
+end
+
+import JuliaParser.Parser
+import JuliaParser.Lexer
+
+# we prepare a special module, in the Main module context to store
+# the generated modules and other objects
+function __init__()
+   println ("In SemXMLSubscreen.__init__()")
+   eval(Main, Parser.parse("module xmlNS  \t end"))
+   global xmlNS = Main.xmlNS
+end
+# Provide a function to insert the functions prepared in the application
+# code into the xmlNS
+function  insertXMLNamespace(fdict::Dict{AbstractString, Function})
+    println("In insertXMLNamespace, fdict=", fdict)
+    for  (nm, fn) in fdict
+        println("Function=$fn")
+        expr1 = Parser.parse( nm * " = _unused_ "  )
+        expr1.args[2] = fn
+        eval(Main.xmlNS, expr1)
+        eval(Main.xmlNS, Parser.parse("export " * nm ))
+    end 
+
+    println("In insertXMLNamespace, names in Main.xmlNS:", names(Main.xmlNS))
+end
+
+#here we will try to parse the provided text
+function processInline( elDtl::Dict{Symbol, SemNode}, sContext::subscreenContext,
+                       attrL::Array{SemNode,1})
+
+    length(attrL) > 1 && error("unexpected length >1 for attrL list")
+    attrs = attrL[1].nd
+    #println("In processInline,elDtl=$elDtl,\n\tattrs=", attrs)
+
+    impDict = sContext.builtDict
+    modnm = haskey(attrs,"modulename") ? attrs["modulename"] : ""
+
+    body = reduce( * ,"",map (x::SemNode-> x.nd, elDtl[:juliaInline].nd))
+
+    rx=r"^\s*(module|begin)\s+([[:alpha:]][[:alnum:]]+)"
+    mtch = match(rx,body)
+    if (mtch != nothing)
+         println("Matched begin or module name:",mtch)
+         if mtch.captures[1] == "begin" 
+             if modnm != "*"
+                #wrap in module
+                body = "module defaultModule \n" * body * "\nend"
+                warn("Emitted defaultModule in processInline") 
+             end
+         elseif mtch.captures[1] == "module" 
+             if modnm != "" && modnm != mtch.captures[2]
+                warn("Module name changed to xml specification:", modnm)
+                body = "module " * modnm * "\n" * body[ length(mtch.match)+1 : end]
+             end
+         end
+
+    else
+         body = "begin \n" * body * "\n end "
+    end
+
+    ast = try 
+        Parser.parse(body)
+    catch err
+        println("error in parsing:\n\t$err")
+        # catch_backtrace()
+        rethrow()
+    end
+
+    try 
+       # we provide module Main.xmlNS as a namespace for whatever we create
+       eval(Main.xmlNS, ast)
+    catch err
+        println("error in eval after parsing code inlined in xml file:\n\t$err")
+        # catch_backtrace()
+        rethrow()
+    end
+end
+
+
+
+function xmlJuliaImport(ast::SemNode,sc::subscreenContext)
+  for astItem in ast.nd
+      curSym::Symbol    = astItem.nd[1]
+      curAst            = astItem.nd[2]
+      # skip tags other than :julia
+      if curSym == :julia
+         processJuliaTag(astItem, sc)
+      end
+  end  #for astItem
+
+  println ("At end of xmlJuliaImport")
+  @show sc
+
+end
+
 end  # module SemXMLSubscreen

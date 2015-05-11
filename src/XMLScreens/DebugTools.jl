@@ -4,7 +4,7 @@ module DebugTools
 export chkDump
 
 using GLAbstraction
-using Romeo
+using GLVisualize
 
 function unitCube{T<:Number}(zero::T)
     unitcube = Array(T,4,8)
@@ -19,7 +19,7 @@ function unitCube{T<:Number}(zero::T)
 end
 
 #code_native( unitCube, (Int32,))
-function chkDump(tup::(RenderObject...),more::Bool=false)
+function chkDump(tup:: Tuple{ Vararg{ RenderObject}},more::Bool=false)
      for t in tup
          chkDump(t,more)
      end

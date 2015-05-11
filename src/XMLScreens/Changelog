@@ -1,6 +1,16 @@
-CURRENT
+Date: May 10
+	Moved to version of Julia 0.4 requiring new Tuple type syntax
+	Moved to GLVisualize,  AbstractGPUArray, GeometryTypes,ColorTypes
+	Reorganized Romeo directories
+	Tested basic program
+	Features added in XML, including julia inlining in xml processing instructions
+        First graphic output from XML specifications
+	
+Date: around May 5
     Reorganised src directories pertaining to subscreen/xml extensions. These
 	modules are now inserted in LOAD_PATH.
+    Improvement in XML/XSD validation using xmllint
+    Transition to new features of Julia 0.4 incompatible with previous syntax (Tuple types)
 	
 Date: Fri Apr 24 2015
     Added a XML screen/subscreen description facility; improved functionality

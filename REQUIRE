@@ -1,5 +1,6 @@
-julia 0.3-
-ImmutableArrays 0.0.6
+julia 0.4-
+ImmutableArrays 0.0.6-
+FixedSizeArrays
 Images
 Reactive
 Mustache
@@ -8,7 +9,10 @@ GLAbstraction
 ModernGL
 GLWindow
 GLText
+AbstractGPUArray
 Quaternions
 Compat
 Color
 FixedPointNumbers
+ColorTypes
+GeometryTypes
