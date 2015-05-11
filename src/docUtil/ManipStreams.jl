@@ -5,7 +5,6 @@
 ==#
 
 module ManipStreams
-#using DocCompat
 
 export redirectNewFWrite, restoreErrStream, mkstemp
 

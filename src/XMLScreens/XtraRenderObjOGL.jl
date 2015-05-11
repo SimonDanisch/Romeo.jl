@@ -3,7 +3,6 @@ module XtraRenderObjOGL
 using GLVisualize, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, ColorTypes
 using GeometryTypes
 using Compat
-#using DocCompat
 
 
 export  mkCube

@@ -28,10 +28,9 @@ help:
 	@echo make STRIP=YES....
 	echo STRIPLINECMD = $(STRIPLINECMD)
 
-	@echo tests working after switch to GLVisualize
-	@echo testRTM2D simple 2D plot
-	@echo testRTM3D simple 2D plot
-	@echo the rest is waiting for integration
+	@echo after switch to GLVisualize
+	@echo "use runXML   -- as there is no non XML program provided"
+	@echo "             -- not decided (yet?) to provide a non XML (ie API) example "
 
 ts:
 	echo TIME STAMP `date` >  $(TSTAMP)
@@ -89,14 +88,18 @@ $(DOCXMLSCR)/Constants.jl: $(JULIATRY)/Constants.jl   $(TSTAMP)
 $(DOCXMLSCR)/subscreenSchema.xsd: $(JULIATRY)/subscreenSchema.xsd
 	cat $< |cpif $@
 
+########## TEST MATERIAL
+
 subscreenSpec.xml: $(JULIATRY)/subscreenSpec.xml
 	cat $< |cpif $@
 
 subscreenSpec2.xml: $(JULIATRY)/subscreenSpec2.xml
 	cat $< |cpif $@
 
-$(DOCXMLSCR)/Changelog: $(JULIAENV)/Changelog
-	cat $< |cpif $@
+#   provide data (code) referenced in subscreenSpec.xml
+#   via julia processing instruction (in xml parlance)
+SubScreensModule.jl:  $(JULIATRY)/SubScreensModule.jl
+	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCUNITTEST)/testSubScreen.jl :$(JULIATRY)/testSubScreen.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
@@ -110,10 +113,18 @@ $(DOCUNITTEST)/TestOGLGeom.jl :$(JULIATRY)/TestOGLGeom.jl  $(TSTAMP)
 $(DOCUNITTEST)/testVirtOGLGeom.jl:$(JULIATRY)/testVirtOGLGeom.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
+#########  TOOLS
+
 $(TOOLSDIR)/xmlValid:~/bin/xmlValid
 	cat $< |cpif $@
 
-.PHONY: run run3D runXML runD runDI runSingle runSingle3D runSingleD runSingleI \
+########  INFORMATION
+$(DOCXMLSCR)/Changelog: $(JULIAENV)/Changelog
+	cat $< |cpif $@
+
+#################### INSTALL TARGETS ##################"
+
+.PHONY: run  runXML runXMLD  \
 	eprogs tests progtests \
         editTest2
 
@@ -143,7 +154,9 @@ progtests: $(DOCUNITTEST)/testSubScreen.jl \
 	    $(DOCUNITTEST)/testVirtOGLGeom.jl \
 	    $(TOOLSDIR)/xmlValid
 
-run:         progs 
+#################### TEST TARGETS ##################"
+
+run:         runXML 
 	$(JULIAPGM) RomeoVolume.jl --log=/tmp/RomeoLumber01.log
 
 ./PHONY : validXML  validXML2  validXML3 validXML4 
@@ -162,6 +175,9 @@ validXML4:subscreenSpec4.xml  $(DOCXMLSCR)/subscreenSchema.xsd
 runXML:      progs subscreenSpec.xml
 	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
 
+runXMLD:      progs subscreenSpec.xml
+	$(JULIAPGM) RomeoVolume.jl --debugRLib=0xFF --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
+
 runXML2:      progs subscreenSpec2.xml
 	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec2.xml --log=/tmp/RomeoLumber01.log
 
@@ -171,22 +187,13 @@ runXML3:      progs subscreenSpec3.xml
 runXML4:      progs subscreenSpec4.xml
 	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec4.xml --log=/tmp/RomeoLumber01.log
 
-run3D:       progs 
-	$(JULIAPGM) RomeoVolume.jl --dim=3 --log=/tmp/RomeoLumber01.log
-
-runD:         progs 
-	$(JULIAPGM) RomeoVolume.jl --log=/tmp/RomeoLumber01.log --debugAbs=61 --debugWin=1
-
-runDI:         progs 
-	$(JULIAPGM) RomeoVolume.jl -i --log=/tmp/RomeoLumber01.log --debugAbs=61 --debugWin=1
-
 
 editTest2:
         # barely working version of SD's runtest.jl (my mods+documentation)
 	$(JULIAPGM) runtestsDoc.jl	
 
 
-# tests  :working after switch to GLVisualize
+# tests  : simple tests using GLVisualize
 .PHONY: testRTM3D testRTM2D
 
  testRTM3D:
@@ -195,9 +202,9 @@ editTest2:
  testRTM2D:
 	$(JULIAPGM) RomeoTestMini.jl	aa bb
 
-# -exemples found in the upstream (S.Danisch) git tree
+# -EXEMPLES found in the upstream (S.Danisch) git tree
 
-# --exemples sent by S.Danisch (and working  -- before swich to GLVisualize)
+# --EXEMPLES sent by S.Danisch (and working  -- before swich to GLVisualize)
 .PHONY: runtt synchRot editTest gridImg
 #    show surface with mouse actions (rotations etc)
 runtt : testest.jl
@@ -214,7 +221,7 @@ editTest: runtests.jl
 gridImg: simple_display_grid.jl
 	$(JULIAPGM) simple_display_grid.jl
 
-#### non working examples
+#### NON WORKING EXAMPLES
 # felix.jl
 #	LoadError: MethodError: `edit` has no method matching edit(::Dict{Symbol,Any})
 

@@ -122,35 +122,52 @@ function main(args)
        "--img","-i"   
                help="Use image instead of other graphics/scenes"
                action = :store_true
-       "--debugAbs","-d"
-               help="show debugging output (in particular from GLRender)"
-               arg_type = Int
        "--xml","-x"
                help="enter the filename of the XML subscreen description"
                arg_type = String
-       "--debugWin","-D"
-               help="show debugging output (in particular from GLRender)"
-               arg_type = Int
       "--ortho", "-o"       
                help ="Use orthographic camera instead of perspective"
                action = :store_true
        "--log","-l"
                help ="Use lumberjack log"
                arg_type = String
+       "--debugRLib"
+               help="show debugging output (in particular from GLRender)"
+               arg_type = Int
+       "--debugSC"
+               help="show debugging output (in particular from GLRender)"
+               arg_type = Int
+       "--debugSX"
+               help="show debugging output from SemXMLSubscreen"
+               arg_type = Int
 
      end    
 
      s.epilog = """
-       GLAbstraction debug levels (ORed bit values)
-        Ox01     1 : add traceback for constructors and related
-        0x04     4 : print uniforms
-        0x08     8 : print vertices
-        0x10    16 : reserved for GLTypes.GLVertexArray
-        0x20    32 : reserved for postRenderFunctions
+       RomeoLib debug levels (ORed bit values):
+           0x01: Show information about user provided function calls
+              2: Show debugging information related to pushing onto renderlist
+              4: Debug connector
+              8: Debug calls to visualize
+           0x10: Show progress in fnWalk1 functions (walk subscreen tree)
+           0x20: Show progress in fnWalk2 functions (walk subscreen tree)
+           0x40: Show progress in fnWalk3 functions (walk subscreen tree)
+           0x80: Show progress in fnWalk4 functions (walk subscreen tree)
 
-       GLWindow debug :
-               flagOn : on / off
-               *** Level (ORed bit values) :to be allocated ***
+       SubScreens debug levels (ORed bit values):
+           0x01: Show progress in treeWalk
+              2: Show calls of user  functions
+              4: Show iterations to cover children
+
+       SemXMLSubscreen debug levels (ORed bit values):
+           0x01: Show steps in syntax recognition
+              2: Show final AST
+              4: Show state transitions when state automata use fn. stateTrans
+              8: Show steps in semantics (transition from XML to actions 
+                      on subscreen tree)
+           0x10: Show steps in subscreen tree indexing or manipulation
+           0x20: Debug julia code inclusion and referencing
+
      """
     parsed_args = parse_args(s) # the result is a Dict{String,Any}
 
@@ -170,10 +187,13 @@ function main(args)
           Lumberjack.log("debug", "starting main with args")
     end
 
+    parsed_args["debugSX"] != nothing &&   SemXMLSubscreen.setDebugLevels(true,
+				parsed_args["debugSX"])
+    parsed_args["debugSC"] != nothing &&   SubScreens.setDebugLevels(true,
+				parsed_args["debugSC"])
+    parsed_args["debugRLib"] != nothing && RomeoLib.setDebugLevels(true,
+				parsed_args["debugRLib"])
 
-    SemXMLSubscreen.setDebugLevels(true,0xFF)
-    SubScreens.setDebugLevels(true,0xFF)
-    RomeoLib.setDebugLevels(true,0xFF)
     realMain(onlyImg, pcamSel=pcamSel,  plotDim=plotDim, xml=xml )    
 end
 
