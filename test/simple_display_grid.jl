@@ -1,4 +1,3 @@
-# --line 5291 --  -- from : "BigData.pamphlet"  
 using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color, ImmutableArrays
 
 function main()
@@ -27,7 +26,6 @@ function main()
     end
 
 end
-# --line 5322 --  -- from : "BigData.pamphlet"  
 main()
 # main event loop
 while Romeo.ROOT_SCREEN.inputs[:open].value
@@ -36,5 +34,4 @@ while Romeo.ROOT_SCREEN.inputs[:open].value
     sleep(0.0001)
 end
 
-# --line 5333 --  -- from : "BigData.pamphlet"  
 GLFW.Terminate()
