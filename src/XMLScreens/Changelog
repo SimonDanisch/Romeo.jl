@@ -1,0 +1,71 @@
+Date: May 10
+	Moved to version of Julia 0.4 requiring new Tuple type syntax
+	Moved to GLVisualize,  AbstractGPUArray, GeometryTypes,ColorTypes
+	Reorganized Romeo directories
+	Tested basic program
+	Features added in XML, including julia inlining in xml processing instructions
+        First graphic output from XML specifications
+	
+Date: around May 5
+    Reorganised src directories pertaining to subscreen/xml extensions. These
+	modules are now inserted in LOAD_PATH.
+    Improvement in XML/XSD validation using xmllint
+    Transition to new features of Julia 0.4 incompatible with previous syntax (Tuple types)
+	
+Date: Fri Apr 24 2015
+    Added a XML screen/subscreen description facility; improved functionality
+	in the area of inter subscreen communication (connector/connection).
+	Using LightXML.jl, and various editors/validators for xsd; however
+	XML validation needs improvement, diagnostics during XML parsing
+	also need improvement.
+
+Date: Thu Apr 16 13:22:54 2015 +0200
+        Integrated with upstream commit, enables 3Dplots
+	
+Date: Sat Apr 11 22:55:23 2015 +0200
+    Adding functionality: camera movement in one subscreen follows a different
+	 subscreen ; progress towards implementing a more general facility
+	 (Adaptor) permitting to feed one subscreen signals into a different one.
+
+Date: Mon Apr 6 18:55:44 2015 +0200
+    Adding interface to effect geometrical (and possibly other) transformations
+	on RenderObject or their presentation by OGL.
+	Using 2 techniques: 
+	    -camera (in Screen...)
+	    -RenderObject (added field manipVirtuals ... not used at the moment)
+	Currently works for cube(own RO construction), plot of 2D 
+	function ( as provided  with Romeo).
+
+	Issues: Problem when trying to visualize plot of 3D data field (
+	        error in renderloop)
+
+Date: Tue Mar 31 11:33:47 2015 +0200
+    Modularized RomeoLib
+    SubsScreens reimplemented for hierachical subscreen model, 
+        previous version now called SimpleSubScreens. Additional functionality
+        and extensible framework (attrib in SubScreens permit to add various
+        set up operations; will try to implement first (not for this commit):
+           - shared view parameters between subscreens (dynamic, one view follows the other)
+           - derived view parameters (static):subscreen shows a fix view of other subscreen
+           - derived view parameters (dynamicà
+           - time dependent display
+
+Date:   Sun Mar 22 13:59:32 2015 +0100
+    Able to display raw OGL with shader programs
+    Track GLFW/OpenGL operations, implement a debugging facility (also in 
+    GLAbstraction and GLWindow)
+
+Date:   Mon Mar 16 21:13:01 2015 +0100
+    Relies on several mods by Sdanisch <sdanisch@gmail.com> (Romeo, GLXX..)
+    Operate in Julia 0.3 and 0.4
+    Subscreen grid implemented
+    RomeoLib  now incorporates standardized procedures, will evolve into library
+    RomeoLib moves to src/docUtil
+
+Date:   Sat Mar 14 18:12:53 2015 +0100
+    Added signal's library (facilitate use of Reactive)
+
+Date:   Thu Mar 5 14:37:58 2015 +0100
+    Added DocCompat package, so that @doc may be used with versions 0.3 (discard doc)
+    and 0.4(full function)
+

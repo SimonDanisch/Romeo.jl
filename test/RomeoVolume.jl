@@ -1,233 +1,200 @@
-# --line 8733 --  -- from : "BigData.pamphlet"  
-using DocCompat
+using Lumberjack
+
+using Romeo
 
 # try to avoid the numerous "deprecated warnings/messages"
 using ManipStreams
 (os,ns) =  redirectNewFWrite("/tmp/julia.redirected")
 
-using Romeo, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, Color
-using ImmutableArrays
+using GLVisualize, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, ColorTypes
+
+using GeometryTypes
+using TBCompletedM
+using SubScreens
+using Connectors
+
     #  Loading GLFW opens the window
 using Compat
+using LightXML
 
-include("../src/docUtil/RomeoLib.jl")
+using  XtraRenderObjOGL
+using RomeoLib
 
-
-# --line 8750 --  -- from : "BigData.pamphlet"  
-function mkSubScrGeom()
-    ## Build subscreens, use of screen_height_width permits to
-    ## adapt subscreen dimensions to changes in  root window  size
-    subScreenGeom = if isless(VERSION, VersionNumber(0,4))
-            prepSubscreen( [4,1]::Vector, [1,4]::Vector )
-    else
-            prepSubscreen( Vector([4,1]), Vector([1,4]))
-    end
-end
-
-# --line 5521 --  -- from : "BigData.pamphlet"  
-# for now, we found a ready made cube
-function mkCubeShape()
-     vertices, uv, indexes = gencube(1,1,1)
-     return ( vertices, uv, indexes)
-end
-# --line 5529 --  -- from : "BigData.pamphlet"  
-# inline shader construction in the same style e as oglExample2.jl
-# (snippets provided  by S.Danisch)
-
-function mkCube(screen,camera)
-# --line 5577 --  -- from : "BigData.pamphlet"  
-cubeVert="""
-{{GLSL_VERSION}}
-
-{{in}} vec3 vertex;
-{{in}} vec3 color;
-
-{{out}} vec3 vert_color;
-
-uniform mat4 projectionview;
-
-void main(){
-	vert_color = color;
-   	gl_Position = projectionview * vec4(vertex, 1.0);
-}
-"""
-# --line 5595 --  -- from : "BigData.pamphlet"  
-cubeFrag="""
-{{GLSL_VERSION}}
-
-
-{{in}} vec3 vert_color; // gets automatically interpolated per fragment (fragment--> pixel)
-
-{{out}} vec4 frag_color;
-void main(){
-   	frag_color = vec4(vert_color, 1); // put in transparency
-}
-"""
-# --line 5609 --  -- from : "BigData.pamphlet"  
-cubeLineVert="""
-{{GLSL_VERSION}}
-
-{{in}} vec3 vertex;
-
-uniform mat4 projectionview;
-
-void main(){
-   	gl_Position = projectionview * vec4(vertex, 1.0);
-}
-"""
-# --line 5623 --  -- from : "BigData.pamphlet"  
-cubeLineFrag="""
-{{GLSL_VERSION}}
-
-{{out}} vec4 frag_color;
-void main(){
-   	frag_color = vec4(0.5,0.5,0.5,1);
-}
-"""
-# --line 5540 --  -- from : "BigData.pamphlet"  
-        # build the shader from inlined GLSL
-	lineshader 	= TemplateProgram(cubeLineVert, cubeLineFrag, 
-                                         "Cube-linevert", "Cube-linefrag")
-	shader 		= TemplateProgram(cubeVert, cubeFrag, "Cube-vert", "Cube-frag")
-
-# --line 5548 --  -- from : "BigData.pamphlet"  
-        v,uv,i =mkCubeShape()
-        robj = RenderObject(@compat(Dict(
-                 :vertex                  => GLBuffer(v,3),
-                 :indexes                 => indexbuffer(i),
-                 :color                   => Float32[0.7,.1,.1, 1.0],
-                 :bg_color                => Input(Vec4(0.3, 0.3, 1, 0.5)),
-                 :projectionview          => camera.projectionview                            
-                )), shader)        
-
-        prerender!(robj, glDisable, GL_DEPTH_TEST, glDisable, GL_CULL_FACE, enabletransparency)
-        postrender!(robj, render, robj.vertexarray)
-
-        robjl = RenderObject(@compat(Dict(
-                 :vertex                  => GLBuffer(v,3),
-                 :indexes                 => indexbuffer(i),
-                 :color                   => Float32[0.1,.6,.6, 1.0],
-                 :bg_color                => Input(Vec4(0.3, 0.3, 1, 0.5)),
-                 :projectionview          => camera.projectionview                            
-                )), lineshader)        
-
-        prerender!(robjl, glDisable, GL_DEPTH_TEST, glDisable, GL_CULL_FACE, enabletransparency)
-        postrender!(robjl, render, robjl.vertexarray, GL_LINES)
-        return (robj,robjl)
-        # TBD LOOK AT THIS
-end
-
-# --line 8769 --  -- from : "BigData.pamphlet"  
-@doc """
-        This function fills the (global) vizObjArray  with functions taking
-        arguments:
-            screen::Screen 
-	    camera::Camera  (GLAbstraction/src/GLCamera.jl)
-        and returning the render objects that we wish to show. 
-
-        The corresponding geometry is built in subScreenGeom directly in 
-        init_romeo (it contains the (lifted) geometry elements following the
-        window changes). As the geometry is built, the functions in vizObjArray
-        are called, generating the RenderObjects and filling the renderlist.
-
-        The argument onlyImg is here for debugging , when true we show only
-        the same image in all grid positions.
+using ParseXMLSubscreen
+using SemXMLSubscreen
+using ColorTypes
+@doc """ This function uses the XML interface to define a screen organized
+         into subscreens.
      """  ->
-function init_graph_grid(onlyImg::Bool)
-   vizObjArray = Array(Any,2,2)
-            #  elements are functions (see above)
-            #  notice that the visualize act is done in init_romeo()
+function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
+   # Here we need to read the XML and do whatever is needed
+   # We have moved this before the definition of the functions below
+   # because of the definition of plt below, which requires doPlot2D and
+   # doPlot3D. This is also a good test of our parse strategy for XML chunks
 
-   # try with a plot 
-   plt = (sc::Screen,cam::GLAbstraction.Camera) -> Float32[ rand(Float32)  
-                                                            for i=0:50, j=0:50 ]
+   xdoc = parse_file(xml)
+   parseTree = acDoc(xdoc)
+   SemXMLSubscreen.setDebugLevels(true,0x20)   #debug
+   sc = subscreenContext()
+
+   # process the inline xml processing instructions
+   xmlJuliaImport(parseTree,sc)
+   
+
+   # Now, we want to integrate functions defined programmatically here
+   # and others which come from the XML subscreen description
+
+   # here we have a rather stringent test: doPlot2D and doPlot3D are 
+   # defined in the code inlined in XML (in module SubScreensInline)
+
+   # Since it is created by parse, the module SubScreensInline is known
+   # inside the context of the module specified when calling parse in 
+   # SemXMLSubscreen.processInline. The function 
+   # SemXMLSubscreen.__init__() provides the special module Main.xmlNS
+   # for this context.
+   SubScreensInline =  xmlNS.SubScreensInline
+
+   println("names module xmlNS", names(xmlNS))
+   println("names module SubScreensInline", names(SubScreensInline))
+   plt = plotDim==2 ? SubScreensInline.doPlot2D : SubScreensInline.doPlot3D
+
    # put the cat all over the place!!!
    pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
 
    # volume : try with a cube (need to figure out how to make this)
-   vol = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
+   cube = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
 
-            # rows go from bottom to top, columns from left to right on screen
-   vizObjArray[1,1] =  pic
-   vizObjArray[1,2] = onlyImg ? pic : vol
-   vizObjArray[2,2] = pic
-   vizObjArray[2,1] = onlyImg ? pic : plt
+   # color
+   # Unable to convert this function to GLVisualize
+   function doColorChooser(sc::Screen,cam::GLAbstraction.Camera)
+          TBCompleted (ColorTypes.AlphaColorValue( 
+                       ColorTypes.RGB24(0xE0,0x10,0x10), float32(0.5)),
+                       nothing, Dict{Symbol,Any}(:doColorChooser=> true))
+   end
+   colorBtn = doColorChooser
 
-            # init_romeo has the ability to set any attribute in visualize
-   return vizObjArray
+   # edit
+   # this is an oversimplification!! (look at exemple!!)
+   function doEdit(sc::Screen,cam::GLAbstraction.Camera)
+     "barplot = Float32[(sin(i/10f0) + cos(j/2f0))/4f0 \n for i=1:10, j=1:10]\n"
+   end
+   # This is a table of provided functions, other have been already found when
+   # parsing the xml
+   fnDict = Dict{AbstractString,Function}("doEdit"=>pic, 
+                                          "doColorBtn"=>plt, 
+                                          "doCube" => plt, 
+                 			  "doPic"=>pic, 
+                                          "doPlot" => plt )
+   # We insert these definitions in the namespace use by xml
+   insertXMLNamespace(fnDict)
+   println("After insertXMLNamespace names in Main.xmlNS:",names(Main.xmlNS))
+   vizObj = buildFromParse( parseTree, sc)
+   @show vizObj
+   return vizObj
+
 end  
-
-# --line 8812 --  -- from : "BigData.pamphlet"  
 @doc """
-       Does the real work, main only deals with the command line options
+       Does the real work, main only deals with the command line options.
+       - init_glutils    :initialization functions (see the GL* libraries)
+       - init_graph_grid :prepare a description of the subscreens
+       - init_romeo      :construct the subscreens, use the description
+                          of subscreens to actually build them (calls visualize)
      """ ->
-function realMain(onlyImg::Bool;pcamSel=true)
+function realMain(onlyImg::Bool; pcamSel=true, plotDim=2,  xml::String="")
    init_glutils()
+   vizObjSC   =        init_graph_gridXML(onlyImg, plotDim, xml)
+   println("Entering  init_romeo")
+   init_romeo( vizObjSC; pcamSel = pcamSel )
 
-   vizObjArray = init_graph_grid(onlyImg)
-   subScreenGeom = mkSubScrGeom()
-   init_romeo( subScreenGeom, vizObjArray; pcamSel=pcamSel)
+   println("Entering  interact_loop")
    interact_loop()
 end
 
-
-# --line 8828 --  -- from : "BigData.pamphlet"  
-@doc """
-       Does the real work, simple variant
-     """ ->
-function realMainSimple(onlyImg::Bool; pcamSel=true)
-   init_glutils()   # defined in GLAbstraction/GLInit
-                    # in practice loads registerd shaders
-
-   renderObjFn = 
-     if onlyImg
-       (sc,cam) -> Texture("pic.jpg")
-     else
-       (sc,cam) -> mkCube(sc,cam) # this is a function object, since
-                  # we cannot evaluate before we know the screen 
-     		  # and we left camera parametrization in init_romeo_single
-     end
-   init_romeo_single(renderObjFn; pcamSel=pcamSel )
-   interact_loop()
-end
-
-# --line 8851 --  -- from : "BigData.pamphlet"  
-# parse arguments, so that we have some flexibility to vary tests on the command line.
+# parse arguments, so that we have some flexibility to vary tests on the 
+# command line.
 using ArgParse
-
 function main(args)
      s = ArgParseSettings(description = "Test of Romeo with grid of objects")   
      @add_arg_table s begin
+       "--dim"
+               help="Set to 2 or 3 for 2D or 3D plot"
+               arg_type = Int
        "--img","-i"   
                help="Use image instead of other graphics/scenes"
                action = :store_true
-       "--cube", "-c"
-               help="Test with a single cube in root window/screen"
-               action = :store_true
-       "--debug","-d"
-               help="show debugging output (in particular from GLRender)"
-               arg_type = Int
-       "--ortho", "-o"       
+       "--xml","-x"
+               help="enter the filename of the XML subscreen description"
+               arg_type = String
+      "--ortho", "-o"       
                help ="Use orthographic camera instead of perspective"
                action = :store_true
+       "--log","-l"
+               help ="Use lumberjack log"
+               arg_type = String
+       "--debugRLib"
+               help="show debugging output (in particular from GLRender)"
+               arg_type = Int
+       "--debugSC"
+               help="show debugging output (in particular from GLRender)"
+               arg_type = Int
+       "--debugSX"
+               help="show debugging output from SemXMLSubscreen"
+               arg_type = Int
+
      end    
 
      s.epilog = """
-          More explanations to come here
+       RomeoLib debug levels (ORed bit values):
+           0x01: Show information about user provided function calls
+              2: Show debugging information related to pushing onto renderlist
+              4: Debug connector
+              8: Debug calls to visualize
+           0x10: Show progress in fnWalk1 functions (walk subscreen tree)
+           0x20: Show progress in fnWalk2 functions (walk subscreen tree)
+           0x40: Show progress in fnWalk3 functions (walk subscreen tree)
+           0x80: Show progress in fnWalk4 functions (walk subscreen tree)
+
+       SubScreens debug levels (ORed bit values):
+           0x01: Show progress in treeWalk
+              2: Show calls of user  functions
+              4: Show iterations to cover children
+
+       SemXMLSubscreen debug levels (ORed bit values):
+           0x01: Show steps in syntax recognition
+              2: Show final AST
+              4: Show state transitions when state automata use fn. stateTrans
+              8: Show steps in semantics (transition from XML to actions 
+                      on subscreen tree)
+           0x10: Show steps in subscreen tree indexing or manipulation
+           0x20: Debug julia code inclusion and referencing
+
      """
     parsed_args = parse_args(s) # the result is a Dict{String,Any}
 
     onlyImg        = parsed_args["img"]
-    cubeSimple     = parsed_args["cube"]
     pcamSel        = !parsed_args["ortho"]
+    plotDim        = (parsed_args["dim"] != nothing) ?  parsed_args["dim"] : 2
 
-    if parsed_args["debug"] != nothing
-          GLAbstraction.setDebugLevels( true,  parsed_args["debug"])
-          GLWindow.setDebugLevels( true,  parsed_args["debug"])
+    xml =  parsed_args["xml"] != nothing ? parsed_args["xml"] : ""
+
+    if parsed_args["log"] != nothing
+          logFileName = parsed_args["log"]
+          logFileName = length(logFileName) < 5 ? "/tmp/RomeoLumber.log"  : logFileName 
+
+          Lumberjack.configure(; modes = ["debug", "info", "warn", "error", "crazy"])
+          Lumberjack.add_truck(LumberjackTruck(logFileName, "romeo-app"))
+          Lumberjack.add_saw(Lumberjack.msec_date_saw)
+          Lumberjack.log("debug", "starting main with args")
     end
 
-    ### NOW, run the program 
-    cubeSimple ?   realMainSimple(onlyImg; pcamSel=pcamSel) : realMain(onlyImg; pcamSel=pcamSel)    
+    parsed_args["debugSX"] != nothing &&   SemXMLSubscreen.setDebugLevels(true,
+				parsed_args["debugSX"])
+    parsed_args["debugSC"] != nothing &&   SubScreens.setDebugLevels(true,
+				parsed_args["debugSC"])
+    parsed_args["debugRLib"] != nothing && RomeoLib.setDebugLevels(true,
+				parsed_args["debugRLib"])
+
+    realMain(onlyImg, pcamSel=pcamSel,  plotDim=plotDim, xml=xml )    
 end
 
 main(ARGS)
