@@ -2,6 +2,13 @@
 <scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
 
+<!-- Function definitions  -->
+
+<julia   modulename="SubScreensModule">
+   <import fn="doPlot2D"/>
+   <import fn="doPlot3D"/>
+</julia>
+
 <!-- Subscreen description -->
 
  <subscreen rows="2" cols="2" name="MAIN">
@@ -30,18 +37,18 @@
 
 <!-- Subscreen contents -->
 
- <setplot  ref="A1"  fn="doEdit"/>
- <setplot  ref="A2"  fn="doPlot"/>
- <setplot  ref="B1"  fn="doPlot"/>
+ <setplot  ref="A1"  fn="doPlot2D"/>
+ <setplot  ref="A2"  fn="doPlot3D"/>
+ <setplot  ref="B1"  fn="doPlot2D"/>
 
- <setplot  ref="IA1"  fn="doColorBtn"/>
- <setplot  ref="IB1"  fn="doPlot"> 
+ <setplot  ref="IA1"  fn="doCube"/>
+ <setplot  ref="IB1"  fn="doPic"> 
       <rotateModel>Pi/2,0.0,0.0</rotateModel>
  </setplot>
- <setplot  ref="IC1"  fn="doPlot">
+ <setplot  ref="IC1"  fn="doPlot3D">
       <rotateModel>0.0, Pi/2,0.0</rotateModel>
  </setplot>
- <setplot  ref="ID1"  fn="doPlot">
+ <setplot  ref="ID1"  fn="doPlot3D">
       <rotateModel>0.0,0.0, Pi/2</rotateModel>
  </setplot>
 

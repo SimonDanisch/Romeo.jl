@@ -6,7 +6,7 @@ using Romeo
 using ManipStreams
 (os,ns) =  redirectNewFWrite("/tmp/julia.redirected")
 
-using GLVisualize, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, ColorTypes
+using GLVisualize, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, ColorTypes, FileIO, ImageIO
 
 using GeometryTypes
 using TBCompletedM
@@ -23,6 +23,9 @@ using RomeoLib
 using ParseXMLSubscreen
 using SemXMLSubscreen
 using ColorTypes
+
+using SubScreensModule  # this is a module of "user functions" added for testing
+
 @doc """ This function uses the XML interface to define a screen organized
          into subscreens.
      """  ->
@@ -34,7 +37,6 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
 
    xdoc = parse_file(xml)
    parseTree = acDoc(xdoc)
-   SemXMLSubscreen.setDebugLevels(true,0x20)   #debug
    sc = subscreenContext()
 
    # process the inline xml processing instructions
@@ -52,14 +54,24 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    # SemXMLSubscreen.processInline. The function 
    # SemXMLSubscreen.__init__() provides the special module Main.xmlNS
    # for this context.
-   SubScreensInline =  xmlNS.SubScreensInline
+   try
+      SubScreensInline =  xmlNS.SubScreensInline
+      println("names module xmlNS", names(xmlNS))
+      println("names module SubScreensInline", names(SubScreensInline))
+   catch
+      println("Information : xmlNS.SubScreensInline not defined")
+   end
 
-   println("names module xmlNS", names(xmlNS))
-   println("names module SubScreensInline", names(SubScreensInline))
-   plt = plotDim==2 ? SubScreensInline.doPlot2D : SubScreensInline.doPlot3D
+   # Other functions are provided by the module SubScreensModule
+   # in file SubScreensModule.jl
+   # For testing purposes, this program mixes the two:
+   #       subscreenSpec2.xml: uses import tag and loads from SubScreensModule
+   #       subscreenSpec.xml:  uses inline tag and loads from SubScreensInline (not a file!)
 
-   # put the cat all over the place!!!
-   pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
+   plt = plotDim==2 ? SubScreensModule.doPlot2D : SubScreensModule.doPlot3D
+
+   # put the cat all over the place!!! Example in GLVisualize/test_image.jl
+   pic = (sc::Screen,cam::GLAbstraction.Camera)  -> file"pic.jpg"
 
    # volume : try with a cube (need to figure out how to make this)
    cube = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
@@ -80,11 +92,11 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    end
    # This is a table of provided functions, other have been already found when
    # parsing the xml
-   fnDict = Dict{AbstractString,Function}("doEdit"=>pic, 
-                                          "doColorBtn"=>plt, 
-                                          "doCube" => plt, 
-                 			  "doPic"=>pic, 
-                                          "doPlot" => plt )
+   fnDict = Dict{AbstractString,Function}("doEdit"       => cube, 
+                                          "doColorBtn"   => plt, 
+                                          "doCube"       => pic, 
+                 			  "doPic"        => pic, 
+                                          "doPlot"       => plt )
    # We insert these definitions in the namespace use by xml
    insertXMLNamespace(fnDict)
    println("After insertXMLNamespace names in Main.xmlNS:",names(Main.xmlNS))
@@ -132,10 +144,10 @@ function main(args)
                help ="Use lumberjack log"
                arg_type = String
        "--debugRLib"
-               help="show debugging output (in particular from GLRender)"
+               help="show debugging output from RomeoLib"
                arg_type = Int
        "--debugSC"
-               help="show debugging output (in particular from GLRender)"
+               help="show debugging output from SubScreens"
                arg_type = Int
        "--debugSX"
                help="show debugging output from SemXMLSubscreen"

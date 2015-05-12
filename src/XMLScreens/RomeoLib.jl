@@ -144,6 +144,8 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        # Build the RenderObjects by calling the supplied function
        dodebug(0x1) && println("Entering external function:  ssc.attrib[ RObjFn ]", 
                                 ssc.attrib[ RObjFn ])
+       println(typeof(ssc.attrib[ RObjFn ]))
+       #println(methods(ssc.attrib[ RObjFn ]))
        vo  = ssc.attrib[ RObjFn ]( scr, camera )
        dodebug(0x1) && println("Exited and returned vo with type:",typeof(vo))
 

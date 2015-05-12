@@ -41,7 +41,7 @@ ts:
 $(DOCXROMEOSRC)/Romeo.jl : $(JULIATRY)/Romeo.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-RomeoVolume.jl: $(JULIATRY)/RomeoVolume.jl  $(TSTAMP)
+RomeoMain.jl: $(JULIATRY)/RomeoMain.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
 $(DOCXMLSCR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl  $(TSTAMP)
@@ -131,7 +131,9 @@ $(DOCXMLSCR)/Changelog: $(JULIAENV)/Changelog
 	eprogs tests progtests \
         editTest2
 
-progs :  RomeoVolume.jl subscreenSpec.xml\
+# Note that SubScreensModule.jl is here for tests (used in subscreenSpec2 and RomeoMain)
+progs :  RomeoMain.jl subscreenSpec.xml \
+         SubScreensModule.jl\
 	$(DOCXROMEOSRC)/Romeo.jl \
         $(DOCXMLSCR)/RomeoLib.jl \
         $(DOCXMLSCR)/DebugTools.jl \
@@ -160,7 +162,7 @@ progtests: $(DOCUNITTEST)/testSubScreen.jl \
 #################### TEST TARGETS ##################"
 
 run:         runXML 
-	$(JULIAPGM) RomeoVolume.jl --log=/tmp/RomeoLumber01.log
+	$(JULIAPGM) RomeoMain.jl --log=/tmp/RomeoLumber01.log
 
 ./PHONY : validXML  validXML2  validXML3 validXML4 
 validXML: subscreenSpec.xml  $(DOCXMLSCR)/subscreenSchema.xsd
@@ -176,19 +178,19 @@ validXML4:subscreenSpec4.xml  $(DOCXMLSCR)/subscreenSchema.xsd
 	$(CMDXMLVALID) subscreenSpec4.xml  $(DOCXMLSCR)/subscreenSchema.xsd
 
 runXML:      progs subscreenSpec.xml
-	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
+	$(JULIAPGM) RomeoMain.jl --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
 
 runXMLD:      progs subscreenSpec.xml
-	$(JULIAPGM) RomeoVolume.jl --debugRLib=0xFF --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
+	$(JULIAPGM) RomeoMain.jl --debugRLib=0xFF --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
 
 runXML2:      progs subscreenSpec2.xml
-	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec2.xml --log=/tmp/RomeoLumber01.log
+	$(JULIAPGM) RomeoMain.jl --debugRLib=0xFF --xml=subscreenSpec2.xml --log=/tmp/RomeoLumber01.log
 
 runXML3:      progs subscreenSpec3.xml
-	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec3.xml --log=/tmp/RomeoLumber01.log
+	$(JULIAPGM) RomeoMain.jl --debugRLib=0xFF --xml=subscreenSpec3.xml --log=/tmp/RomeoLumber01.log
 
 runXML4:      progs subscreenSpec4.xml
-	$(JULIAPGM) RomeoVolume.jl --xml=subscreenSpec4.xml --log=/tmp/RomeoLumber01.log
+	$(JULIAPGM) RomeoMain.jl --debugRLib=0xFF --xml=subscreenSpec4.xml --log=/tmp/RomeoLumber01.log
 
 
 editTest2:

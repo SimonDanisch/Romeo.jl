@@ -3,11 +3,6 @@
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
 <!-- Function definitions  -->
 
-<julia   modulename="SubScreensModule">
-   <import fn="doPlot2D"/>
-   <import fn="doPlot3D"/>
-</julia>
-
 <julia  >
    <inline>
    <?julia
@@ -32,10 +27,8 @@
 			  # with the enclosing module definition. (really a bug)
       using GLAbstraction, GLWindow, ModernGL, GLVisualize
       using Romeo, TBCompletedM
-      export plot2D, plot3D
+      export doPlot2D, doPlot3D
 
-      #abstract Screen #for use in scaffolding
-      #abstract Camera #for use in scaffolding
       warn ("GLAbstraction.Camera is not exported")
       Camera = GLAbstraction.Camera
 

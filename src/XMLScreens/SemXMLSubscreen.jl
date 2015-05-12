@@ -338,10 +338,18 @@ function         processSetplot(ast::SemNode, sc::subscreenContext)
     # The function is now found in the module Main.xmlNS as fn (unless there are 
     #     module issues )
     fnName = ast.nd[3]["fn"]
-    println("Looking for function ", fnName," in  Main.xmlNS")
-    println("Names(Main.xmlNS):", names(Main.xmlNS))
-    fn = eval(Main.xmlNS, parse(fnName))
-
+    impDict = sc.builtDict
+    fn= 
+        if (haskey(impDict,(:importFn,Symbol(fnName)) ))
+            println("Looking for function ", fnName," in imports")
+            f = impDict[(:importFn,Symbol(fnName))]
+            println("typeof(f)",typeof(f) )
+            f
+        else
+           println("Looking for function ", fnName," in  Main.xmlNS")
+           println("Names(Main.xmlNS):", names(Main.xmlNS))
+           eval(Main.xmlNS, parse(fnName))
+        end 
     # setting the function
     tree[indx...].attrib[RObjFn] = fn
 
@@ -421,7 +429,7 @@ end
 # for imports we simply use the symbol table already present in sContext
 function processImport( elDtl::SemNode, sContext::subscreenContext, 
                        attrL::Array{SemNode,1})
-    # println("In processImport,elDtl=$elDtl, attrL=", attrL)
+    println("In processImport,elDtl=$elDtl, attrL=", attrL)
 
     length(attrL) > 1 && error("unexpected length >1 for attrL list")
     attrs = attrL[1].nd

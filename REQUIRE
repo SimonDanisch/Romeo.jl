@@ -1,4 +1,4 @@
-julia 0.4-
+julia           0.4-
 ImmutableArrays 0.0.6-
 FixedSizeArrays
 Images
@@ -6,6 +6,7 @@ Reactive
 Mustache
 GLFW
 GLAbstraction
+GLVisualize
 ModernGL
 GLWindow
 GLText
@@ -16,3 +17,5 @@ Color
 FixedPointNumbers
 ColorTypes
 GeometryTypes
+LightXML
+JuliaParser
