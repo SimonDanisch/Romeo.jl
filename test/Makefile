@@ -47,9 +47,6 @@ RomeoMain.jl: $(JULIATRY)/RomeoMain.jl  $(TSTAMP)
 $(DOCXMLSCR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
-$(DOCUTILDIR)/DocCompat.jl: $(JULIAENV)/DocCompat.jl  $(TSTAMP)
-	$(STRIPLINECMD) $< |cpif $@
-
 $(DOCUTILDIR)/ManipStreams.jl: $(JULIAENV)/ManipStreams.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
@@ -149,7 +146,6 @@ progs :  RomeoMain.jl subscreenSpec.xml \
         $(DOCXMLSCR)/SemXMLSubscreen.jl \
         $(DOCXMLSCR)/Constants.jl \
         $(DOCUTILDIR)/ManipStreams.jl \
-        $(DOCUTILDIR)/DocCompat.jl \
         $(DOCXMLSCR)/subscreenSchema.xsd \
 	$(TOOLSDIR)/xmlValid
 
@@ -184,13 +180,13 @@ runXMLD:      progs subscreenSpec.xml
 	$(JULIAPGM) RomeoMain.jl --debugRLib=0xFF --xml=subscreenSpec.xml --log=/tmp/RomeoLumber01.log
 
 runXML2:      progs subscreenSpec2.xml
-	$(JULIAPGM) RomeoMain.jl --debugRLib=0xFF --xml=subscreenSpec2.xml --log=/tmp/RomeoLumber01.log
+	$(JULIAPGM) RomeoMain.jl --debugRLib=0x00 --xml=subscreenSpec2.xml --log=/tmp/RomeoLumber01.log
 
 runXML3:      progs subscreenSpec3.xml
-	$(JULIAPGM) RomeoMain.jl --debugRLib=0xFF --xml=subscreenSpec3.xml --log=/tmp/RomeoLumber01.log
+	$(JULIAPGM) RomeoMain.jl --debugRLib=0x00 --xml=subscreenSpec3.xml --log=/tmp/RomeoLumber01.log
 
 runXML4:      progs subscreenSpec4.xml
-	$(JULIAPGM) RomeoMain.jl --debugRLib=0xFF --xml=subscreenSpec4.xml --log=/tmp/RomeoLumber01.log
+	$(JULIAPGM) RomeoMain.jl --debugRLib=0x00 --xml=subscreenSpec4.xml --log=/tmp/RomeoLumber01.log
 
 
 editTest2:

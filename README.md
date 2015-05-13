@@ -162,13 +162,13 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>master
     <TD> Eventually represent the stable version, synchronized with upstream/master
         (S.Danisch development)
-<TR><TD>skinny
-    <TD>Move to new organization using  GLVisualize, AbstractGPUArray, GeometryTypes, 
-        ColorTypes, Meshes, MeshIO. <B>Currently, just achieved first OGL display.</B>
 <TR><TD>XML
-    <TD>XML related functions, waiting for integration with "skinny" branch
-       Adds: Management of multiple subscreens, and inter-subscreen  interaction.
-             Generalization to other signals via *Connectors* and the *connection* tag .        
+    <TD>Development of high(er) level functions, permitting to describe screens/subscreens
+        in XML (ongoing).
+<TR><TD>skinny
+    <TD>Used to port to new organization using  GLVisualize, AbstractGPUArray, GeometryTypes, 
+        ColorTypes, Meshes, MeshIO. <B>Achieved first OGL display</B>, 
+        dev. transferred to XML branch.
 </TABLE>
 
 
@@ -177,9 +177,6 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>ISSUES
     <TD>Date
     <TD>Description
-<TR><TD>Julia Version 0.4.0-dev+4500 (Commit 30b94a1*) 
-    <TD>2015-04-25 15:54 UTC
-    <TD>Issues:Currently working on remaining compatibility issues
 <TR><TD>Romeo 
     <TD>reorganized, 
     <TD>skinned down most previous functionality moved to GLVisualize
@@ -197,16 +194,6 @@ The following branches in the Git tree have specific meaning (At least planned):
      <TD>Date
      <TD>Issues
      <TD>Description
-<TR> 
-     <TD>Version 0.4.0-dev+4287 
-     <TD> 2015-04-16 09:12 UTC
-     <TD> Rebuild from source tree
-     <TD> Commit bd748b9*; x86_64-linux-gnu
-<TR> 
-     <TD>Version 0.4.0-dev+4500
-     <TD>2015-04-25 15:54 UTC
-     <TD> Rebuild from source tree. Requires updates in multiple libraries 
-     <TD> Commit  30b94a1*; x86_64-linux-gnu
 <TR> 
      <TD>Version 0.4.0-dev+4704
      <TD>2015-05-07 03:55 UTC

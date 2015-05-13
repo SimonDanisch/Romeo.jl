@@ -2,6 +2,14 @@
 <scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
 
+<!-- Test purposes
+      1) build screen tree hierarchy by subscreen (recursive) insertion
+      2) test tag &gt;import&lt;
+      3) test symbolic reference to screen building functions defined 
+         in imported julia code and mixing with programmatically defined
+         stuff.       
+      4) test connectors (TBD)
+-->
 <!-- Function definitions  -->
 
 <julia   modulename="SubScreensModule">
@@ -34,6 +42,7 @@
     </tr>
    </table>
  </subscreen>
+
 
 <!-- Subscreen contents -->
 

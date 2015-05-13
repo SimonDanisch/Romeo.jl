@@ -1,4 +1,13 @@
+#==
+  This module performs  a recursive descent parser of our XML 
+  dialect. XML tokenizing (and more) is done by LightXML.
 
+  I would have preferred using a LALR parser generator (ie Yacc or equiv. (+))
+  where tokens could be user defined (to be obtained from LightXML).
+  Apparently this is not available in Julia (5/2015).
+
+  (+) look at OCAML's Dypgen or Ocamlyacc
+==#
 module ParseXMLSubscreen
 using LightXML
 

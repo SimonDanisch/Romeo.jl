@@ -158,14 +158,19 @@ function buildFromParse(ast::SemNode, sc::subscreenContext)
       elseif state == :debug
          processDebug( astItem, sc)
       elseif state == :julia
-         processJuliaTag( astItem, sc)
+          # this is a special case since :julia tags may be done
+          # earlier using  xmlJuliaImport (direct programmatic access
+          # enabling early availability of Julia inlined code)
+          if !haskey(sc.builtDict,(:xmlJuliaTags,:Done))
+               processJuliaTag( astItem, sc)
+          end
       else
         error ("Internal error, unexpected state")
       end   # if (distinguish states)
 
   end # for astItem
   if dodebug(0x2)
-     println("***\nAfter processing Ast")
+     println("***\nIn buildFromParse, after processing Ast")
      show(sc)
      println("***\n")
   end
@@ -246,10 +251,6 @@ function    finalizeSubscreenSection(sc::subscreenContext)
     # normally only the tree with name remains
     (i,s,t)  = getTreeSetPtr(:MAIN,sc,:name)
     newTree  = computeRects(GLAbstraction.Rectangle{Float64}(0.,0.,1.,1.), s)
-    # modify this in the builtDict symbol table
-    println("In finalizeSubscreenSection\n\tcalling  scIdentSetTree!")
-    @show newTree
-    @show sc
     scIdentSetTree!( :MAIN, newTree, sc, false, :name)
 end
 
@@ -326,6 +327,36 @@ function graftSubTrees( sc::subscreenContext )
          sLoc[tLoc...]=sM
      end
 end
+function searchCallable(fnName::AbstractString,
+                        impDict::Dict{Tuple{Symbol,Symbol},Any})
+        if (haskey(impDict,(:importFn,Symbol(fnName)) ))
+            dodebug(0x20) && println("In searchCallable:Looking for function ", fnName," in imports")
+
+            f = impDict[(:importFn,Symbol(fnName))]
+            dodebug(0x20) && println("\t\ttypeof(f)",typeof(f) )
+
+            return f
+        end
+
+        if haskey(impDict,(:inlinedMods,:list))
+           # use the list in impDict
+           for modName in  impDict[(:inlinedMods,:list)]
+              modName[1] == '*' && continue 
+               dodebug(0x20) && println("In searchCallable:Looking for function ", fnName," in  Main.xmlNS.$modName")
+              try 
+                 fn = eval(Main.xmlNS, parse("$modName.$fnName"))
+                 return fn
+              catch
+              end
+           end
+        end           
+
+         dodebug(0x20) && println("In searchCallable:Looking for function ", fnName," in  Main.xmlNS")
+         dodebug(0x20) && println("Names(Main.xmlNS):", names(Main.xmlNS))
+        eval(Main.xmlNS, parse(fnName))
+
+end
+
 function         processSetplot(ast::SemNode, sc::subscreenContext)
     dodebug(0x08) && println("In  processSetplot\tast=$ast")
 
@@ -334,22 +365,13 @@ function         processSetplot(ast::SemNode, sc::subscreenContext)
 
     #which function to insert?
 
-    #fn = fnDict[ast.nd[3]["fn"]]
-    # The function is now found in the module Main.xmlNS as fn (unless there are 
+    # The function is now searched in the module Main.xmlNS as fn (unless there are 
     #     module issues )
     fnName = ast.nd[3]["fn"]
     impDict = sc.builtDict
-    fn= 
-        if (haskey(impDict,(:importFn,Symbol(fnName)) ))
-            println("Looking for function ", fnName," in imports")
-            f = impDict[(:importFn,Symbol(fnName))]
-            println("typeof(f)",typeof(f) )
-            f
-        else
-           println("Looking for function ", fnName," in  Main.xmlNS")
-           println("Names(Main.xmlNS):", names(Main.xmlNS))
-           eval(Main.xmlNS, parse(fnName))
-        end 
+
+    fn= searchCallable(fnName,impDict)
+
     # setting the function
     tree[indx...].attrib[RObjFn] = fn
 
@@ -400,10 +422,10 @@ function         processDebug(ast::SemNode,sc::subscreenContext)
     end
 end
 # Normal location for this code (but we also copy it in the scaffolding 
-# for early testing (while Romeo is changing....)
+# for early testing of XML syntax and Julia import)
 function  processJuliaTag( ast::SemNode,  sContext::subscreenContext)
-    if (false && dodebug(0x20)  )
-       println("In processJulia at level ", sContext.level)
+    if true || dodebug(0x20) 
+       println("In processJuliaTag at level ", sContext.level)
        println("\tast=$ast\n***** *****")
     end
     attrList = Array{SemNode,1}(0)
@@ -429,7 +451,7 @@ end
 # for imports we simply use the symbol table already present in sContext
 function processImport( elDtl::SemNode, sContext::subscreenContext, 
                        attrL::Array{SemNode,1})
-    println("In processImport,elDtl=$elDtl, attrL=", attrL)
+    dodebug(0x20) && println("In processImport,elDtl=$elDtl, attrL=", attrL)
 
     length(attrL) > 1 && error("unexpected length >1 for attrL list")
     attrs = attrL[1].nd
@@ -461,16 +483,16 @@ end
 # Provide a function to insert the functions prepared in the application
 # code into the xmlNS
 function  insertXMLNamespace(fdict::Dict{AbstractString, Function})
-    println("In insertXMLNamespace, fdict=", fdict)
+    dodebug(0x20) && println("In insertXMLNamespace, fdict=", fdict)
     for  (nm, fn) in fdict
-        println("Function=$fn")
+        dodebug(0x20) &&println("\tFunction=$fn")
         expr1 = Parser.parse( nm * " = _unused_ "  )
         expr1.args[2] = fn
         eval(Main.xmlNS, expr1)
         eval(Main.xmlNS, Parser.parse("export " * nm ))
     end 
 
-    println("In insertXMLNamespace, names in Main.xmlNS:", names(Main.xmlNS))
+    dodebug(0x20) && println("In insertXMLNamespace, names in Main.xmlNS:", names(Main.xmlNS))
 end
 
 #here we will try to parse the provided text
@@ -479,7 +501,7 @@ function processInline( elDtl::Dict{Symbol, SemNode}, sContext::subscreenContext
 
     length(attrL) > 1 && error("unexpected length >1 for attrL list")
     attrs = attrL[1].nd
-    #println("In processInline,elDtl=$elDtl,\n\tattrs=", attrs)
+    dodebug(0x20) && println("In processInline,elDtl=$elDtl,\n\tattrs=", attrs)
 
     impDict = sContext.builtDict
     modnm = haskey(attrs,"modulename") ? attrs["modulename"] : ""
@@ -489,11 +511,12 @@ function processInline( elDtl::Dict{Symbol, SemNode}, sContext::subscreenContext
     rx=r"^\s*(module|begin)\s+([[:alpha:]][[:alnum:]]+)"
     mtch = match(rx,body)
     if (mtch != nothing)
-         println("Matched begin or module name:",mtch)
+         dodebug(0x20) && println("Matched begin or module name:",mtch)
          if mtch.captures[1] == "begin" 
              if modnm != "*"
                 #wrap in module
                 body = "module defaultModule \n" * body * "\nend"
+                modnm = "defaultModule"
                 warn("Emitted defaultModule in processInline") 
              end
          elseif mtch.captures[1] == "module" 
@@ -505,6 +528,7 @@ function processInline( elDtl::Dict{Symbol, SemNode}, sContext::subscreenContext
 
     else
          body = "begin \n" * body * "\n end "
+         modnm="**notInModule**"
     end
 
     ast = try 
@@ -517,29 +541,41 @@ function processInline( elDtl::Dict{Symbol, SemNode}, sContext::subscreenContext
 
     try 
        # we provide module Main.xmlNS as a namespace for whatever we create
-       eval(Main.xmlNS, ast)
+       # we also keep track of the added modules, since we shall need the information
+       # in processSetplot
+       impDict[(:inlined,Symbol(modnm))] = eval(Main.xmlNS, ast)
+       if !haskey(impDict,(:inlinedMods,:list))
+          impDict[(:inlinedMods,:list)]= Array{AbstractString,1}(0)           
+       end
+       push!( impDict[(:inlinedMods,:list)], modnm) 
     catch err
         println("error in eval after parsing code inlined in xml file:\n\t$err")
         # catch_backtrace()
         rethrow()
     end
+
+    
 end
 
 
 
+# This is used to permit early processing of julia tags
+# enabling programmatic use of the contained definitions prior
+# to semantic processing of the parseTree
 function xmlJuliaImport(ast::SemNode,sc::subscreenContext)
+  dodebug(0x20) && println ("Entering  xmlJuliaImport")
   for astItem in ast.nd
       curSym::Symbol    = astItem.nd[1]
       curAst            = astItem.nd[2]
+
       # skip tags other than :julia
       if curSym == :julia
          processJuliaTag(astItem, sc)
       end
   end  #for astItem
-
-  println ("At end of xmlJuliaImport")
-  @show sc
-
+  sc.builtDict[(:xmlJuliaTags,:Done)] = true
+ 
+  dodebug(0x20) && println ("At end of xmlJuliaImport")
 end
 
 end  # module SemXMLSubscreen

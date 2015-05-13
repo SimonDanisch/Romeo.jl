@@ -39,12 +39,13 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    parseTree = acDoc(xdoc)
    sc = subscreenContext()
 
-   # process the inline xml processing instructions
+   # Now, we want to integrate functions defined programmatically here
+   # and others which come from the XML subscreen description.
+   #
+   # First, process the inline xml processing instructions
    xmlJuliaImport(parseTree,sc)
    
 
-   # Now, we want to integrate functions defined programmatically here
-   # and others which come from the XML subscreen description
 
    # here we have a rather stringent test: doPlot2D and doPlot3D are 
    # defined in the code inlined in XML (in module SubScreensInline)

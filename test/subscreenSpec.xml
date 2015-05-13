@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
+
+<!-- Test purposes
+      1) build screen tree hierarchy from 2 subtrees related symbolically
+         (id INNER)
+      2) test tag &gt;inline&lt;
+      3) test symbolic reference to screen building functions defined 
+         programmatically (doPlot)
+      4) test connectors (TBD)
+-->
 <!-- Function definitions  -->
 
 <julia  >
@@ -121,8 +130,8 @@
 
 <!-- Subscreen contents -->
 
- <setplot  ref="A1"  fn="doPlot"/>
- <setplot  ref="A2"  fn="doPlot"/>
+ <setplot  ref="A1"  fn="doPlot2D"/>
+ <setplot  ref="A2"  fn="doPlot3D"/>
  <setplot  ref="B1"  fn="doPlot"/>
 
  <setplot  ref="IA1"  fn="doColorBtn"/>
