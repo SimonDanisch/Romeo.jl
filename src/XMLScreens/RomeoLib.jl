@@ -94,6 +94,51 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
     end
     treeWalk!(vObjT,  fnWalk2)
 
+       # The game here: thy shall not call visualize with a RenderObject
+       # ( May be this can be simplified if  my proposed patch in 
+       # Romeo/src/visualize_interface.jl gets accepted)
+@doc """
+       This function returns a RenderObject, or an iterable thereof
+       having processed its data through visualize if needed. A number of
+       cases may occur:
+         * NotComplete: screen or camera insertion have caused postponing eval
+         * Dict
+         * RenderObject
+         * Tuple{Vararg{RenderObject}}
+"""->
+   function visualizeConduit(vo, camera, scr)
+      dodebug(0x40) && println("Entering visualizeConduit")
+      if isa( vo, NotComplete)
+         if haskey(vo.data, :SetPerspectiveCam)
+            scr.perspectivecam = camera
+            return visualize(vo.what, screen=scr )
+          elseif  haskey(vo.data, :doColorChooser)
+            return  visualize(vo.what)      
+          else 
+             error("Unknown or absent key for TBCompleted ")
+          end
+      end
+      if isa(vo, Tuple)
+         return map( v -> visualizeConduit( v, camera, scr), vo)
+      end
+
+      retval = 
+           if ! isa(vo,Dict)
+               dodebug(0x8) && println("Calling visualize",typeof(vo))
+               visualize(vo, screen=scr)
+           else
+              # do not visualize RenderObjects!
+              if ! (   isa(vo[:render],RenderObject) 
+                    || isa(vo[:render],Tuple{Vararg{RenderObject}}))
+                 visualize(vo, screen=scr)
+              else
+                 vo
+              end
+           end
+    
+      dodebug(0x40) && println("Exiting visualizeConduit")
+      return retval
+   end
 
    # Equip each subscreen with a RenderObject 
 
@@ -140,7 +185,6 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        ocam=  OrthographicCamera(camera_input)
 
        camera = pcamSel ? pcam : ocam
-
        # Build the RenderObjects by calling the supplied function
        if dodebug(0x1)
             println("Entering external function:  ssc.attrib[ RObjFn ]", 
@@ -152,32 +196,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        dodebug(0x1) && println("Exited and returned vo with type:",typeof(vo))
 
 
-       # The game here: thy shall not call visualize with a RenderObject
-       # ( May be this can be simplified if  my proposed patch in 
-       # Romeo/src/visualize_interface.jl gets accepted)
-
-       #screen= parameter to visualize inspired from test/simple_display_grid.jl
-       viz =  if isa( vo, NotComplete)
-                if haskey(vo.data, :SetPerspectiveCam)
-                      scr.perspectivecam = camera
-                      visualize(vo.what, screen=scr )
-                elseif  haskey(vo.data, :doColorChooser)
-                      visualize(vo.what)      
-                else 
-                  error("Unknown or absent key for TBCompleted ")
-                end
-           elseif ! isa(vo,Dict)
-               dodebug(0x8) && println("Calling visualize",typeof(vo))
-               visualize(vo, screen=scr)
-           else
-              # do not visualize RenderObjects!
-              if ! (   isa(vo[:render],RenderObject) 
-                    || isa(vo[:render],Tuple{Vararg{RenderObject}}))
-                 visualize(vo, screen=scr)
-              else
-                 vo
-              end
-       end
+       viz =   visualizeConduit(vo,camera,scr)
        dodebug(0x8) && println("Visualized object of type:",typeof(viz))       
        ssc.attrib[ROProper] = viz
 

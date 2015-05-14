@@ -1,21 +1,24 @@
 julia           0.4-
-ImmutableArrays 0.0.6-
-FixedSizeArrays
-Images
-Reactive
-Mustache
-GLFW
-GLAbstraction
-GLVisualize
-ModernGL
-GLWindow
-GLText
 AbstractGPUArray
-Quaternions
-Compat
 Color
-FixedPointNumbers
 ColorTypes
+Compat
+FileIO
+FixedPointNumbers
+FixedSizeArrays
+GLAbstraction
+GLFW
+GLText
+GLVisualize
+GLWindow
 GeometryTypes
-LightXML
+ImageIO
+Images
+ImmutableArrays 0.0.6-
 JuliaParser
+LightXML
+ModernGL
+Mustache
+Quaternions
+Reactive
+

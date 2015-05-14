@@ -6,11 +6,13 @@ and <A HREF="https://github.com/JuliaGL/GLVisualize.jl">https://github.com/Julia
 # Romeo
 Romeo is an interactive scripting environment, in which you can execute Julia scripts and edit the variables in 3D.
 
-Screenshots  shows current state of my extensions to Romeo, heavily using GLVisualize.jl
+Screenshots  shows current state of my extensions to Romeo, heavily using GLVisualize.jl. These aim at providing an XML based high level interface to build
+screens showing multiple OGL views. An **example** could be providing 
+*different viewpoints onto the same object*.
 <TABLE>
 <TR>
-    <TD><IMG SRC="test/images/ScreenShot0510.png" WIDTH=300>
-    <TD><IMG SRC="test/images/ScreenShot0424.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0514.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0513.png" WIDTH=300>
 </TABLE>
 
 The first example shows: 1 main object in largest subscreen, 3 views 
