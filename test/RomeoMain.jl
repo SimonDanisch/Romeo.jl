@@ -27,7 +27,10 @@ using ColorTypes
 using SubScreensModule  # this is a module of "user functions" added for testing
 
 @doc """ This function uses the XML interface to define a screen organized
-         into subscreens.
+         into subscreens. 
+         It returns :
+             a) the subscreen tree for visualization
+             b) the symbol table member builtDict of subscreenContext () 
      """  ->
 function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    # Here we need to read the XML and do whatever is needed
@@ -101,10 +104,14 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    # We insert these definitions in the namespace use by xml
    insertXMLNamespace(fnDict)
    println("After insertXMLNamespace names in Main.xmlNS:",names(Main.xmlNS))
+   # compute the semantics based on the AST
    vizObj = buildFromParse( parseTree, sc)
-   @show vizObj
-   return vizObj
 
+   # in case there are  inits specified in XML tags ,
+   # (for instance to build signals):
+    performInits(sc.builtDict)
+
+   return (vizObj,sc.builtDict)
 end  
 @doc """
        Does the real work, main only deals with the command line options.
@@ -115,9 +122,9 @@ end
      """ ->
 function realMain(onlyImg::Bool; pcamSel=true, plotDim=2,  xml::String="")
    init_glutils()
-   vizObjSC   =        init_graph_gridXML(onlyImg, plotDim, xml)
+   (vizObjSC, bDict)   =        init_graph_gridXML(onlyImg, plotDim, xml)
    println("Entering  init_romeo")
-   init_romeo( vizObjSC; pcamSel = pcamSel )
+   init_romeo( vizObjSC; pcamSel = pcamSel, builtDict= bDict)
 
    println("Entering  interact_loop")
    interact_loop()
@@ -180,6 +187,7 @@ function main(args)
                       on subscreen tree)
            0x10: Show steps in subscreen tree indexing or manipulation
            0x20: Debug julia code inclusion and referencing
+           0x40: Debug signal for allowing RenderObjects to receive specialized signals
 
      """
     parsed_args = parse_args(s) # the result is a Dict{String,Any}

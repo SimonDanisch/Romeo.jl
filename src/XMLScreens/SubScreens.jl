@@ -10,7 +10,9 @@ export SubScreen,
         mkEmpty,
         treeWalk!,
 
-        SSCAttribs, RObjFn, ROProper, sigArea, sigScreen, RORot, RODumpMe, 
+        SSCAttribs, sigArea, sigScreen, 
+
+        RObjFn, RObjFnParms, ROProper, RORot, RODumpMe, 
         ROVirtIfDict, ROReqVirtUser, ROConnects
 
 debugFlagOn  = false
@@ -129,6 +131,7 @@ const sigArea     = :sigAreas
 const sigScreen   = :sigScreen
 
 const RObjFn        = :RObjFn
+const RObjFnParms   = :RObjFnParms
 const ROProper      = :ROProper
 const ROVirtIfDict  = :ROVirtIfDict   # Characteristics (ORed) requested by user
 const ROReqVirtUser = :ROReqVirtUser # Request to perform a geometric transf

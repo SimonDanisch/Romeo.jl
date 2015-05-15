@@ -26,8 +26,9 @@ export  setDebugLevels,
         subscreenContext,  
 	buildFromParse,
         xmlJuliaImport,
-        insertXMLNamespace
-
+        insertXMLNamespace,
+        showBD,
+        performInits
 debugFlagOn  = false
 debugLevel   = UInt64(0)
 
@@ -121,6 +122,14 @@ function Base.show(io::IO, sc::subscreenContext)
 
      print(io, reduce((x,y)->( x* "\n") * y, strs))
 end
+function showBD(io::IO, bd::Dict{Tuple{Symbol,Symbol},Any})
+     strs=Array{String,1}(0)
+     for k in sort(collect(keys(bd)))
+        push!(strs, "\t" * string(k) * "\t=>\t" * string(bd[k]))
+     end
+     print (io,  reduce((x,y)->( x* "\n") * y, strs))   
+end
+showBD(bd::Dict{Tuple{Symbol,Symbol},Any}) = showBD(STDOUT,bd)
 
 function buildFromParse(ast::SemNode, sc::subscreenContext)
    dodebug(0x1) && println("In  buildFromParse,ast=$ast")
@@ -327,35 +336,6 @@ function graftSubTrees( sc::subscreenContext )
          sLoc[tLoc...]=sM
      end
 end
-function searchCallable(fnName::AbstractString,
-                        impDict::Dict{Tuple{Symbol,Symbol},Any})
-        if (haskey(impDict,(:importFn,Symbol(fnName)) ))
-            dodebug(0x20) && println("In searchCallable:Looking for function ", fnName," in imports")
-
-            f = impDict[(:importFn,Symbol(fnName))]
-            dodebug(0x20) && println("\t\ttypeof(f)",typeof(f) )
-
-            return f
-        end
-
-        if haskey(impDict,(:inlinedMods,:list))
-           # use the list in impDict
-           for modName in  impDict[(:inlinedMods,:list)]
-              modName[1] == '*' && continue 
-               dodebug(0x20) && println("In searchCallable:Looking for function ", fnName," in  Main.xmlNS.$modName")
-              try 
-                 fn = eval(Main.xmlNS, parse("$modName.$fnName"))
-                 return fn
-              catch
-              end
-           end
-        end           
-
-         dodebug(0x20) && println("In searchCallable:Looking for function ", fnName," in  Main.xmlNS")
-         dodebug(0x20) && println("Names(Main.xmlNS):", names(Main.xmlNS))
-        eval(Main.xmlNS, parse(fnName))
-
-end
 
 function         processSetplot(ast::SemNode, sc::subscreenContext)
     dodebug(0x08) && println("In  processSetplot\tast=$ast")
@@ -384,6 +364,10 @@ function         processSetplot(ast::SemNode, sc::subscreenContext)
         elseif item[1] == :rotateModel
           tree[indx...].attrib[ROReqVirtUser] = VFRotateModel| VFTranslateModel
           tree[indx...].attrib[RORot] = item[2].nd
+        elseif item[1] == :addparm
+          # Here we need to extract the relevant information from the sc
+          # or organize things differently !!!!!
+          tree[indx...].attrib[RObjFnParms] = item[2]
         else
            error("Unexpected operation in setplot:" , item[1])
         end
@@ -442,6 +426,8 @@ function  processJuliaTag( ast::SemNode,  sContext::subscreenContext)
                 processImport( elDtl, sContext, attrList)
             elseif  elCde == :inline
                 processInline( elDtl, sContext, attrList)
+            elseif  elCde == :signal
+                processSignal( elDtl, sContext, attrList)
             else
                error("Unexpected detail code $elCde in processJuliaTag")
             end
@@ -473,27 +459,38 @@ end
 import JuliaParser.Parser
 import JuliaParser.Lexer
 
-# we prepare a special module, in the Main module context to store
-# the generated modules and other objects
-function __init__()
-   println ("In SemXMLSubscreen.__init__()")
-   eval(Main, Parser.parse("module xmlNS  \t end"))
-   global xmlNS = Main.xmlNS
-end
-# Provide a function to insert the functions prepared in the application
-# code into the xmlNS
-function  insertXMLNamespace(fdict::Dict{AbstractString, Function})
-    dodebug(0x20) && println("In insertXMLNamespace, fdict=", fdict)
-    for  (nm, fn) in fdict
-        dodebug(0x20) &&println("\tFunction=$fn")
-        expr1 = Parser.parse( nm * " = _unused_ "  )
-        expr1.args[2] = fn
-        eval(Main.xmlNS, expr1)
-        eval(Main.xmlNS, Parser.parse("export " * nm ))
-    end 
+@doc """ For signals we use the symbol table already present in sContext:
+         this function inserts in sContext at key (:signalFn, NAME)
+         a dictionnary with the information in the xml tag <signal>, 
+         complemented with attributes from the enclosing <julia> tag. The
+         "type" attribute is pre-parsed before insertion.
+""" ->
+function processSignal( elDtl::SemNode, sContext::subscreenContext, 
+                       attrL::Array{SemNode,1})
+    dodebug(0x40) && println("In processSignal,elDtl=$elDtl, attrL=", attrL)
 
-    dodebug(0x20) && println("In insertXMLNamespace, names in Main.xmlNS:", names(Main.xmlNS))
+    haskey(elDtl.nd,"name") || error("In <signal> missing attr. name")
+    fnName = elDtl.nd["name"]
+    sFName = Symbol(fnName)
+    dict = Dict{Symbol,Any}()
+    dict[:outerJulia]= attrL
+
+    for (sk,attrVal) in elDtl.nd
+         k = Symbol(sk) 
+         k in (:name, :init, :advance, :type ) ||  warn(
+                              "Unexpected key \"$sk\" in <signal> tag")   
+         k == :name && continue
+         dict[k] = (k == :type) ? Parser.parse(attrVal) : attrVal
+    end
+    impDict = sContext.builtDict
+    impDict[(:signalFn,sFName)] = dict
+
+    dodebug(0x40) && begin 
+                 println( "In processSignal,sContext=" )
+                 show( sContext )
+              end
 end
+
 
 #here we will try to parse the provided text
 function processInline( elDtl::Dict{Symbol, SemNode}, sContext::subscreenContext,
@@ -555,6 +552,71 @@ function processInline( elDtl::Dict{Symbol, SemNode}, sContext::subscreenContext
     end
 
     
+end
+
+
+# we prepare a special module, in the Main module context to store
+# the generated modules and other objects
+function __init__()
+   println ("In SemXMLSubscreen.__init__()")
+   eval(Main, Parser.parse("module xmlNS  \t end"))
+   global xmlNS = Main.xmlNS
+end
+
+function searchCallable(fnName::AbstractString,
+                        impDict::Dict{Tuple{Symbol,Symbol},Any})
+        if (haskey(impDict,(:importFn,Symbol(fnName)) ))
+            dodebug(0x20) && println("In searchCallable:Looking for function ", fnName," in imports")
+
+            f = impDict[(:importFn,Symbol(fnName))]
+            dodebug(0x20) && println("\t\ttypeof(f)",typeof(f) )
+
+            return f
+        end
+
+        if haskey(impDict,(:inlinedMods,:list))
+           # use the list in impDict
+           for modName in  impDict[(:inlinedMods,:list)]
+              modName[1] == '*' && continue 
+               dodebug(0x20) && println("In searchCallable:Looking for function ", fnName," in  Main.xmlNS.$modName")
+              try 
+                 fn = eval(Main.xmlNS, parse("$modName.$fnName"))
+                 return fn
+              catch
+              end
+           end
+        end           
+
+         dodebug(0x20) && println("In searchCallable:Looking for function ", fnName," in  Main.xmlNS")
+         dodebug(0x20) && println("Names(Main.xmlNS):", names(Main.xmlNS))
+        eval(Main.xmlNS, parse(fnName))
+
+end
+
+@doc """ This function performs the inits found in <julia> tags.
+         In particular in <signal>, the results of the call are kept
+         in the symbol table bDict, to be used later when defining
+         RenderObject building functions (so that the said objects
+         may contain/refer to signals).
+""" ->
+function  performInits(bDict::Dict{Tuple{Symbol,Symbol},Any})
+   println ("Entering performInits:")
+   showBD(bDict)
+   println ("Exiting performInits")
+end
+# Provide a function to insert the functions prepared in the application
+# code into the xmlNS
+function  insertXMLNamespace(fdict::Dict{AbstractString, Function})
+    dodebug(0x20) && println("In insertXMLNamespace, fdict=", fdict)
+    for  (nm, fn) in fdict
+        dodebug(0x20) &&println("\tFunction=$fn")
+        expr1 = Parser.parse( nm * " = _unused_ "  )
+        expr1.args[2] = fn
+        eval(Main.xmlNS, expr1)
+        eval(Main.xmlNS, Parser.parse("export " * nm ))
+    end 
+
+    dodebug(0x20) && println("In insertXMLNamespace, names in Main.xmlNS:", names(Main.xmlNS))
 end
 
 

@@ -50,6 +50,7 @@ using ROGeomOps       ## geometric OpenGL transformations on RenderObjects
 using VirtualOGLGeom  ## tools to effect transformations on RenderObjects via
                       ## interfaces
 using Connectors
+using SemXMLSubscreen
 
 @doc """  Performs a number of initializations
           Construct all RenderObjects (suitably parametrized) and inserts them in
@@ -62,7 +63,10 @@ using Connectors
 
           NOTE: THIS VERSION CORRESPONDS RECURSIVE GRIDDING: CURRENT LIBRARY CODE
      """  -> 
-function init_romeo( vObjT::SubScreen; pcamSel=true)
+function init_romeo( vObjT::SubScreen ; 
+                     pcamSel=true, 
+                     builtDict::Dict{Tuple{Symbol,Symbol},Any} = 
+                               Dict{Tuple{Symbol,Symbol},Any}() )
     root_area = GLVisualize.ROOT_SCREEN.area
     global_inputs = GLVisualize.ROOT_SCREEN.inputs
 
@@ -191,8 +195,12 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
                                 ssc.attrib[ RObjFn ])
             println(typeof(ssc.attrib[ RObjFn ]))
        end
-
-       vo  = ssc.attrib[ RObjFn ]( scr, camera )
+       if !haskey(ssc.attrib,RObjFnParms)
+             vo  = ssc.attrib[ RObjFn ]( scr, camera )
+       else
+             println ("About to process RObjFn with extra parms")
+             showBD(builtDict)
+       end
        dodebug(0x1) && println("Exited and returned vo with type:",typeof(vo))
 
 

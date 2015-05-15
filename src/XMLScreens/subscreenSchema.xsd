@@ -63,6 +63,14 @@
     <xs:attribute name="fn" type="xs:string"/>
   </xs:complexType>
 
+  <xs:complexType name="signalType">
+    <xs:attribute name="name"     type="xs:string"/>
+    <xs:attribute name="init"     type="xs:string"/>
+    <xs:attribute name="advance"  type="xs:string"/>
+    <xs:attribute name="type"     type="xs:string"/>
+  </xs:complexType>
+
+
   <xs:complexType name="juliaType">
     <xs:sequence >
       <xs:choice maxOccurs="unbounded">
@@ -78,6 +86,10 @@
 
                        We test what is accessible at the LightXML processor level.
                   -->
+         <xs:element name="signal" type="signalType" />
+                  <!-- signal is used to enable RenderObjects which are 
+                       dependent on signals (for instance a time dependent 
+                       object)   -->
       </xs:choice>
     </xs:sequence>
     <xs:attribute name="modulename" type="xs:string"/>
@@ -115,9 +127,15 @@
   </xs:complexType>
 
 
+  <xs:complexType name="addParmType">  
+    <xs:attribute name="name" type="xs:string"/>
+  </xs:complexType>
+
   <xs:complexType name="setplotType">
     <xs:sequence>
       <xs:element name="rotateModel" type="listofFLoatExprType"
+                  minOccurs="0" />
+      <xs:element name="addparm" type="addParmType"
                   minOccurs="0" />
     </xs:sequence>
     <xs:attribute name="ref" type="xs:string"/>
