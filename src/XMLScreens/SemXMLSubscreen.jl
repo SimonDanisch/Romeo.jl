@@ -21,6 +21,7 @@ module SemXMLSubscreen
   using GLAbstraction
   using ROGeomOps
   using Connectors
+  using LibString
 
 export  setDebugLevels,
         subscreenContext,  
@@ -28,7 +29,7 @@ export  setDebugLevels,
         xmlJuliaImport,
         insertXMLNamespace,
         showBD,
-        performInits
+        performInits, performSignalUpdts
 debugFlagOn  = false
 debugLevel   = UInt64(0)
 
@@ -109,7 +110,7 @@ function Base.show(io::IO, sc::subscreenContext)
 
      push!(strs,"  builtDict=")
      for k in sort(collect(keys(sc.builtDict)))
-        push!(strs, "\t" * string(k) * "\t=>\t" * string(sc.builtDict[k]))
+        push!(strs, "\t" * string(k) * "\t=>\t" * elide( string(sc.builtDict[k]),200,"..."))
      end
 
      push!(strs,"  finalize=[")
@@ -125,7 +126,8 @@ end
 function showBD(io::IO, bd::Dict{Tuple{Symbol,Symbol},Any})
      strs=Array{String,1}(0)
      for k in sort(collect(keys(bd)))
-        push!(strs, "\t" * string(k) * "\t=>\t" * string(bd[k]))
+        s = elide(string(bd[k]),200,"...")
+        push!(strs, "\t" * string(k) * "\t=>\t" * s)
      end
      print (io,  reduce((x,y)->( x* "\n") * y, strs))   
 end
@@ -483,6 +485,15 @@ function processSignal( elDtl::SemNode, sContext::subscreenContext,
          dict[k] = (k == :type) ? Parser.parse(attrVal) : attrVal
     end
     impDict = sContext.builtDict
+
+    lst  = if haskey(impDict,(:signalFnList,:list))    
+                   impDict[(:signalFnList,:list)] 
+           else
+                   l = Array{Symbol,1}(0)
+                   impDict[(:signalFnList,:list)] = l
+                   l
+           end
+    push!(lst,sFName)
     impDict[(:signalFn,sFName)] = dict
 
     dodebug(0x40) && begin 
@@ -602,7 +613,39 @@ end
 function  performInits(bDict::Dict{Tuple{Symbol,Symbol},Any})
    println ("Entering performInits:")
    showBD(bDict)
+   if haskey( bDict, (:signalFnList,:list))
+      for sFName in bDict[(:signalFnList,:list)] 
+          initDict = bDict[(:signalFn,sFName)]
+          if haskey(initDict,:init)
+             initFnName= initDict[:init]
+             fn =  searchCallable( initFnName, bDict)
+             res = fn()
+             bDict[(:sigInitVal,sFName)] = res
+          end
+      end
+   end    
    println ("Exiting performInits")
+end
+function  performSignalUpdts(bDict::Dict{Tuple{Symbol,Symbol},Any})
+   println ("Entering performSignalUpdts:")
+   showBD(bDict)
+   if haskey( bDict, (:signalFnList,:list))
+      for sFName in bDict[(:signalFnList,:list)] 
+          initDict = bDict[(:signalFn,sFName)]
+          if haskey(initDict,:advance)
+             updtFnName= initDict[:advance]
+             fn = searchCallable( updtFnName, bDict)
+             if haskey( bDict, (:sigInitVal,sFName))
+                # access the signal
+                sig =  bDict[(:sigInitVal,sFName)]
+                 fn(sig)
+             else
+                 fn()
+             end
+          end
+      end
+   end    
+   println ("Exiting performSignalUpdts")
 end
 # Provide a function to insert the functions prepared in the application
 # code into the xmlNS

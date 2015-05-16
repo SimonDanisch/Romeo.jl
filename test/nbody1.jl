@@ -1,37 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-             xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
-
-<!-- Test purposes
-     1) explore GLVisualize examples, here nbody.jl
-     2) include signal timed displays (with all the machinery there TBD)
--->
-<!-- Function definitions  -->
-
-
-<julia  modulename="SubScreensInline">
-   <signal name="timer"  
-           init="timerInitFun" 
-           advance="timerAdvanceFun"
-           type="Reactive.Input{Int64}"/>
-   <!-- now  read the inlined Julia code -->
-   <inline>
-   <?julia      
-module SubScreensInline
-
-using GLAbstraction, GLWindow, ModernGL, GLVisualize,  AbstractGPUArray
-using ColorTypes, GeometryTypes
-using Meshes, MeshIO
-using Reactive
-using Romeo, TBCompletedM
 using ODE
+using GLVisualize, AbstractGPUArray, GLAbstraction, MeshIO, GeometryTypes, Reactive, ColorTypes
 
-export doPlanets,  timerInitFun, timerAdvanceFun
-      
-warn ("GLAbstraction.Camera is not exported")
-Camera = GLAbstraction.Camera
-
-      ## Example from GLVisualize/test/nbody.jl
 function F(t,y)
     
     #Number of Planets (note we're solving the n-body problem, rather than just a 3-body problem)
@@ -145,15 +114,11 @@ end
 
 
 
-function doPlanets( sc::Screen,cam::Camera, time_i) # beware 3rd result   
+function doPlanets(time_i)                          #  sc::Screen,cam::Camera) # beware 3rd result   
     m,y0,G = worldCreate()
     t,y    = worldOperate(y0)  
     planets = reformatData(m, t, y)
     len= size(planets, 1)
-
-    # this is used for communication with timerAdvanceFun
-    global lenPlanet
-    lenPlanet = len    
 
     const positions     = lift(send_frame, time_i, Input(planets))
     const robj          = visualize(positions, model=scalematrix(Vec3(0.1f0)))
@@ -165,94 +130,26 @@ function doPlanets( sc::Screen,cam::Camera, time_i) # beware 3rd result
     				model=scalematrix(Vec3(0.01f0)))
                        for i=1:4]
 
-    # for now I have an issue with the second (robjPl)
-    #return (robj, robjPl, len) 
-
-    return robj
+    return (robj, robjPl, len) 
 end
 
 
-#  provide the timing signal:
-function timerInitFun()
-   println("In timerInitFun")
-   return Input(1) 
-end
-
-# How do we get lenPlanet in there?
-function timerAdvanceFun(timer::Reactive.Input{Int64})
-    global lenPlanet
-    push!(timer, mod1(timer.value+1, lenPlanet))
-end
 
 
-end    # SubScreensInline
-
-#==
-For checking:
-
+const time_i = Input(1)    
+robj, planet_lines, lenPlanet =   doPlanets(time_i)    
 push!(GLVisualize.ROOT_SCREEN.renderlist, robj)
 append!(GLVisualize.ROOT_SCREEN.renderlist, planet_lines)
 
+
+    
 @async renderloop() 
-# you can also "manually" push into the signal. For that the renderloop has to be 
-# started asynchronous while the loop that updates the signal is the blocking one
+# you can also "manually" push into the signal. For that the renderloop has to be started asynchronous
+# while the loop that updates the signal is the blocking one
 while GLVisualize.ROOT_SCREEN.inputs[:open].value
     yield()
     push!(time_i, mod1(time_i.value+1, lenPlanet))
 end
 
-==#
-   ?>
-   </inline>
-</julia>
-<!-- Subscreen description -->
- <subscreen rows="2" cols="2" name="MAIN">
-  <rowsizes>1,4</rowsizes>
-  <colsizes>4,1</colsizes>
-  <table>
-    <tr>
-     <subscreen name="A1"/>
-     <subscreen name="A2"/>
-     </tr>
-    <tr>
-     <subscreen name="B1"/>
-     <subscreen name="INNER"/>
-     </tr>
-   </table>
- </subscreen>
 
- <subscreen rows="4" cols="1" name="INNER">
-  <rowsizes>1,1,1,1</rowsizes>
-  <colsizes>1</colsizes>
-  <table>
-    <tr>
-     <subscreen name="IA1"/>
-    </tr>
-    <tr>
-     <subscreen name="IB1"/>
-    </tr>
-    <tr>
-     <subscreen name="IC1"/>
-    </tr>
-    <tr>
-     <subscreen name="ID1"/>
-    </tr>
-   </table>
- </subscreen>
 
-<!-- Subscreen contents -->
-
- <setplot  ref="B1"  fn="doPlanets">
-       <addparm name="timer" />
- </setplot>
-
- <!-- Connectors -->
-
- <!-- Debug options -->
-
-<debug>
-    <dump ref="B1"/>
-</debug>
-
-</scene>
-<!-- This ends the scene-->

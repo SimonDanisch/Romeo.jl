@@ -50,6 +50,9 @@ $(DOCXMLSCR)/RomeoLib.jl: $(JULIATRY)/RomeoLib.jl  $(TSTAMP)
 $(DOCUTILDIR)/ManipStreams.jl: $(JULIAENV)/ManipStreams.jl  $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
 
+$(DOCUTILDIR)/LibString.jl: $(JULIATRY)/LibString.jl  $(TSTAMP)
+	$(STRIPLINECMD) $< |cpif $@
+
 
 $(DOCXMLSCR)/DebugTools.jl: $(JULIATRY)/DebugTools.jl     $(TSTAMP)
 	$(STRIPLINECMD) $< |cpif $@
@@ -146,6 +149,7 @@ progs :  RomeoMain.jl subscreenSpec.xml \
         $(DOCXMLSCR)/SemXMLSubscreen.jl \
         $(DOCXMLSCR)/Constants.jl \
         $(DOCUTILDIR)/ManipStreams.jl \
+        $(DOCUTILDIR)/LibString.jl \
         $(DOCXMLSCR)/subscreenSchema.xsd \
 	$(TOOLSDIR)/xmlValid
 

@@ -126,9 +126,13 @@ function init_romeo( vObjT::SubScreen ;
          return map( v -> visualizeConduit( v, camera, scr), vo)
       end
 
+      if isa(vo, RenderObject)
+         return vo
+      end
+
       retval = 
            if ! isa(vo,Dict)
-               dodebug(0x8) && println("Calling visualize",typeof(vo))
+               dodebug(0x8) && println("Calling visualize arg type=",typeof(vo))
                visualize(vo, screen=scr)
            else
               # do not visualize RenderObjects!
@@ -195,11 +199,20 @@ function init_romeo( vObjT::SubScreen ;
                                 ssc.attrib[ RObjFn ])
             println(typeof(ssc.attrib[ RObjFn ]))
        end
+
        if !haskey(ssc.attrib,RObjFnParms)
              vo  = ssc.attrib[ RObjFn ]( scr, camera )
        else
-             println ("About to process RObjFn with extra parms")
+             extra = ssc.attrib[ RObjFnParms ]
+             println ("About to process RObjFn with extra parms:", extra )
+             sfnName  = Symbol(extra["name"])
+             initVal = builtDict[(:sigInitVal,sfnName)]
              showBD(builtDict)
+
+             # this piece of code will need to be improved before
+             # we allow multiple signal initialization values
+             vo  = ssc.attrib[ RObjFn ]( scr, camera, initVal )
+
        end
        dodebug(0x1) && println("Exited and returned vo with type:",typeof(vo))
 
@@ -299,6 +312,7 @@ function init_romeo( vObjT::SubScreen ;
 
 end
 
+# This is the simplest interact loop
 function interact_loop()
    println("Into  interact_loop()")
    while GLVisualize.ROOT_SCREEN.inputs[:open].value
@@ -306,6 +320,23 @@ function interact_loop()
       GLVisualize.renderloop(GLVisualize.ROOT_SCREEN)
       sleep(0.01)
    end
+   GLFW.Terminate()
+end
+# This is the interact loop adapted for signal update
+# it is inspired from GLVisualize/test/nbody.jl.
+# Of course, it uses the material stored in the buildDict directory. 
+function interact_loop(builtDict::Dict{Tuple{Symbol,Symbol},Any})
+   println("Into  interact_loop(builtDict)")
+
+   # start the render loop asynchronously
+   @async renderloop()
+
+   # perform the updates of the signals
+   while GLVisualize.ROOT_SCREEN.inputs[:open].value
+         performSignalUpdts(builtDict)
+   end
+
+
    GLFW.Terminate()
 end
 end # 		module RomeoLib

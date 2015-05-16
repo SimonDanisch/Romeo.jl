@@ -127,14 +127,14 @@
  <setplot  ref="A2"  fn="doAxis"/>
  <setplot  ref="B1"  fn="doMeshAxis"/>
 
- <setplot  ref="IA1"  fn="doMesh"/>
- <setplot  ref="IB1"  fn="doMesh"> 
+ <setplot  ref="IA1"  fn="doMeshAxis"/>
+ <setplot  ref="IB1"  fn="doMeshAxis"> 
       <rotateModel>Pi/2, 0.0, 0.0</rotateModel>
  </setplot>
- <setplot  ref="IC1"  fn="doMesh">
+ <setplot  ref="IC1"  fn="doMeshAxis">
       <rotateModel>0.0, Pi/2, 0.0</rotateModel>
  </setplot>
- <setplot  ref="ID1"  fn="doMesh">
+ <setplot  ref="ID1"  fn="doMeshAxis">
       <rotateModel>0.0, 0.0, Pi/2</rotateModel>
  </setplot>
 

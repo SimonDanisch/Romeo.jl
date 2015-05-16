@@ -127,7 +127,7 @@ function realMain(onlyImg::Bool; pcamSel=true, plotDim=2,  xml::String="")
    init_romeo( vizObjSC; pcamSel = pcamSel, builtDict= bDict)
 
    println("Entering  interact_loop")
-   interact_loop()
+   haskey( bDict, (:signalFnList,:list)) ? interact_loop(bDict) : interact_loop()
 end
 
 # parse arguments, so that we have some flexibility to vary tests on the 
