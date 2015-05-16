@@ -4,8 +4,13 @@ module SubScreensModule
 
 export doPlot2D, doPlot3D
 
-abstract Screen
-abstract Camera
+using GLAbstraction, GLWindow, ModernGL, GLVisualize
+using Romeo, TBCompletedM
+export plot2D, plot3D
+
+warn ("GLAbstraction.Camera is not exported")
+Camera = GLAbstraction.Camera
+
 
    # try with a plot
    npts = 50 

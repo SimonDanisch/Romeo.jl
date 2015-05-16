@@ -6,11 +6,13 @@ and <A HREF="https://github.com/JuliaGL/GLVisualize.jl">https://github.com/Julia
 # Romeo
 Romeo is an interactive scripting environment, in which you can execute Julia scripts and edit the variables in 3D.
 
-Screenshots  shows current state of my extensions to Romeo, heavily using GLVisualize.jl
+Screenshots  shows current state of my extensions to Romeo, heavily using GLVisualize.jl. These aim at providing an XML based high level interface to build
+screens showing multiple OGL views. An **example** could be providing 
+*different viewpoints onto the same object*.
 <TABLE>
 <TR>
-    <TD><IMG SRC="test/images/ScreenShot0510.png" WIDTH=300>
-    <TD><IMG SRC="test/images/ScreenShot0424.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0514.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0513.png" WIDTH=300>
 </TABLE>
 
 The first example shows: 1 main object in largest subscreen, 3 views 
@@ -160,17 +162,19 @@ description like the following:
 The following branches in the Git tree have specific meaning (At least planned):
 <TABLE>
 <TR><TD>master
-    <TD>Eventually corresponds to master on the upstream tree 
+    <TD> Eventually represent the stable version, synchronized with upstream/master
         (S.Danisch development)
-<TR><TD>skinny
-    <TD>Move to new organization using  GLVisualize, AbstractGPUArray, GeometryTypes, 
-        ColorTypes, Meshes, MeshIO. <B>Currently, just achieved first OGL display.</B>
 <TR><TD>XML
-    <TD>XML related functions, waiting for integration with "skinny" branch
-       Adds: Management of multiple subscreens, and inter-subscreen  interaction.
-             Generalization to other signals via *Connectors* and the *connection* tag .        
+    <TD>Development of high(er) level functions, permitting to describe screens/subscreens
+        in XML (ongoing).
+<TR><TD>timedOGL
+    <TD>explorative development of features enabling (signal) timed OpenGL (ie moving stuff);
+        our base example is GLVisualize/tests/nbody.jl.
+<TR><TD>skinny
+    <TD>Used to port to new organization using  GLVisualize, AbstractGPUArray, GeometryTypes, 
+        ColorTypes, Meshes, MeshIO. <B>Achieved first OGL display</B>, 
+        dev. transferred to XML branch.
 </TABLE>
-
 
 
 ### The following issues concern my own development
@@ -178,9 +182,6 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>ISSUES
     <TD>Date
     <TD>Description
-<TR><TD>Julia Version 0.4.0-dev+4500 (Commit 30b94a1*) 
-    <TD>2015-04-25 15:54 UTC
-    <TD>Issues:Currently working on remaining compatibility issues
 <TR><TD>Romeo 
     <TD>reorganized, 
     <TD>skinned down most previous functionality moved to GLVisualize
@@ -198,16 +199,6 @@ The following branches in the Git tree have specific meaning (At least planned):
      <TD>Date
      <TD>Issues
      <TD>Description
-<TR> 
-     <TD>Version 0.4.0-dev+4287 
-     <TD> 2015-04-16 09:12 UTC
-     <TD> Rebuild from source tree
-     <TD> Commit bd748b9*; x86_64-linux-gnu
-<TR> 
-     <TD>Version 0.4.0-dev+4500
-     <TD>2015-04-25 15:54 UTC
-     <TD> Rebuild from source tree. Requires updates in multiple libraries 
-     <TD> Commit  30b94a1*; x86_64-linux-gnu
 <TR> 
      <TD>Version 0.4.0-dev+4704
      <TD>2015-05-07 03:55 UTC

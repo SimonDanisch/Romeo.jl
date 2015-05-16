@@ -2,11 +2,94 @@
 <scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
 
-<!-- Subscreen description -->
+<!-- Test purposes
+     1) explore GLVisualize examples, here test_mesh.jl
+     2) explore Tuple{Vararg{RenderObject}}
+        Here we show Mesh and Axis separately and also grouped in main subscreen
+     Note: the meshes are recomputed!!! eventually we might be interested in sharing
+        them between subscreens (not implemented), this will require another test
+-->
+<!-- Function definitions  -->
 
+
+<julia  modulename="SubScreensInline">
+   <inline>
+   <?julia      
+      module SubScreensInline
+
+      using GLAbstraction, GLWindow, ModernGL, GLVisualize,  AbstractGPUArray
+      using ColorTypes, GeometryTypes
+      using Meshes, MeshIO
+      using Romeo, TBCompletedM
+
+      export doMesh, doAxis, doMeshAxis
+      
+      warn ("GLAbstraction.Camera is not exported")
+      Camera = GLAbstraction.Camera
+
+      ## Example from GLVisualize/test/test_mesh
+      function create_example_mesh()
+          # volume of interest
+          x_min, x_max = -1, 15
+          y_min, y_max = -1, 5
+          z_min, z_max = -1, 5
+          scale = 8
+       
+          b1(x,y,z) = box(   x,y,z, 0,0,0,3,3,3)
+          s1(x,y,z) = sphere(x,y,z, 3,3,3,sqrt(3))
+          f1(x,y,z) = min(b1(x,y,z), s1(x,y,z))  # UNION
+          b2(x,y,z) = box(   x,y,z, 5,0,0,8,3,3)
+          s2(x,y,z) = sphere(x,y,z, 8,3,3,sqrt(3))
+          f2(x,y,z) = max(b2(x,y,z), -s2(x,y,z)) # NOT
+          b3(x,y,z) = box(   x,y,z, 10,0,0,13,3,3)
+          s3(x,y,z) = sphere(x,y,z, 13,3,3,sqrt(3))
+          f3(x,y,z) = max(b3(x,y,z), s3(x,y,z))  # INTERSECTION
+          f(x,y,z) = min(f1(x,y,z), f2(x,y,z), f3(x,y,z))
+       
+          vol = volume(f, x_min,y_min,z_min,x_max,y_max,z_max, scale)
+          msh = GLNormalMesh(vol, 0.0f0)
+          return msh
+      end
+
+      function create_example_axis()
+        dirlen 	= 1f0
+        baselen = 0.02f0
+        axis 	= [
+      	 (Cube(Vec3(baselen), Vec3(dirlen, baselen, baselen)), RGBA(1f0,0f0,0f0,1f0)), 
+      	 (Cube(Vec3(baselen), Vec3(baselen, dirlen, baselen)), RGBA(0f0,1f0,0f0,1f0)), 
+      	 (Cube(Vec3(baselen), Vec3(baselen, baselen, dirlen)), RGBA(0f0,0f0,1f0,1f0))
+          ]
+        axis = map(GLNormalMesh, axis)
+        axis = merge(axis)
+      end
+
+      function doMesh(sc::Screen,cam::Camera)
+          println("Entered doMesh")
+	  msh  = create_example_mesh()
+          msh
+      end
+
+     function doAxis (sc::Screen,cam::Camera)
+          println("Entered doAxis")
+          ax   = create_example_axis()
+          ax
+     end
+
+     function doMeshAxis (sc::Screen,cam::Camera)
+          println("Entered doMeshAxis")
+	  msh  = create_example_mesh()
+          ax   = create_example_axis()
+          (msh,ax)
+     end
+
+      end    # SubScreensInline
+   ?>
+   </inline>
+</julia>
+<!-- Subscreen description -->
  <subscreen rows="2" cols="2" name="MAIN">
-  <rowsizes>1,3</rowsizes>
-  <colsizes>4,3</colsizes>
+  <rowsizes>1,4</rowsizes>
+  <colsizes>4,1</colsizes>
   <table>
     <tr>
      <subscreen name="A1"/>
@@ -40,50 +123,31 @@
 
 <!-- Subscreen contents -->
 
- <setplot  ref="A1"  fn="doEdit"/>
- <setplot  ref="A2"  fn="doPlot2D"/>
- <setplot  ref="B1"  fn="doPlot3D"/>
+ <setplot  ref="A1"  fn="doMesh"/>
+ <setplot  ref="A2"  fn="doAxis"/>
+ <setplot  ref="B1"  fn="doMeshAxis"/>
 
- <setplot  ref="IA1"  fn="doColorBtn"/>
- <setplot  ref="IB1"  fn="doPlot2D"> 
+ <setplot  ref="IA1"  fn="doMeshAxis"/>
+ <setplot  ref="IB1"  fn="doMeshAxis"> 
       <rotateModel>Pi/2, 0.0, 0.0</rotateModel>
  </setplot>
- <setplot  ref="IC1"  fn="doPlot2D">
+ <setplot  ref="IC1"  fn="doMeshAxis">
       <rotateModel>0.0, Pi/2, 0.0</rotateModel>
  </setplot>
- <setplot  ref="ID1"  fn="doPlot2D">
+ <setplot  ref="ID1"  fn="doMeshAxis">
       <rotateModel>0.0, 0.0, Pi/2</rotateModel>
  </setplot>
 
  <!-- Connectors -->
  <connection from="B1" to="A2"> 
-            <inSig>:view   , :projection,    :projectionview, :projection</inSig>
-            <outSig>:view , :projectionview,:projection,    :projection </outSig>
+            <inSig>:view  </inSig> <!-- , :projection,    :projectionview, :projection-->
+            <outSig>:view </outSig> <!-- , :projectionview,:projection,    :projection-->
  </connection>
- <connection from="IA1" to="A2"> 
-            <inSig>:color</inSig>
-            <outSig>:color</outSig>
- </connection>
- <connection from="IA1" to="B1"> 
-            <inSig>:color</inSig>
-            <outSig>:color</outSig>
- </connection>
- <connection from="IA1" to="IC1"> 
-            <inSig>:color</inSig>
-            <outSig>:color</outSig>
- </connection>
- <connection from="IA1" to="ID1"> 
-            <inSig>:color</inSig>
-            <outSig>:color</outSig>
- </connection>
-
 
  <!-- Debug options -->
 
 <debug>
-    <dump ref="A2"/>
-    <dump ref="B1"/>
-    <dump ref="IA1"/>
+    <dump ref="IC1"/>
 </debug>
 
 </scene>

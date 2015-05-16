@@ -50,6 +50,7 @@ using ROGeomOps       ## geometric OpenGL transformations on RenderObjects
 using VirtualOGLGeom  ## tools to effect transformations on RenderObjects via
                       ## interfaces
 using Connectors
+using SemXMLSubscreen
 
 @doc """  Performs a number of initializations
           Construct all RenderObjects (suitably parametrized) and inserts them in
@@ -62,7 +63,10 @@ using Connectors
 
           NOTE: THIS VERSION CORRESPONDS RECURSIVE GRIDDING: CURRENT LIBRARY CODE
      """  -> 
-function init_romeo( vObjT::SubScreen; pcamSel=true)
+function init_romeo( vObjT::SubScreen ; 
+                     pcamSel=true, 
+                     builtDict::Dict{Tuple{Symbol,Symbol},Any} = 
+                               Dict{Tuple{Symbol,Symbol},Any}() )
     root_area = GLVisualize.ROOT_SCREEN.area
     global_inputs = GLVisualize.ROOT_SCREEN.inputs
 
@@ -94,6 +98,55 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
     end
     treeWalk!(vObjT,  fnWalk2)
 
+       # The game here: thy shall not call visualize with a RenderObject
+       # ( May be this can be simplified if  my proposed patch in 
+       # Romeo/src/visualize_interface.jl gets accepted)
+@doc """
+       This function returns a RenderObject, or an iterable thereof
+       having processed its data through visualize if needed. A number of
+       cases may occur:
+         * NotComplete: screen or camera insertion have caused postponing eval
+         * Dict
+         * RenderObject
+         * Tuple{Vararg{RenderObject}}
+"""->
+   function visualizeConduit(vo, camera, scr)
+      dodebug(0x40) && println("Entering visualizeConduit")
+      if isa( vo, NotComplete)
+         if haskey(vo.data, :SetPerspectiveCam)
+            scr.perspectivecam = camera
+            return visualize(vo.what, screen=scr )
+          elseif  haskey(vo.data, :doColorChooser)
+            return  visualize(vo.what)      
+          else 
+             error("Unknown or absent key for TBCompleted ")
+          end
+      end
+      if isa(vo, Tuple)
+         return map( v -> visualizeConduit( v, camera, scr), vo)
+      end
+
+      if isa(vo, RenderObject)
+         return vo
+      end
+
+      retval = 
+           if ! isa(vo,Dict)
+               dodebug(0x8) && println("Calling visualize arg type=",typeof(vo))
+               visualize(vo, screen=scr)
+           else
+              # do not visualize RenderObjects!
+              if ! (   isa(vo[:render],RenderObject) 
+                    || isa(vo[:render],Tuple{Vararg{RenderObject}}))
+                 visualize(vo, screen=scr)
+              else
+                 vo
+              end
+           end
+    
+      dodebug(0x40) && println("Exiting visualizeConduit")
+      return retval
+   end
 
    # Equip each subscreen with a RenderObject 
 
@@ -140,40 +193,31 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
        ocam=  OrthographicCamera(camera_input)
 
        camera = pcamSel ? pcam : ocam
-
        # Build the RenderObjects by calling the supplied function
-       dodebug(0x1) && println("Entering external function:  ssc.attrib[ RObjFn ]", 
+       if dodebug(0x1)
+            println("Entering external function:  ssc.attrib[ RObjFn ]", 
                                 ssc.attrib[ RObjFn ])
-       vo  = ssc.attrib[ RObjFn ]( scr, camera )
+            println(typeof(ssc.attrib[ RObjFn ]))
+       end
+
+       if !haskey(ssc.attrib,RObjFnParms)
+             vo  = ssc.attrib[ RObjFn ]( scr, camera )
+       else
+             extra = ssc.attrib[ RObjFnParms ]
+             println ("About to process RObjFn with extra parms:", extra )
+             sfnName  = Symbol(extra["name"])
+             initVal = builtDict[(:sigInitVal,sfnName)]
+             showBD(builtDict)
+
+             # this piece of code will need to be improved before
+             # we allow multiple signal initialization values
+             vo  = ssc.attrib[ RObjFn ]( scr, camera, initVal )
+
+       end
        dodebug(0x1) && println("Exited and returned vo with type:",typeof(vo))
 
 
-       # The game here: thy shall not call visualize with a RenderObject
-       # ( May be this can be simplified if  my proposed patch in 
-       # Romeo/src/visualize_interface.jl gets accepted)
-
-       #screen= parameter to visualize inspired from test/simple_display_grid.jl
-       viz =  if isa( vo, NotComplete)
-                if haskey(vo.data, :SetPerspectiveCam)
-                      scr.perspectivecam = camera
-                      visualize(vo.what, screen=scr )
-                elseif  haskey(vo.data, :doColorChooser)
-                      visualize(vo.what)      
-                else 
-                  error("Unknown or absent key for TBCompleted ")
-                end
-           elseif ! isa(vo,Dict)
-               dodebug(0x8) && println("Calling visualize",typeof(vo))
-               visualize(vo, screen=scr)
-           else
-              # do not visualize RenderObjects!
-              if ! (   isa(vo[:render],RenderObject) 
-                    || isa(vo[:render],Tuple{Vararg{RenderObject}}))
-                 visualize(vo, screen=scr)
-              else
-                 vo
-              end
-       end
+       viz =   visualizeConduit(vo,camera,scr)
        dodebug(0x8) && println("Visualized object of type:",typeof(viz))       
        ssc.attrib[ROProper] = viz
 
@@ -268,6 +312,7 @@ function init_romeo( vObjT::SubScreen; pcamSel=true)
 
 end
 
+# This is the simplest interact loop
 function interact_loop()
    println("Into  interact_loop()")
    while GLVisualize.ROOT_SCREEN.inputs[:open].value
@@ -275,6 +320,23 @@ function interact_loop()
       GLVisualize.renderloop(GLVisualize.ROOT_SCREEN)
       sleep(0.01)
    end
+   GLFW.Terminate()
+end
+# This is the interact loop adapted for signal update
+# it is inspired from GLVisualize/test/nbody.jl.
+# Of course, it uses the material stored in the buildDict directory. 
+function interact_loop(builtDict::Dict{Tuple{Symbol,Symbol},Any})
+   println("Into  interact_loop(builtDict)")
+
+   # start the render loop asynchronously
+   @async renderloop()
+
+   # perform the updates of the signals
+   while GLVisualize.ROOT_SCREEN.inputs[:open].value
+         performSignalUpdts(builtDict)
+   end
+
+
    GLFW.Terminate()
 end
 end # 		module RomeoLib

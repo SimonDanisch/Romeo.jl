@@ -1,0 +1,14 @@
+Date:   Thu Mar 5 14:37:58 2015 +0100
+    Added DocCompat package, so that @doc may be used with versions 0.3 (discard doc)
+    and 0.4(full function)
+
+Date:   Sat Mar 14 18:12:53 2015 +0100
+    Added signal's library (facilitate use of Reactive)
+
+Date:   Mon Mar 16 21:13:01 2015 +0100
+    Relies on several mods by Sdanisch <sdanisch@gmail.com> (Romeo, GLXX..)
+    Operate in Julia 0.3 and 0.4
+    Subscreen grid implemented
+    RomeoLib  now incorporates standardized procedures, will evolve into library
+    RomeoLib moves to src/docUtil
+

@@ -1,4 +1,15 @@
+#==
+  This module performs  a recursive descent parser of our XML 
+  dialect. XML tokenizing (and more) is done by LightXML.
 
+  I would have preferred using a LALR parser generator (ie Yacc or equiv. (+))
+  where tokens could be user defined (to be obtained from LightXML).
+  Apparently(*) this is not available in Julia (5/2015).
+
+  (+) look at OCAML's Dypgen or Ocamlyacc
+
+  (*) May want to look at Parsimonious.jl
+==#
 module ParseXMLSubscreen
 using LightXML
 
@@ -204,8 +215,14 @@ function accept(tt::Token{:julia}, xnd::XMLNode, depth::Int=0)
     const stateTransitions =  (
                          (:init,   :import, :import),
                          (:init,   :inline, :inline),
+                         (:init,   :signal, :signal),
                          (:import, :inline, :inline),
-                         (:inline, :import, :import),)
+                         (:import, :signal, :signal),
+                         (:inline, :import, :import),
+                         (:inline, :signal, :signal),
+                         (:signal, :import, :import),
+                         (:signal, :inline, :inline),
+    )
 
     for chld in child_nodes(xnd)
         nmChild = name(chld)
@@ -222,6 +239,10 @@ function accept(tt::Token{:julia}, xnd::XMLNode, depth::Int=0)
            end
         elseif  (state == :inline && testSymbol( nmChild , (:inline, :comment, :text))) 
            if snmChild == :inline 
+                push!(lst, accept(Token(nmChild), chld, depth+1)) 
+           end
+        elseif  (state == :signal && testSymbol( nmChild , (:signal, :comment, :text))) 
+           if snmChild == :signal 
                 push!(lst, accept(Token(nmChild), chld, depth+1)) 
            end
         elseif  (state == :init && testSymbol( nmChild , (:comment, :text))) 
@@ -245,11 +266,27 @@ function accept(tt::Token{:import}, xnd::XMLNode, depth::Int=0)
         nmChild = name(chld)
         snmChild = Symbol(nmChild)
         if ! testSymbol( nmChild , (:comment, :text))
-            error("Unexpected token \"$nmChild\"  in <import> section")
+            error("Unexpected token \"$nmChild\"  in <import> tag")
         end
     end
 
     SemNode((:import,ret))
+end
+function accept(tt::Token{:signal}, xnd::XMLNode, depth::Int=0)
+    pretty(depth, "J>\t",name(xnd), getAttr(xnd))
+
+    attribs = doAttrib(tt,xnd,depth)
+    ret = SemNode(attribs)
+
+    for chld in child_nodes(xnd)
+        nmChild = name(chld)
+        snmChild = Symbol(nmChild)
+        if ! testSymbol( nmChild , (:comment, :text))
+            error("Unexpected token \"$nmChild\"  in <signal> tag")
+        end
+    end
+
+    SemNode((:signal,ret))
 end
 function accept(tt::Token{:inline}, xnd::XMLNode, depth::Int=0)
     pretty(depth, "J>\t",name(xnd), getAttr(xnd))
@@ -376,7 +413,7 @@ function accept(tt::Token{:setplot}, xnd::XMLNode, depth::Int=0)
     # here the attribute (fn) are essential!!!!
     tbl = Array{SemNode,1}(0)
     for chld in child_nodes(xnd)
-        checkSymbol (name(chld) , (:rotateModel, :text ))
+        checkSymbol (name(chld) , (:rotateModel, :addparm, :text, :comment ))
         push!(tbl,accept(Token(name(chld)), chld, depth+1))
     end
     SemNode((:setplot,tbl, attrs))
@@ -415,6 +452,11 @@ function accept(tt::Token{:rotateModel},  xnd::XMLNode, depth::Int=0)
     # Constant module, this is done by the accept function
     acc0= accept(Token(:listFloatExpr), xnd, depth+1)
     SemNode((:rotateModel,acc0))
+end
+function accept(tt::Token{:addparm},  xnd::XMLNode, depth::Int=0)
+    pretty(depth, "addparm>\t",name(xnd))        
+    attrs = getAttr(xnd)
+    SemNode((:addparm, attrs))
 end
 function accept(tt::Token{:dump},  xnd::XMLNode, depth::Int=0)
     pretty(depth, "Dump>\t",name(xnd))

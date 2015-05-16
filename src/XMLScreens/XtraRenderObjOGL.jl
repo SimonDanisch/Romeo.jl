@@ -17,7 +17,7 @@ end
 # (snippets provided  by S.Danisch)
 
 function mkCube(screen,camera)
-cubeVert="""
+cubeVert=vert"""
 {{GLSL_VERSION}}
 
 {{in}} vec3 vertex;
@@ -32,7 +32,7 @@ void main(){
    	gl_Position = projectionview * vec4(vertex, 1.0);
 }
 """
-cubeFrag="""
+cubeFrag=frag"""
 {{GLSL_VERSION}}
 
 
@@ -43,7 +43,7 @@ void main(){
    	frag_color = vec4(vert_color, 1); // put in transparency
 }
 """
-cubeLineVert="""
+cubeLineVert=vert"""
 {{GLSL_VERSION}}
 
 {{in}} vec3 vertex;
@@ -54,7 +54,7 @@ void main(){
    	gl_Position = projectionview * vec4(vertex, 1.0);
 }
 """
-cubeLineFrag="""
+cubeLineFrag=frag"""
 {{GLSL_VERSION}}
 
 {{out}} vec4 frag_color;
@@ -63,9 +63,8 @@ void main(){
 }
 """
         # build the shader from inlined GLSL
-	lineshader 	= TemplateProgram(cubeLineVert, cubeLineFrag, 
-                                         "Cube-linevert", "Cube-linefrag")
-	shader 		= TemplateProgram(cubeVert, cubeFrag, "Cube-vert", "Cube-frag")
+	lineshader 	= TemplateProgram(cubeLineVert, cubeLineFrag) 
+	shader 		= TemplateProgram(cubeVert, cubeFrag)
 
         v,uv,i =mkCubeShape()
         robj = RenderObject(@compat(Dict(

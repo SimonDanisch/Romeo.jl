@@ -6,7 +6,7 @@ using Romeo
 using ManipStreams
 (os,ns) =  redirectNewFWrite("/tmp/julia.redirected")
 
-using GLVisualize, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, ColorTypes
+using GLVisualize, GLFW, GLAbstraction, Reactive, ModernGL, GLWindow, ColorTypes, FileIO, ImageIO
 
 using GeometryTypes
 using TBCompletedM
@@ -23,8 +23,14 @@ using RomeoLib
 using ParseXMLSubscreen
 using SemXMLSubscreen
 using ColorTypes
+
+using SubScreensModule  # this is a module of "user functions" added for testing
+
 @doc """ This function uses the XML interface to define a screen organized
-         into subscreens.
+         into subscreens. 
+         It returns :
+             a) the subscreen tree for visualization
+             b) the symbol table member builtDict of subscreenContext () 
      """  ->
 function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    # Here we need to read the XML and do whatever is needed
@@ -34,15 +40,15 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
 
    xdoc = parse_file(xml)
    parseTree = acDoc(xdoc)
-   SemXMLSubscreen.setDebugLevels(true,0x20)   #debug
    sc = subscreenContext()
 
-   # process the inline xml processing instructions
+   # Now, we want to integrate functions defined programmatically here
+   # and others which come from the XML subscreen description.
+   #
+   # First, process the inline xml processing instructions
    xmlJuliaImport(parseTree,sc)
    
 
-   # Now, we want to integrate functions defined programmatically here
-   # and others which come from the XML subscreen description
 
    # here we have a rather stringent test: doPlot2D and doPlot3D are 
    # defined in the code inlined in XML (in module SubScreensInline)
@@ -52,14 +58,24 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    # SemXMLSubscreen.processInline. The function 
    # SemXMLSubscreen.__init__() provides the special module Main.xmlNS
    # for this context.
-   SubScreensInline =  xmlNS.SubScreensInline
+   try
+      SubScreensInline =  xmlNS.SubScreensInline
+      println("names module xmlNS", names(xmlNS))
+      println("names module SubScreensInline", names(SubScreensInline))
+   catch
+      println("Information : xmlNS.SubScreensInline not defined")
+   end
 
-   println("names module xmlNS", names(xmlNS))
-   println("names module SubScreensInline", names(SubScreensInline))
-   plt = plotDim==2 ? SubScreensInline.doPlot2D : SubScreensInline.doPlot3D
+   # Other functions are provided by the module SubScreensModule
+   # in file SubScreensModule.jl
+   # For testing purposes, this program mixes the two:
+   #       subscreenSpec2.xml: uses import tag and loads from SubScreensModule
+   #       subscreenSpec.xml:  uses inline tag and loads from SubScreensInline (not a file!)
 
-   # put the cat all over the place!!!
-   pic = (sc::Screen,cam::GLAbstraction.Camera)  -> Texture("pic.jpg")
+   plt = plotDim==2 ? SubScreensModule.doPlot2D : SubScreensModule.doPlot3D
+
+   # put the cat all over the place!!! Example in GLVisualize/test_image.jl
+   pic = (sc::Screen,cam::GLAbstraction.Camera)  -> file"pic.jpg"
 
    # volume : try with a cube (need to figure out how to make this)
    cube = (sc::Screen,cam::GLAbstraction.Camera)-> mkCube(sc,cam)
@@ -80,18 +96,22 @@ function init_graph_gridXML(onlyImg::Bool, plotDim=2, xml="")
    end
    # This is a table of provided functions, other have been already found when
    # parsing the xml
-   fnDict = Dict{AbstractString,Function}("doEdit"=>pic, 
-                                          "doColorBtn"=>plt, 
-                                          "doCube" => plt, 
-                 			  "doPic"=>pic, 
-                                          "doPlot" => plt )
+   fnDict = Dict{AbstractString,Function}("doEdit"       => cube, 
+                                          "doColorBtn"   => plt, 
+                                          "doCube"       => pic, 
+                 			  "doPic"        => pic, 
+                                          "doPlot"       => plt )
    # We insert these definitions in the namespace use by xml
    insertXMLNamespace(fnDict)
    println("After insertXMLNamespace names in Main.xmlNS:",names(Main.xmlNS))
+   # compute the semantics based on the AST
    vizObj = buildFromParse( parseTree, sc)
-   @show vizObj
-   return vizObj
 
+   # in case there are  inits specified in XML tags ,
+   # (for instance to build signals):
+    performInits(sc.builtDict)
+
+   return (vizObj,sc.builtDict)
 end  
 @doc """
        Does the real work, main only deals with the command line options.
@@ -102,12 +122,12 @@ end
      """ ->
 function realMain(onlyImg::Bool; pcamSel=true, plotDim=2,  xml::String="")
    init_glutils()
-   vizObjSC   =        init_graph_gridXML(onlyImg, plotDim, xml)
+   (vizObjSC, bDict)   =        init_graph_gridXML(onlyImg, plotDim, xml)
    println("Entering  init_romeo")
-   init_romeo( vizObjSC; pcamSel = pcamSel )
+   init_romeo( vizObjSC; pcamSel = pcamSel, builtDict= bDict)
 
    println("Entering  interact_loop")
-   interact_loop()
+   haskey( bDict, (:signalFnList,:list)) ? interact_loop(bDict) : interact_loop()
 end
 
 # parse arguments, so that we have some flexibility to vary tests on the 
@@ -132,10 +152,10 @@ function main(args)
                help ="Use lumberjack log"
                arg_type = String
        "--debugRLib"
-               help="show debugging output (in particular from GLRender)"
+               help="show debugging output from RomeoLib"
                arg_type = Int
        "--debugSC"
-               help="show debugging output (in particular from GLRender)"
+               help="show debugging output from SubScreens"
                arg_type = Int
        "--debugSX"
                help="show debugging output from SemXMLSubscreen"
@@ -167,6 +187,7 @@ function main(args)
                       on subscreen tree)
            0x10: Show steps in subscreen tree indexing or manipulation
            0x20: Debug julia code inclusion and referencing
+           0x40: Debug signal for allowing RenderObjects to receive specialized signals
 
      """
     parsed_args = parse_args(s) # the result is a Dict{String,Any}
