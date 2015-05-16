@@ -627,8 +627,8 @@ function  performInits(bDict::Dict{Tuple{Symbol,Symbol},Any})
    println ("Exiting performInits")
 end
 function  performSignalUpdts(bDict::Dict{Tuple{Symbol,Symbol},Any})
-   println ("Entering performSignalUpdts:")
-   showBD(bDict)
+   #println ("Entering performSignalUpdts:")
+   #showBD(bDict)
    if haskey( bDict, (:signalFnList,:list))
       for sFName in bDict[(:signalFnList,:list)] 
           initDict = bDict[(:signalFn,sFName)]
@@ -645,7 +645,7 @@ function  performSignalUpdts(bDict::Dict{Tuple{Symbol,Symbol},Any})
           end
       end
    end    
-   println ("Exiting performSignalUpdts")
+   #println ("Exiting performSignalUpdts")
 end
 # Provide a function to insert the functions prepared in the application
 # code into the xmlNS
