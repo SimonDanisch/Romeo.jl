@@ -122,7 +122,7 @@ function init_romeo( vObjT::SubScreen ;
              error("Unknown or absent key for TBCompleted ")
           end
       end
-      if isa(vo, Tuple)
+      if isa(vo, Tuple) || isa(vo, Array{RenderObject,1})
          return map( v -> visualizeConduit( v, camera, scr), vo)
       end
 
@@ -333,6 +333,7 @@ function interact_loop(builtDict::Dict{Tuple{Symbol,Symbol},Any})
 
    # perform the updates of the signals
    while GLVisualize.ROOT_SCREEN.inputs[:open].value
+         yield()
          performSignalUpdts(builtDict)
    end
 
