@@ -3,10 +3,88 @@
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
 
 <!-- Test purposes
-     1) explore GLVisualize examples, here nbody.jl
-     2) include signal timed displays (with all the machinery there TBD)
+     1) explore GLVisualize examples, here nbody.jl           
+     2) include signal timed displays (with all the machinery 
+     3) Use multiple <inline> tags (in different modules), including 
+        cross referencing (see the doAxis function nelow)
+     4) Test mixing of signal based and static (non signal based) display
 -->
 <!-- Function definitions  -->
+
+<julia  modulename="SubScreensInline2">
+   <inline>
+   <?julia      
+      module SubScreensInline2
+
+      using GLAbstraction, GLWindow, ModernGL, GLVisualize,  AbstractGPUArray
+      using ColorTypes, GeometryTypes
+      using Meshes, MeshIO
+      using Romeo, TBCompletedM
+
+      export doMesh, doAxis, doMeshAxis
+      
+      warn ("GLAbstraction.Camera is not exported")
+      Camera = GLAbstraction.Camera
+
+      ## Example from GLVisualize/test/test_mesh
+      function create_example_mesh()
+          # volume of interest
+          x_min, x_max = -1, 15
+          y_min, y_max = -1, 5
+          z_min, z_max = -1, 5
+          scale = 8
+       
+          b1(x,y,z) = box(   x,y,z, 0,0,0,3,3,3)
+          s1(x,y,z) = sphere(x,y,z, 3,3,3,sqrt(3))
+          f1(x,y,z) = min(b1(x,y,z), s1(x,y,z))  # UNION
+          b2(x,y,z) = box(   x,y,z, 5,0,0,8,3,3)
+          s2(x,y,z) = sphere(x,y,z, 8,3,3,sqrt(3))
+          f2(x,y,z) = max(b2(x,y,z), -s2(x,y,z)) # NOT
+          b3(x,y,z) = box(   x,y,z, 10,0,0,13,3,3)
+          s3(x,y,z) = sphere(x,y,z, 13,3,3,sqrt(3))
+          f3(x,y,z) = max(b3(x,y,z), s3(x,y,z))  # INTERSECTION
+          f(x,y,z) = min(f1(x,y,z), f2(x,y,z), f3(x,y,z))
+       
+          vol = volume(f, x_min,y_min,z_min,x_max,y_max,z_max, scale)
+          msh = GLNormalMesh(vol, 0.0f0)
+          return msh
+      end
+
+      function create_example_axis()
+        dirlen 	= 1f0
+        baselen = 0.02f0
+        axis 	= [
+      	 (Cube(Vec3(baselen), Vec3(dirlen, baselen, baselen)), RGBA(1f0,0f0,0f0,1f0)), 
+      	 (Cube(Vec3(baselen), Vec3(baselen, dirlen, baselen)), RGBA(0f0,1f0,0f0,1f0)), 
+      	 (Cube(Vec3(baselen), Vec3(baselen, baselen, dirlen)), RGBA(0f0,0f0,1f0,1f0))
+          ]
+        axis = map(GLNormalMesh, axis)
+        axis = merge(axis)
+      end
+
+      function doMesh(sc::Screen,cam::Camera)
+          println("Entered doMesh")
+	  msh  = create_example_mesh()
+          msh
+      end
+
+     function doAxis (sc::Screen,cam::Camera)
+          println("Entered doAxis")
+          ax   = create_example_axis()
+          ax
+     end
+
+     function doMeshAxis (sc::Screen,cam::Camera)
+          println("Entered doMeshAxis")
+	  msh  = create_example_mesh()
+          ax   = create_example_axis()
+          (msh,ax)
+     end
+
+      end    # SubScreensInline2
+   ?>
+   </inline>
+</julia>
 
 
 <julia  modulename="SubScreensInline">
@@ -25,6 +103,9 @@ using Meshes, MeshIO
 using Reactive
 using Romeo, TBCompletedM
 using ODE
+
+using xmlNS.SubScreensInline2
+
 
 export doPlanets,  timerInitFun, timerAdvanceFun
       
@@ -156,19 +237,26 @@ function doPlanets( sc::Screen,cam::Camera, time_i) # beware 3rd result
     lenPlanet = len    
 
     const positions     = lift(send_frame, time_i, Input(planets))
-    const robj          = visualize(positions, model=scalematrix(Vec3(0.1f0)))
+    const robj          = visualize(positions, model=scalematrix(Vec3(0.1f0)), 
+                                    screen=sc, camera=cam)
 
 
     const robjPl  = [ visualize(
     				reshape(planets[:, i], (round(Int,len/20), 20)),
 				particle_color=RGBA(rand(Float32,3)..., 0.4f0),
-    				model=scalematrix(Vec3(0.01f0)))
+    				model=scalematrix(Vec3(0.01f0)),
+                                screen=sc, camera=cam)
                        for i=1:4]
 
     # for now I have an issue with the second (robjPl)
-    #return (robj, robjPl, len) 
+    for ro in robjPl
+        println("typeof(ro):", typeof(ro))
+    end
+    robjPlTy = Array{RenderObject,1}(robjPl)   #::Array{RenderObject,1}
 
-    return robj
+
+    return (robj, robjPlTy, doAxis(sc,cam)) 
+    #return robj
 end
 
 
@@ -192,14 +280,6 @@ For checking:
 
 push!(GLVisualize.ROOT_SCREEN.renderlist, robj)
 append!(GLVisualize.ROOT_SCREEN.renderlist, planet_lines)
-
-@async renderloop() 
-# you can also "manually" push into the signal. For that the renderloop has to be 
-# started asynchronous while the loop that updates the signal is the blocking one
-while GLVisualize.ROOT_SCREEN.inputs[:open].value
-    yield()
-    push!(time_i, mod1(time_i.value+1, lenPlanet))
-end
 
 ==#
    ?>
@@ -245,6 +325,18 @@ end
  <setplot  ref="B1"  fn="doPlanets">
        <addparm name="timer" />
  </setplot>
+
+ <setplot  ref="IA1"  fn="doMeshAxis"/>
+ <setplot  ref="IB1"  fn="doMeshAxis"> 
+      <rotateModel>Pi/2, 0.0, 0.0</rotateModel>
+ </setplot>
+ <setplot  ref="IC1"  fn="doMeshAxis">
+      <rotateModel>0.0, Pi/2, 0.0</rotateModel>
+ </setplot>
+ <setplot  ref="ID1"  fn="doMeshAxis">
+      <rotateModel>0.0, 0.0, Pi/2</rotateModel>
+ </setplot>
+ <setplot  ref="A2"  fn="doAxis"/>
 
  <!-- Connectors -->
 

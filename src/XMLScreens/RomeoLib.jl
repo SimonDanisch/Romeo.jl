@@ -147,6 +147,33 @@ function init_romeo( vObjT::SubScreen ;
       dodebug(0x40) && println("Exiting visualizeConduit")
       return retval
    end
+    function pushRenderlist(scr::GLWindow.Screen,viz)
+        dodebug(0x02) && println("In pushRenderlist, typeof(arg)=", typeof(viz))
+       if isa(viz,Union ( Tuple{Vararg{Any}},
+                          Array{RenderObject,1}))
+            for v in viz
+                pushRenderlist(scr,v)
+            end
+       elseif  isa(viz,Tuple{Vararg{Any}})  
+          # here deal with the case of color
+          # where a pair (GLAbstraction.RenderObject,
+          #               Reactive.Lift{GeometryTypes.Vector4{Float32}})
+            for v in viz
+                if   isa(v,RenderObject)  
+                     push!(scr.renderlist, v)
+                else
+                     # discard the Lift.... ? Good or Bad??
+                     # Here  we set an attribute (we could use a signal)
+                     dodebug(0x02) && (println("Not pushed onto renderlist"),
+					        chkDump(v,true))
+                     v.uniforms[:swatchsize]=Input(4.0f0)
+                end
+            end
+       else
+            push!(scr.renderlist, viz)
+       end
+    end
+
 
    # Equip each subscreen with a RenderObject 
 
@@ -254,27 +281,9 @@ function init_romeo( vObjT::SubScreen ;
               @show viz
           end
        end
-       dodebug(0x40) &&println("About to push on renderlist typeof:",typeof(viz))
-       if isa(viz,Tuple{Vararg{RenderObject}})
-            for v in viz
-                push!(scr.renderlist, v)
-            end
-       elseif  isa(viz,Tuple{Vararg{Any}})  
-          # here deal with the case of color
-          # where a pair (GLAbstraction.RenderObject,
-          #               Reactive.Lift{GeometryTypes.Vector4{Float32}})
-            for v in viz
-                if   isa(v,RenderObject)  push!(scr.renderlist, v)
-                     # discard the Lift.... ? Good or Bad??
+       dodebug(0x42) &&println("About to push on renderlist typeof:",typeof(viz))
+       pushRenderlist(scr, viz)
 
-                     # Here  we set an attribute (we could use a signal)
-                     dodebug(0x02) && chkDump(v,true)
-                     v.uniforms[:swatchsize]=Input(4.0f0)
-                end
-            end
-       else
-            push!(scr.renderlist, viz)
-       end
        dodebug(0x40) &&println("Exiting fnWalk3")
 
     end   # function  fnWalk3
