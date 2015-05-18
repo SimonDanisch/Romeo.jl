@@ -4,22 +4,36 @@ The original page for Romeo are <A HREF="https://github.com/SimonDanisch/Romeo.j
 and <A HREF="https://github.com/JuliaGL/GLVisualize.jl">https://github.com/JuliaGL/GLVisualize.jl</A>
 
 # Romeo
-Romeo is an interactive scripting environment, in which you can execute Julia scripts and edit the variables in 3D.
+Romeo  helps the user build OpenGL supporting interactive scripting 
+environment, in which you can:
+* display OpenGL 3D views in subscreens, interact with these views, for
+  instance by changing viewpoints,
+* display time varying views, possibly synchronised with one another,
+* synchronize these views, for instance to show multiple aspects of the same
+  data or 3D objects, 
+* execute Julia scripts and edit the variables in 3D,
+* define the screen layout in an XML description.
 
-Screenshots  shows current state of my extensions to Romeo, heavily using GLVisualize.jl. These aim at providing an XML based high level interface to build
-screens showing multiple OGL views. An **example** could be providing 
-*different viewpoints onto the same object*.
+Romeo is based on the developments in GLVisualize, GLAbstraction, ModernGL.
+
+Screenshots  shows current state of development:  
 <TABLE>
 <TR>
     <TD><IMG SRC="test/images/ScreenShot0514.png" WIDTH=300>
     <TD><IMG SRC="test/images/ScreenShot0513.png" WIDTH=300>
+<TR>
+    <TD><IMG SRC="test/images/ScreenShot0516.png" WIDTH=300>
+    <TD><IMG SRC="test/images/ScreenShot0518.png" WIDTH=300>
 </TABLE>
 
 The first example shows: 1 main object in largest subscreen, 3 views 
 of same object from directions along the 3 axes, 1 view with movements
 synchronised with main object. Moreover the color output of the "colorbutton"
-is transfered to several of these views. This is achieved through a **XML** 
-description like the following:
+is transfered to several of these views. 
+
+An example of our **XML** descriptions is the following, more examples
+are included in directory `src/test`.
+
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -207,7 +221,9 @@ Non master branches used:
 <TR> 
      <TD>  Package <TD> Branch
 <TR> 
-     <TD>  GLVisualize <TD>  upstream/master + mods
+     <TD>Meshes  <TD>    origin/meshes2.0
+<TR> 
+     <TD>  GLVisualize <TD>  upstream/master
 <TR> 
      <TD>  GLAbstraction <TD>  upstream/julia04
 <TR> 
