@@ -627,25 +627,30 @@ function  performInits(bDict::Dict{Tuple{Symbol,Symbol},Any})
    println ("Exiting performInits")
 end
 function  performSignalUpdts(bDict::Dict{Tuple{Symbol,Symbol},Any})
-   println ("Entering performSignalUpdts:")
-   showBD(bDict)
+   #println ("Entering performSignalUpdts:")
+   #showBD(bDict)
+   called = false
    if haskey( bDict, (:signalFnList,:list))
       for sFName in bDict[(:signalFnList,:list)] 
           initDict = bDict[(:signalFn,sFName)]
           if haskey(initDict,:advance)
              updtFnName= initDict[:advance]
              fn = searchCallable( updtFnName, bDict)
+             called = true
              if haskey( bDict, (:sigInitVal,sFName))
                 # access the signal
                 sig =  bDict[(:sigInitVal,sFName)]
                  fn(sig)
              else
-                 fn()
+                 fn()        
              end
           end
       end
    end    
-   println ("Exiting performSignalUpdts")
+   called || sleep(0.01) #just an experiment, this makes some
+                         #cases where a realtime (e.g. frequency generated) 
+                         #signal is used.
+   #println ("Exiting performSignalUpdts")
 end
 # Provide a function to insert the functions prepared in the application
 # code into the xmlNS
