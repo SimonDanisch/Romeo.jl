@@ -170,10 +170,6 @@ The following branches in the Git tree have specific meaning (At least planned):
 <TR><TD>timedOGL
     <TD>explorative development of features enabling (signal) timed OpenGL (ie moving stuff);
         our base example is GLVisualize/tests/nbody.jl.
-<TR><TD>skinny
-    <TD>Used to port to new organization using  GLVisualize, AbstractGPUArray, GeometryTypes, 
-        ColorTypes, Meshes, MeshIO. <B>Achieved first OGL display</B>, 
-        dev. transferred to XML branch.
 </TABLE>
 
 

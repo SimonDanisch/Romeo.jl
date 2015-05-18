@@ -72,14 +72,17 @@
      function doAxis (sc::Screen,cam::Camera)
           println("Entered doAxis")
           ax   = create_example_axis()
-          ax
+          @show ax
+          visualize(ax,camera=cam,screen=sc)
      end
 
      function doMeshAxis (sc::Screen,cam::Camera)
           println("Entered doMeshAxis")
 	  msh  = create_example_mesh()
           ax   = create_example_axis()
-          (msh,ax)
+          ax1 = visualize(ax,camera=cam,screen=sc)
+          @show ax1
+          (msh,ax1)
      end
 
       end    # SubScreensInline
@@ -147,7 +150,9 @@
  <!-- Debug options -->
 
 <debug>
+    <dump ref="IB1"/>
     <dump ref="IC1"/>
+    <dump ref="ID1"/>
 </debug>
 
 </scene>
