@@ -8,8 +8,6 @@
         module local data. Therefore using wired in values for some dimensions.
 -->
 <!-- Function definitions  -->
-
-
 <julia  modulename="SubScreensInline2">
    <inline>
    <?julia      
@@ -315,13 +313,6 @@ end
 
 end    # SubScreensInline
 
-#==
-For checking:
-
-push!(GLVisualize.ROOT_SCREEN.renderlist, robj)
-append!(GLVisualize.ROOT_SCREEN.renderlist, planet_lines)
-
-==#
    ?>
    </inline>
 </julia>
