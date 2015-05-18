@@ -26,9 +26,9 @@
       warn ("GLAbstraction.Camera is not exported")
       Camera = GLAbstraction.Camera
 
-      function create_example_axis()
-        dirlen 	= 1f0
-        baselen = 0.02f0
+      function create_example_axis(scale::Float32)
+        dirlen 	= Float32(scale)
+        baselen = 0.02f0*Float32(scale)
         axis 	= [
       	 (Cube(Vec3(baselen), Vec3(dirlen, baselen, baselen)), RGBA(1f0,0f0,0f0,1f0)), 
       	 (Cube(Vec3(baselen), Vec3(baselen, dirlen, baselen)), RGBA(0f0,1f0,0f0,1f0)), 
@@ -38,9 +38,9 @@
         axis = merge(axis)
       end
 
-     function doAxis (sc::Screen,cam::Camera)
+     function doAxis (sc::Screen,cam::Camera,scale::Float32=1.0f0)
           println("Entered doAxis")
-          ax   = create_example_axis()
+          ax   = create_example_axis(scale)
           ax
      end
       end    # SubScreensInline2
@@ -133,9 +133,11 @@ function worldCreate()
    r0[4,:] = [0,0,0.0]
 
    #Select a reasonable set of speeds (avoid cases where
-   #       a singularity happens stopping the ode solver
+   #       a singularity happens stopping the ode solver. Arrange for
+   #       a null momentum so that the world stays on the screen. )
    v0 = rand(n,3)
-
+   mv = m' * v0 / sum(m)
+   v0 = v0 - ones(4,1) * mv
 
 
    # Aggregate initial data (position, speed)  in a format that
@@ -265,7 +267,7 @@ function doPlanets( sc::Screen,cam::Camera, time_i) # beware 3rd result
     # this conversion is required, otherwise loss of type information
     robjPlTy = Array{RenderObject,1}(robjPl)
 
-    return (robj, robjPlTy, doAxis(sc,cam))
+    return (robj, robjPlTy, doAxis(sc,cam,3.0f0))
 end
 
 function doPlanetSpeeds( sc::Screen,cam::Camera, time_i) # beware 3rd result
@@ -294,7 +296,7 @@ function doPlanetSpeeds( sc::Screen,cam::Camera, time_i) # beware 3rd result
     # this conversion is required, otherwise loss of type information
     robjPlTy = Array{RenderObject,1}(robjPl)
 
-    return (robjSpeed, robjPlTy, doAxis(sc,cam))
+    return (robjSpeed, robjPlTy, doAxis(sc,cam,3.0f0))
 end
 
 

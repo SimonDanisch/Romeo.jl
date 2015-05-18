@@ -171,10 +171,11 @@ function worldCreate()
    r0[4,:] = [0,0,0.0]
 
    #Select a reasonable set of speeds (avoid cases where
-   #       a singularity happens stopping the ode solver
+   #       a singularity happens stopping the ode solver. Arrange for
+   #       a null momentum so that the world stays on the screen. )
    v0 = rand(n,3)
-
-
+   mv = m' * v0 / sum(m)
+   v0 = v0 - ones(4,1) * mv
     
    # Aggregate initial data (position, speed)  in a format that
    # the ODE solver and function F handle
