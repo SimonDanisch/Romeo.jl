@@ -8,7 +8,7 @@
       3) test symbolic reference to screen building functions defined 
          in imported julia code and mixing with programmatically defined
          stuff.       
-      4) test connectors (TBD)
+      4) test connectors,including adhoc rules and multiple connections
 -->
 <!-- Function definitions  -->
 
@@ -50,21 +50,41 @@
  <setplot  ref="A2"  fn="doPlot3D"/>
  <setplot  ref="B1"  fn="doPlot2D"/>
 
- <setplot  ref="IA1"  fn="doCube"/>
- <setplot  ref="IB1"  fn="doPic"> 
-      <rotateModel>Pi/2,0.0,0.0</rotateModel>
+ <setplot  ref="IA1"  fn="doPic"/>
+ <setplot  ref="IB1"  fn="doPlot3D"> 
+      <rotateModel>Pi/5,0.0,0.0</rotateModel>
  </setplot>
  <setplot  ref="IC1"  fn="doPlot3D">
-      <rotateModel>0.0, Pi/2,0.0</rotateModel>
+      <rotateModel>0.0, Pi/5,0.0</rotateModel>
  </setplot>
  <setplot  ref="ID1"  fn="doPlot3D">
-      <rotateModel>0.0,0.0, Pi/2</rotateModel>
+      <rotateModel>0.0,0.0, Pi/5</rotateModel>
  </setplot>
 
  <!-- Connectors -->
  <connection from="B1" to="A2"> 
-            <inSig>:view  </inSig> <!-- , :projection,    :projectionview, :projection-->
-            <outSig>:view </outSig> <!-- , :projectionview,:projection,    :projection-->
+      <inSig>:view  , :adhoc, :projection,    :projectionview, :projection, 
+              </inSig> 
+       <outSig>:view , :adhoc, :projectionview,:projection,    :projection,
+              </outSig> 
+ </connection>
+ <connection from="B1" to="IB1"> 
+      <inSig>:view  , :adhoc, :projection,    :projectionview, :projection, 
+              </inSig> 
+       <outSig>:view , :adhoc, :projectionview,:projection,    :projection,
+              </outSig> 
+ </connection>
+ <connection from="B1" to="IC1"> 
+      <inSig>:view  , :adhoc,  :projection,    :projectionview, :projection, 
+              </inSig> 
+       <outSig>:view , :adhoc, :projectionview,:projection,    :projection,
+              </outSig> 
+ </connection>
+ <connection from="B1" to="ID1"> 
+      <inSig>:view  ,  :adhoc, :projection,    :projectionview, :projection, 
+              </inSig> 
+       <outSig>:view , :adhoc, :projectionview,:projection,    :projection,
+              </outSig> 
  </connection>
 
  <!-- Debug options -->

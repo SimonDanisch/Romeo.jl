@@ -147,8 +147,10 @@
 
  <!-- Connectors -->
  <connection from="B1" to="A2"> 
-            <inSig>:view  </inSig> <!-- , :projection,    :projectionview, :projection-->
-            <outSig>:view </outSig> <!-- , :projectionview,:projection,    :projection-->
+       <inSig>:view  , :adhoc,  :projection,    :projectionview, :projection
+              </inSig> 
+       <outSig>:view , :adhoc,  :projectionview,:projection,    :projection
+              </outSig> 
  </connection>
 
  <!-- Debug options -->
