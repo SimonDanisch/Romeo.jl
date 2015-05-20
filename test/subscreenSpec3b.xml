@@ -3,11 +3,8 @@
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
 
 <!-- Test purposes
-     1) explore GLVisualize examples, here test_mesh.jl
-     2) explore Tuple{Vararg{RenderObject}}
-        Here we show Mesh and Axis separately and also grouped in main subscreen
-     Note: the meshes are recomputed!!! eventually we might be interested in sharing
-        them between subscreens (not implemented), this will require another test
+      1) explore construction of combined objects by returning Tuples
+      2) better cover issues in <setplot><rotateModel>
 -->
 <!-- Function definitions  -->
 
@@ -22,7 +19,7 @@
       using Meshes, MeshIO
       using Romeo, TBCompletedM
 
-      export doMesh, doAxis, doMeshAxis
+      export doMesh, doAxis, doMeshAxis,  doPlot2D, doMeshAxisPlot
       
       warn ("GLAbstraction.Camera is not exported")
       Camera = GLAbstraction.Camera
@@ -72,6 +69,7 @@
      function doAxis (sc::Screen,cam::Camera)
           println("Entered doAxis")
           ax   = create_example_axis()
+          ax
      end
 
      function doMeshAxis (sc::Screen,cam::Camera)
@@ -79,6 +77,38 @@
 	  msh  = create_example_mesh()
           ax   = create_example_axis()
           (msh,ax)
+     end
+
+
+          # try with a plot
+         function plotFn2D(i,j, npts::Int)
+               x = Float32(i)/Float32(npts)-0.5 
+               y = Float32(j)/Float32(npts)-0.5 
+               ret = if ( x>=0 ) && ( x>=y)
+                         4*x*x+2*y*y
+                     elseif ( x<0) 
+                         2*sin(2.0*3.1416*x)*sin(3.0*3.1416*y)
+                     else
+                         0.0
+                     end
+                ret
+         end
+         function doPlot2D (sc::Screen,cam::Camera)
+                 println("Entered doPlot2D")
+                 npts=50
+                 ret = TBCompleted ( Float32[ plotFn2D(i,j,npts)  for i=0:npts, j=0:npts ],
+                               nothing, Dict{Symbol,Any}(:SetPerspectiveCam => true)
+                             )
+                 println("Exit doPlot2D returning")
+                 ret
+         end  
+
+     function doMeshAxisPlot (sc::Screen,cam::Camera)
+          println("Entered doMeshAxis")
+	  msh  = create_example_mesh()
+          ax   = create_example_axis()
+          plt =  doPlot2D(sc,cam,)
+          (msh,ax,plt)
      end
 
       end    # SubScreensInline
@@ -124,25 +154,27 @@
 
  <setplot  ref="A1"  fn="doMesh"/>
  <setplot  ref="A2"  fn="doAxis"/>
- <setplot  ref="B1"  fn="doMeshAxis"/>
+ <setplot  ref="B1"  fn="doMeshAxisPlot"/>
 
- <setplot  ref="IA1"  fn="doMeshAxis"/>
- <setplot  ref="IB1"  fn="doMeshAxis"> 
-      <rotateModel>Pi/5, 0.0, 4*Pi/6</rotateModel>
+ <setplot  ref="IA1"  fn="doMeshAxisPlot">
+      <rotateModel>Pi/3, 0.0, 0.0</rotateModel>
  </setplot>
- <setplot  ref="IC1"  fn="doMeshAxis">
-      <rotateModel>0.0, Pi/5, 4*Pi/6</rotateModel>
+ <setplot  ref="IB1"  fn="doMeshAxisPlot"> 
+      <rotateModel>0.0, Pi/3,  0.0</rotateModel>
  </setplot>
- <setplot  ref="ID1"  fn="doMeshAxis">
-      <rotateModel>Pi/8, 0.0, 4*Pi/6</rotateModel>
+ <setplot  ref="IC1"  fn="doMeshAxisPlot">
+      <rotateModel>0.0, 0.0, Pi/3</rotateModel>
+ </setplot>
+ <setplot  ref="ID1"  fn="doMeshAxisPlot">
+      <rotateModel>2*Pi/3, 0.0, 0.0</rotateModel>
  </setplot>
 
  <!-- Connectors -->
  <connection from="B1" to="A2"> 
-       <inSig>:view  , :viewmodel, :adhoc, :projection,    :projectionview,
-              :projection</inSig> 
-       <outSig>:view , :viewmodel, :adhoc, :projectionview,:projection,   
-              :projection</outSig> 
+       <inSig>:view  , :viewmodel, :adhoc, :projection,    :projectionview, 
+              :projection       </inSig> 
+       <outSig>:view , :viewmodel, :adhoc, :projectionview,:projection,
+              :projection      </outSig> 
  </connection>
 
  <!-- Debug options -->

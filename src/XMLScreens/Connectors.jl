@@ -1,6 +1,7 @@
 module Connectors
 using GLAbstraction
 using RomeoLib
+using Reactive
 
 using DebugTools
 export Connector, InputConnect, connect!
@@ -49,12 +50,29 @@ function connect!(a::Connector, to::RenderObject, from::RenderObject)
      end
      found=false
      for i = 1 :min(length(a.selectIn),length(a.selectOut))
-         if  haskey(to.uniforms,a.selectIn[i] ) && haskey(from.uniforms,a.selectOut[i]) 
-            println("Connection altnum=$i from(out)=", a.selectOut[i],"\tto(in)=",a.selectIn[i])
+
+         if  haskey(to.uniforms,a.selectIn[i] ) && 
+             haskey(from.uniforms,a.selectOut[i]) 
+            a.selectIn[i] == :adhoc && break   # avoid lower priority when adhoc
+
+            dodebug(0x04) &&println("Connection altnum=$i from(out)=", 
+                              a.selectOut[i], "\tto(in)=", a.selectIn[i])
             to.uniforms[a.selectIn[i]] = from.uniforms[a.selectOut[i]]
             found = true
          end
      end
+     # try an ad hoc thing
+     if !found && in( :adhoc, a.selectIn) && in( :adhoc, a.selectOut)
+         if  haskey(to.uniforms,:projection_view_model) && 
+	     haskey(from.uniforms,:projection) && 
+	     haskey(from.uniforms,:viewmodel) 
+              to.uniforms[:projection_view_model] = 
+                 lift(*, from.uniforms[:projection], from.uniforms[:viewmodel])
+              found = true
+              dodebug(0x04) && println("In connect!:used add hoc rule for " * 
+                                       " :projection_view_model")
+           end      
+     end 
      if !found
          warn("Unable to perform connection, pair of connectors not found")
      end

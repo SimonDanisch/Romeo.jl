@@ -3,14 +3,12 @@
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
 
 <!-- Test purposes
-     1) explore GLVisualize examples, here nbody.jl
-     2) include signal timed displays (with all the machinery
-     3) If all goes well, add  views in speed / kinetic energy spaces
-     4) Test sharing of user data (not RenderObject)
+     1) use a real time timer to sequence timed display(s)
+     2) show axes frames subject or not to <rotationModel>
+     Note: Currently we have a number of issues for transmission of global or
+           module local data. Therefore using wired in values for some dimensions.
 -->
 <!-- Function definitions  -->
-
-
 <julia  modulename="SubScreensInline2">
    <inline>
    <?julia      
@@ -21,7 +19,7 @@
       using Meshes, MeshIO
       using Romeo, TBCompletedM
 
-      export doMesh, doAxis, doMeshAxis
+      export doAxis
       
       warn ("GLAbstraction.Camera is not exported")
       Camera = GLAbstraction.Camera
@@ -30,9 +28,9 @@
         dirlen 	= Float32(scale)
         baselen = 0.02f0*Float32(scale)
         axis 	= [
-      	 (Cube(Vec3(baselen), Vec3(dirlen, baselen, baselen)), RGBA(1f0,0f0,0f0,1f0)), 
-      	 (Cube(Vec3(baselen), Vec3(baselen, dirlen, baselen)), RGBA(0f0,1f0,0f0,1f0)), 
-      	 (Cube(Vec3(baselen), Vec3(baselen, baselen, dirlen)), RGBA(0f0,0f0,1f0,1f0))
+      	 (Cube(Vec3(0.0f0), Vec3(dirlen, baselen, baselen)), RGBA(1f0,0f0,0f0,1f0)), 
+      	 (Cube(Vec3(0.0f0), Vec3(baselen, dirlen, baselen)), RGBA(0f0,1f0,0f0,1f0)), 
+      	 (Cube(Vec3(0.0f0), Vec3(baselen, baselen, dirlen)), RGBA(0f0,0f0,1f0,1f0))
           ]
         axis = map(GLNormalMesh, axis)
         axis = merge(axis)
@@ -41,7 +39,8 @@
      function doAxis (sc::Screen,cam::Camera,scale::Float32=1.0f0)
           println("Entered doAxis")
           ax   = create_example_axis(scale)
-          visualize(ax,camera=cam,screen=sc)
+          ax1  = visualize(ax,camera=cam, screen=sc)
+          (ax,ax1)
      end
       end    # SubScreensInline2
    ?>
@@ -53,7 +52,6 @@
 <julia  modulename="SubScreensInline">
    <signal name="timer"
            init="timerInitFun"
-           advance="timerAdvanceFun"
            type="Reactive.Input{Int64}"/>
    <!-- now  read the inlined Julia code -->
    <inline>
@@ -127,10 +125,10 @@ function worldCreate()
 
    #Set initial positions and velocities
    r0 = zeros(n,3)
-   r0[1,:] = [1.0,-1.0,1.0]
-   r0[2,:] = [1,3,0.0]
-   r0[3,:] = [-1,-2,0.0]
-   r0[4,:] = [0,0,0.0]
+   r0[1,:] = [ 1.0, -1.0,  1.0]
+   r0[2,:] = [ 1.0,  0.0,  0.0]
+   r0[3,:] = [ 0.0,  0.0, -1.0]
+   r0[4,:] = [ 0.0,  0.0,  0.0]
 
    #Select a reasonable set of speeds (avoid cases where
    #       a singularity happens stopping the ode solver. Arrange for
@@ -244,9 +242,11 @@ type WorldType
 end
 
 
+
 function doPlanets( sc::Screen,cam::Camera, time_i) # beware 3rd result
     global world
     worldStore()
+
     global particleColors
     mkParticleColors(world.nb)
 
@@ -303,88 +303,56 @@ end
 
 #  provide the timing signal:
 function timerInitFun()
+   lenPlanets = 1950    # wired in for now  (need to understand the context )
+   freq = 0.02  # 1/50  of a second
    println("In timerInitFun")
-   return Input(1)
-end
-
-# How do we get lenPlanet in there?
-function timerAdvanceFun(timer::Reactive.Input{Int64})
-    global world
-
-    push!(timer, mod1(timer.value+1, world.lenPlanets))
+   realClk = every(freq)
+   # define a reduction ending in increment (modulo m)
+   moduloAlt = s -> foldl( (x,y) ->  (x+1)%lenPlanets, 0, s)   
+   return moduloAlt(realClk)
 end
 
 
 end    # SubScreensInline
 
-#==
-For checking:
-
-push!(GLVisualize.ROOT_SCREEN.renderlist, robj)
-append!(GLVisualize.ROOT_SCREEN.renderlist, planet_lines)
-
-==#
    ?>
    </inline>
 </julia>
 <!-- Subscreen description -->
- <subscreen rows="2" cols="2" name="MAIN">
+ <subscreen rows="2" cols="1" name="MAIN">
   <rowsizes>1,4</rowsizes>
-  <colsizes>4,1</colsizes>
+  <colsizes>1</colsizes>
   <table>
     <tr>
      <subscreen name="A1"/>
-     <subscreen name="A2"/>
      </tr>
     <tr>
-     <subscreen name="B1"/>
      <subscreen name="INNER"/>
      </tr>
    </table>
  </subscreen>
 
- <subscreen rows="4" cols="1" name="INNER">
-  <rowsizes>1,1,1,1</rowsizes>
-  <colsizes>1</colsizes>
+ <subscreen rows="1" cols="2" name="INNER">
+  <rowsizes>1</rowsizes>
+  <colsizes>1,1</colsizes>
   <table>
     <tr>
      <subscreen name="IA1"/>
-    </tr>
-    <tr>
      <subscreen name="IB1"/>
-    </tr>
-    <tr>
-     <subscreen name="IC1"/>
-    </tr>
-    <tr>
-     <subscreen name="ID1"/>
     </tr>
    </table>
  </subscreen>
 
 <!-- Subscreen contents -->
 
- <setplot  ref="B1"  fn="doPlanets">
+ <setplot  ref="IA1"  fn="doPlanets">
        <addparm name="timer" />
+       <rotateModel>Pi/5, 0.0, 4*Pi/6</rotateModel>
  </setplot>
 
- <setplot  ref="IB1"  fn="doPlanets">
+ <setplot  ref="IB1"  fn="doPlanetSpeeds">
        <addparm name="timer" />
-       <rotateModel>Pi/2, 0.0, 0.0</rotateModel>
- </setplot>
-
- <setplot  ref="IC1"  fn="doPlanets">
-       <addparm name="timer" />
-       <rotateModel>0.0, Pi/2, 0.0</rotateModel>
- </setplot>
-
- <setplot  ref="ID1"  fn="doPlanets">
-       <addparm name="timer" />
-       <rotateModel>0.0, 0.0, Pi/2</rotateModel>
- </setplot>
-
- <setplot  ref="A2"  fn="doPlanetSpeeds">
-       <addparm name="timer" />
+       <rotateModel>Pi/5, 0.0, 4*Pi/6</rotateModel>
  </setplot>
 
  <!-- Connectors -->
@@ -392,7 +360,6 @@ append!(GLVisualize.ROOT_SCREEN.renderlist, planet_lines)
  <!-- Debug options -->
 
 <debug>
-    <dump ref="B1"/>
 </debug>
 
 </scene>
