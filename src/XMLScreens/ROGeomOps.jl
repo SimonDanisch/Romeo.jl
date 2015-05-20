@@ -16,10 +16,12 @@ export
 RORegistry = Dict{UInt16,Dict{Symbol,Any}}()
 
 function hasManipVirt(ro::RenderObject,key::Symbol)
+     println("In ROGeomOps.hasManipVirt")
      haskey(RORegistry,ro.id) && haskey(RORegistry[ro.id],key)
 end
 
 function  manipVirt(ro::RenderObject,key::Symbol)
+     println("In ROGeomOps.manipVirt")
       haskey(RORegistry,ro.id) || error("RenderObject not known:" * string(ro))
       @assert ro.id ==  RORegistry[ro.id][:oid]
       return RORegistry[ro.id][key]

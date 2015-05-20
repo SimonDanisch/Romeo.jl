@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scene xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
+
+<!-- Test purposes
+     1) use a real time timer to sequence timed display(s)
+     2) show axes frames subject or not to <rotationModel>
+     Note: Currently we have a number of issues for transmission of global or
+           module local data. Therefore using wired in values for some dimensions.
+-->
+<!-- Function definitions  -->
+<julia  modulename="SubScreensInline2">
+   <inline>
+   <?julia      
+      module SubScreensInline2
+
+      using GLAbstraction, GLWindow, ModernGL, GLVisualize,  AbstractGPUArray
+      using ColorTypes, GeometryTypes
+      using Meshes, MeshIO
+      using Romeo, TBCompletedM
+
+      export doAxis
+      
+      warn ("GLAbstraction.Camera is not exported")
+      Camera = GLAbstraction.Camera
+
+      function create_example_axis(scale::Float32)
+        dirlen 	= Float32(scale)
+        baselen = 0.02f0*Float32(scale)
+        axis 	= [
+      	 (Cube(Vec3(0.0f0), Vec3(dirlen, baselen, baselen)), RGBA(1f0,0f0,0f0,1f0)), 
+      	 (Cube(Vec3(0.0f0), Vec3(baselen, dirlen, baselen)), RGBA(0f0,1f0,0f0,1f0)), 
+      	 (Cube(Vec3(0.0f0), Vec3(baselen, baselen, dirlen)), RGBA(0f0,0f0,1f0,1f0))
+          ]
+        axis = map(GLNormalMesh, axis)
+        axis = merge(axis)
+      end
+
+     function doAxis (sc::Screen,cam::Camera,scale::Float32=1.0f0)
+          println("Entered doAxis")
+          ax   = create_example_axis(scale)
+          ax1  = visualize(ax,camera=cam, screen=sc)
+          (ax,ax1)
+     end
+      end    # SubScreensInline2
+   ?>
+   </inline>
+</julia>
+
+
+
+<julia  modulename="SubScreensInline">
+   <signal name="timer"
+           init="timerInitFun"
+           type="Reactive.Input{Int64}"/>
+   <!-- now  read the inlined Julia code -->
+   <inline>
+   <?julia
+module SubScreensInline
+
+using GLAbstraction, GLWindow, ModernGL, GLVisualize,  AbstractGPUArray
+using ColorTypes, GeometryTypes
+using Meshes, MeshIO
+using Reactive
+using Romeo, TBCompletedM
+using ODE
+
+using xmlNS.SubScreensInline2
+
+export doPlanets,  doPlanetSpeeds, timerInitFun, timerAdvanceFun
+
+warn ("GLAbstraction.Camera is not exported")
+Camera = GLAbstraction.Camera
+
+      ## Example from GLVisualize/test/nbody.jl
+function F(t,y)
+
+    #Number of Planets (note we're solving the n-body problem, rather than just a 3-body problem)
+    n = int(length(y)/6)
+
+    #Extract current position and velocity
+    r = zeros(n,3)
+    v = zeros(n,3)
+    for i=1:n
+        r[i,:] = y[(i-1)*6+1:(i-1)*6+3]
+        v[i,:] = y[(i-1)*6+4:(i-1)*6+6]
+    end
+
+    #Calculate spatial derivatives
+    drdt = v
+
+    #Work out velocity derivatives (ie accelerations)
+    dvdt = zeros(n,3)
+    for i = 1:n
+        for j = 1:n
+            if i != j
+                dvdt[i,:] += -G*m[j]*(r[i,:]-r[j,:])/(norm(r[i,:]-r[j,:])^3)
+            end
+        end
+    end
+
+    #Combine back together into dydt vector
+    dydt = zeros(6*n)
+    for i = 1:n
+        dydt[6(i-1)+1] = drdt[i,1]
+        dydt[6(i-1)+2] = drdt[i,2]
+        dydt[6(i-1)+3] = drdt[i,3]
+        dydt[6(i-1)+4] = dvdt[i,1]
+        dydt[6(i-1)+5] = dvdt[i,2]
+        dydt[6(i-1)+6] = dvdt[i,3]
+    end
+    return dydt
+end  # Function F(t,y)
+
+function worldCreate()
+
+   #Set the masses
+   global m
+   m = [5,4,3,5]
+   n = length(m)
+
+   #Set the gravitational field strength
+   global G
+   G = .2
+
+   #Set initial positions and velocities
+   r0 = zeros(n,3)
+   r0[1,:] = [ 1.0, -1.0,  1.0]
+   r0[2,:] = [ 1.0,  0.0,  0.0]
+   r0[3,:] = [ 0.0,  0.0, -1.0]
+   r0[4,:] = [ 0.0,  0.0,  0.0]
+
+   #Select a reasonable set of speeds (avoid cases where
+   #       a singularity happens stopping the ode solver. Arrange for
+   #       a null momentum so that the world stays on the screen. )
+   v0 = rand(n,3)
+   mv = m' * v0 / sum(m)
+   v0 = v0 - ones(4,1) * mv
+
+
+   # Aggregate initial data (position, speed)  in a format that
+   # the ODE solver and function F handle
+   y0 = zeros(6*n)
+   for i = 1:n
+     y0[6(i-1)+1] = r0[i,1]
+     y0[6(i-1)+2] = r0[i,2]
+     y0[6(i-1)+3] = r0[i,3]
+     y0[6(i-1)+4] = v0[i,1]
+     y0[6(i-1)+5] = v0[i,2]
+     y0[6(i-1)+6] = v0[i,3]
+   end
+    return (m,y0,G)
+end
+
+function worldOperate(y0)
+   #Solve the system
+   tf = 10
+   stepsPerUnitTime = 200
+   tspan = linspace(0,tf,tf*stepsPerUnitTime)
+   t,y = ode23s(F, y0, tspan; points=:specified);
+   return t,y
+end
+
+function worldStore()
+    global world
+    if !isdefined(:world)
+        m,y0,G = worldCreate()
+        t,y    = worldOperate(y0)
+        planets      = reformatData(m, t, y)
+        planetspeeds = reformatSpeeds(m, t, y)
+        len= size(planets, 1)
+        world = WorldType(m, length(m), y0, G, t, y, planets, planetspeeds, len)
+    end
+end
+
+function mkParticleColors(n::Int)
+    global particleColors
+    if !isdefined(:particleColors)
+          particleColors = Array{Any,1}(n)
+          for i in 1:n
+             particleColors[i] =  RGBA(rand(Float32,3)..., 0.4f0)
+          end
+    end
+end
+
+function send_frame(i, planets)
+    p = planets[i, 1:4]
+    reshape(p, (2,2))
+end
+
+function reformatData(m, t, y)
+    #Extract the data into a useful form
+    n = length(m)
+    ymat= hcat(y...)
+
+    # gather some results, do we need to construct such an array
+    # positions
+    rcoords = sort([  [6(i-1)+1 for i = 1:n],
+                      [6(i-1)+2 for i = 1:n],
+                      [6(i-1)+3 for i = 1:n]])
+    rcoords = convert(Array{Int64,1}, rcoords)
+    const r = map(Float32, ymat[rcoords,:])
+
+    const planets = hcat( [ reinterpret(Point3{Float32},
+                                        r[3(i-1)+1:3(i-1)+3,:],
+                                        (size(r, 2),)) for i=1:n]...)
+    println("size(planets[:, 1]=", size(planets[:, 1]))
+    return planets
+end
+
+
+function reformatSpeeds(m, t, y)
+    #Extract the data into a useful form
+    n = length(m)
+    ymat= hcat(y...)
+
+    # gather some results, do we need to construct such an array
+    # positions
+    rcoords = sort([  [6(i-1)+4 for i = 1:n],
+                      [6(i-1)+5 for i = 1:n],
+                      [6(i-1)+6 for i = 1:n]])
+    rcoords = convert(Array{Int64,1}, rcoords)
+    const r = map(Float32, ymat[rcoords,:])
+
+    const speeds = hcat( [ reinterpret(Point3{Float32},
+                                        r[3(i-1)+1:3(i-1)+3,:],
+                                        (size(r, 2),)) for i=1:n]...)
+    return speeds
+end
+
+
+type WorldType
+     masses
+     nb
+     yInit
+     G
+     tsteps
+     YV
+     planets
+     speeds
+     lenPlanets
+end
+
+
+
+function doPlanets( sc::Screen,cam::Camera, time_i) # beware 3rd result
+    global world
+    worldStore()
+
+    global particleColors
+    mkParticleColors(world.nb)
+
+    # this is used for communication with timerAdvanceFun
+    lenPlanet =  world.lenPlanets
+
+    const positions     = lift(send_frame, time_i, Input(world.planets))
+    const robj          = visualize(positions, model=scalematrix(Vec3(0.1f0)),
+                                    screen=sc, camera=cam)
+
+
+    const robjPl  = [ visualize(reshape(world.planets[:, i], (round(Int,lenPlanet/20), 20)),
+				particle_color= particleColors[i],
+    				model=scalematrix(Vec3(0.01f0)),
+                                screen=sc, camera=cam)
+                       for i=1:4]
+
+    # this conversion is required, otherwise loss of type information
+    robjPlTy = Array{RenderObject,1}(robjPl)
+
+    return (robj, robjPlTy, doAxis(sc,cam,3.0f0))
+end
+
+function doPlanetSpeeds( sc::Screen,cam::Camera, time_i) # beware 3rd result
+    global world
+    worldStore()
+    global particleColors
+    mkParticleColors(world.nb)
+
+    # this is used for communication with timerAdvanceFun
+    lenPlanet =  world.lenPlanets
+
+    speedScale= 3.0
+    @show typeof(world.speeds)
+    const posSpeeds   = lift(send_frame, time_i, Input(world.speeds))
+    const robjSpeed   = visualize(posSpeeds, model=scalematrix(Vec3(0.3f0)),
+                                  screen=sc, camera=cam)
+
+
+    const robjPl  = [ visualize( reshape( world.speeds[:, i] , 
+                                         (round(Int,lenPlanet/20), 20)),
+		particle_color= particleColors[i],
+    		model=scalematrix(Vec3(0.03f0)), 
+                screen=sc, camera=cam)
+                for i=1:4]
+
+    # this conversion is required, otherwise loss of type information
+    robjPlTy = Array{RenderObject,1}(robjPl)
+
+    return (robjSpeed, robjPlTy, doAxis(sc,cam,3.0f0))
+end
+
+
+
+#  provide the timing signal:
+function timerInitFun()
+   lenPlanets = 1950    # wired in for now  (need to understand the context )
+   freq = 0.02  # 1/50  of a second
+   println("In timerInitFun")
+   realClk = every(freq)
+   # define a reduction ending in increment (modulo m)
+   moduloAlt = s -> foldl( (x,y) ->  (x+1)%lenPlanets, 0, s)   
+   return moduloAlt(realClk)
+end
+
+
+end    # SubScreensInline
+
+   ?>
+   </inline>
+</julia>
+<!-- Subscreen description -->
+ <subscreen rows="2" cols="1" name="MAIN">
+  <rowsizes>1,4</rowsizes>
+  <colsizes>1</colsizes>
+  <table>
+    <tr>
+     <subscreen name="A1"/>
+     </tr>
+    <tr>
+     <subscreen name="INNER"/>
+     </tr>
+   </table>
+ </subscreen>
+
+ <subscreen rows="1" cols="2" name="INNER">
+  <rowsizes>1</rowsizes>
+  <colsizes>1,1</colsizes>
+  <table>
+    <tr>
+     <subscreen name="IA1"/>
+     <subscreen name="IB1"/>
+    </tr>
+   </table>
+ </subscreen>
+
+<!-- Subscreen contents -->
+
+ <setplot  ref="IA1"  fn="doPlanets">
+       <addparm name="timer" />
+       <rotateModel>Pi/5, 0.0, 4*Pi/6</rotateModel>
+ </setplot>
+
+ <setplot  ref="IB1"  fn="doPlanetSpeeds">
+       <addparm name="timer" />
+       <rotateModel>Pi/5, 0.0, 4*Pi/6</rotateModel>
+ </setplot>
+
+ <!-- Connectors -->
+
+ <!-- Debug options -->
+
+<debug>
+</debug>
+
+</scene>
+<!-- This ends the scene-->
