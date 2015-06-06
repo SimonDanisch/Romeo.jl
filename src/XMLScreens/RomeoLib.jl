@@ -95,6 +95,7 @@ function init_romeo( vObjT::SubScreen ;
          info[:isDecomposed] && return
          ssc.attrib[sigScreen ] =   Screen(GLVisualize.ROOT_SCREEN, area= ssc.attrib[sigArea ])
          dodebug(0x20) && println("In fnWalk2 at$indx: sigScreen=", ssc.attrib[sigScreen ])
+
     end
     treeWalk!(vObjT,  fnWalk2)
 

@@ -1,5 +1,7 @@
 ## Makefile in Romeo/test
 
+SHELL=bash
+
 ############## These are specific to the dev environment and should be adapted 
 PAMDIR=/home/alain/test/BigData/
 JULIATRY=$(PAMDIR)/JULIA-TRY
@@ -144,7 +146,6 @@ progs :  RomeoMain.jl subscreenSpec.xml \
         $(DOCXMLSCR)/XtraRenderObjOGL.jl \
 	$(DOCXMLSCR)/VirtualOGLGeom.jl \
 	$(DOCXMLSCR)/ROGeomOps.jl \
-        $(DOCXMLSCR)/Changelog \
         $(DOCXMLSCR)/ParseXMLSubscreen.jl \
         $(DOCXMLSCR)/SemXMLSubscreen.jl \
         $(DOCXMLSCR)/Constants.jl \
@@ -207,7 +208,25 @@ editTest2:
  testRTM2D:
 	$(JULIAPGM) RomeoTestMini.jl	aa bb
 
-# -EXEMPLES found in the upstream (S.Danisch) git tree
+# test
+.PHONY: testall
+testall:
+	for  xml in  subscreenSpec*.xml ; do \
+	    echo spec=$$xml ;\
+	    $(JULIAPGM) RomeoMain.jl --xml=$$xml --log=/tmp/RomeoLumber01.log  ;\
+	    read -arval ; \
+	    case $rval in \
+		y|Y|O|o)\
+		  ;;\
+		e*|E*|d*|D*)\
+		  echo ERROR executing with specs $xml\
+		  exit 1\
+		;;\
+		*)\
+		  echo bad entry  \"$arval\" \
+		;;\
+	    esac; \
+	done
 
 # --EXEMPLES sent by S.Danisch (and working  -- before swich to GLVisualize)
 .PHONY: runtt synchRot editTest gridImg

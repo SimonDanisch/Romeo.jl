@@ -70,42 +70,44 @@ export doPlanets,  doPlanetSpeeds, timerInitFun, timerAdvanceFun
 warn ("GLAbstraction.Camera is not exported")
 Camera = GLAbstraction.Camera
 
-      ## Example from GLVisualize/test/nbody.jl
-function F(t,y)
+particleColors = Array{Any,1}(0)
 
+      ## Example from GLVisualize/test/nbody.jl
+@inbounds function F(t::Float64,y::Array{Float64,1})
+    
     #Number of Planets (note we're solving the n-body problem, rather than just a 3-body problem)
-    n = int(length(y)/6)
+    n::Int = int(length(y)/6)
 
     #Extract current position and velocity
-    r = zeros(n,3)
-    v = zeros(n,3)
-    for i=1:n
-        r[i,:] = y[(i-1)*6+1:(i-1)*6+3]
-        v[i,:] = y[(i-1)*6+4:(i-1)*6+6]
+    r::Array{Float64,2} = zeros(Float64,n,3)
+    v::Array{Float64,2} = zeros(Float64,n,3)
+     @simd for i=1:n
+         r[i,:] = y[(i-1)*6+1:(i-1)*6+3]
+         v[i,:] = y[(i-1)*6+4:(i-1)*6+6]
     end
 
     #Calculate spatial derivatives
-    drdt = v
+    drdt :: Array{Float64,2} = v
 
     #Work out velocity derivatives (ie accelerations)
-    dvdt = zeros(n,3)
+    dvdt::Array{Float64,2} = zeros(Float64,n,3)
     for i = 1:n
         for j = 1:n
             if i != j
-                dvdt[i,:] += -G*m[j]*(r[i,:]-r[j,:])/(norm(r[i,:]-r[j,:])^3)
+             dvdt[i,:] += -G * m[j] * (r[i,:]-r[j,:]) / ( norm(r[i,:]-r[j,:])^3 )
             end
         end
     end
 
     #Combine back together into dydt vector
-    dydt = zeros(6*n)
-    for i = 1:n
-        dydt[6(i-1)+1] = drdt[i,1]
-        dydt[6(i-1)+2] = drdt[i,2]
-        dydt[6(i-1)+3] = drdt[i,3]
-        dydt[6(i-1)+4] = dvdt[i,1]
-        dydt[6(i-1)+5] = dvdt[i,2]
-        dydt[6(i-1)+6] = dvdt[i,3]
+    dydt::Array{Float64,1} = zeros(Float64,6*n)
+     @simd for i = 1:n
+         dydt[6(i-1)+1] = drdt[i,1]
+         dydt[6(i-1)+2] = drdt[i,2]
+         dydt[6(i-1)+3] = drdt[i,3]
+         dydt[6(i-1)+4] = dvdt[i,1]
+         dydt[6(i-1)+5] = dvdt[i,2]
+         dydt[6(i-1)+6] = dvdt[i,3]
     end
     return dydt
 end  # Function F(t,y)
@@ -173,7 +175,7 @@ end
 
 function mkParticleColors(n::Int)
     global particleColors
-    if !isdefined(:particleColors)
+    if length(particleColors) == 0
           particleColors = Array{Any,1}(n)
           for i in 1:n
              particleColors[i] =  RGBA(rand(Float32,3)..., 0.4f0)
