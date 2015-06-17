@@ -1,7 +1,7 @@
 
 module SubScreens
 
-using GLAbstraction ## need Rectangle
+using GeometryTypes ## need Rectangle
 using ROGeomOps     ## geometric OpenGL transformations on RenderObjects
 
 export SubScreen,

@@ -3,11 +3,11 @@
              xsi:noNamespaceSchemaLocation="subscreenSchema.xsd">
 
 <!-- Test purposes
-     1) explore GLVisualize examples, here test_mesh.jl
-     2) explore Tuple{Vararg{RenderObject}}
+     1) explore Tuple{Vararg{RenderObject}}
         Here we show Mesh and Axis separately and also grouped in main subscreen
      Note: the meshes are recomputed!!! eventually we might be interested in sharing
         them between subscreens (not implemented), this will require another test
+     2) understand how to control impact of the tag <setplot><rotateModel>
 -->
 <!-- Function definitions  -->
 
@@ -22,7 +22,7 @@
       using Meshes, MeshIO
       using Romeo, TBCompletedM
 
-      export doMesh, doAxis, doMeshAxis
+      export doMesh, doAxis, doAxisBoth, doMeshAxis
       
       warn ("GLAbstraction.Camera is not exported")
       Camera = GLAbstraction.Camera
@@ -48,6 +48,9 @@
        
           vol = volume(f, x_min,y_min,z_min,x_max,y_max,z_max, scale)
           msh = GLNormalMesh(vol, 0.0f0)
+
+          println("typeof(msh)=", typeof(msh))
+           
           return msh
       end
 
@@ -55,12 +58,14 @@
         dirlen 	= 1f0
         baselen = 0.02f0
         axis 	= [
-      	 (Cube(Vec3(baselen), Vec3(dirlen, baselen, baselen)), RGBA(1f0,0f0,0f0,1f0)), 
-      	 (Cube(Vec3(baselen), Vec3(baselen, dirlen, baselen)), RGBA(0f0,1f0,0f0,1f0)), 
-      	 (Cube(Vec3(baselen), Vec3(baselen, baselen, dirlen)), RGBA(0f0,0f0,1f0,1f0))
+      	 (Cube(Vec3(0.0f0), Vec3(dirlen, baselen, baselen)), RGBA(1f0,0f0,0f0,1f0)), 
+      	 (Cube(Vec3(0.0f0), Vec3(baselen, dirlen, baselen)), RGBA(0f0,1f0,0f0,1f0)), 
+      	 (Cube(Vec3(0.0f0), Vec3(baselen, baselen, dirlen)), RGBA(0f0,0f0,1f0,1f0))
           ]
         axis = map(GLNormalMesh, axis)
         axis = merge(axis)
+        println("typeof(merge(axis))=", typeof(axis))
+        axis
       end
 
       function doMesh(sc::Screen,cam::Camera)
@@ -68,6 +73,12 @@
 	  msh  = create_example_mesh()
           msh
       end
+
+     function doAxisNR (sc::Screen,cam::Camera)
+          println("Entered doAxis")
+          ax   = create_example_axis()
+          visualize(ax,camera=cam,screen=sc)
+     end
 
      function doAxis (sc::Screen,cam::Camera)
           println("Entered doAxis")
@@ -78,7 +89,15 @@
           println("Entered doMeshAxis")
 	  msh  = create_example_mesh()
           ax   = create_example_axis()
-          (msh,ax)
+          (ax, msh)
+     end
+
+     function doAxisBoth  (sc::Screen,cam::Camera)
+          # ax will show a frame submitted to change in viewpoint (eyepos)
+          ax   = create_example_axis()
+          # ax1 will not be submitted to such changes
+          ax1 = visualize(ax,camera=cam,screen=sc)
+          (ax,ax1)
      end
 
       end    # SubScreensInline
@@ -130,19 +149,19 @@
  <setplot  ref="IB1"  fn="doMeshAxis"> 
       <rotateModel>Pi/5, 0.0, 4*Pi/6</rotateModel>
  </setplot>
- <setplot  ref="IC1"  fn="doMeshAxis">
+ <setplot  ref="IC1"  fn="doAxisBoth">
       <rotateModel>0.0, Pi/5, 4*Pi/6</rotateModel>
  </setplot>
- <setplot  ref="ID1"  fn="doMeshAxis">
+ <setplot  ref="ID1"  fn="doAxisBoth">
       <rotateModel>Pi/8, 0.0, 4*Pi/6</rotateModel>
  </setplot>
 
  <!-- Connectors -->
  <connection from="B1" to="A2"> 
        <inSig>:view  , :viewmodel, :adhoc, :projection,    :projectionview,
-              :projection</inSig> 
-       <outSig>:view , :viewmodel, :adhoc, :projectionview,:projection,   
-              :projection</outSig> 
+              :projection      </inSig> 
+       <outSig>:view , :viewmodel, :adhoc, :projectionview,:projection,
+              :projection      </outSig> 
  </connection>
 
  <!-- Debug options -->

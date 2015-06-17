@@ -95,6 +95,7 @@ function init_romeo( vObjT::SubScreen ;
          info[:isDecomposed] && return
          ssc.attrib[sigScreen ] =   Screen(GLVisualize.ROOT_SCREEN, area= ssc.attrib[sigArea ])
          dodebug(0x20) && println("In fnWalk2 at$indx: sigScreen=", ssc.attrib[sigScreen ])
+
     end
     treeWalk!(vObjT,  fnWalk2)
 
@@ -133,11 +134,13 @@ function init_romeo( vObjT::SubScreen ;
       retval = 
            if ! isa(vo,Dict)
                dodebug(0x8) && println("Calling visualize arg type=",typeof(vo))
+               scr.perspectivecam = camera
                visualize(vo, screen=scr)
            else
               # do not visualize RenderObjects!
               if ! (   isa(vo[:render],RenderObject) 
                     || isa(vo[:render],Tuple{Vararg{RenderObject}}))
+                 scr.perspectivecam = camera
                  visualize(vo, screen=scr)
               else
                  vo
@@ -216,15 +219,20 @@ function init_romeo( vObjT::SubScreen ;
        # position/center of view
        eyepos ,  centerScene = effVModelGeomCamera(ssc,eyepos, centerScene)
 
-       pcam = PerspectiveCamera(camera_input,eyepos ,  centerScene)
+       pcam = PerspectiveCamera(camera_input, eyepos ,  centerScene)
        ocam=  OrthographicCamera(camera_input)
 
        camera = pcamSel ? pcam : ocam
+
        # Build the RenderObjects by calling the supplied function
        if dodebug(0x1)
             println("Entering external function:  ssc.attrib[ RObjFn ]", 
                                 ssc.attrib[ RObjFn ])
-            println(typeof(ssc.attrib[ RObjFn ]))
+            println("\twith type=", typeof(ssc.attrib[ RObjFn ]))
+            dodebug(0x1) && begin
+                                println("\with camera=",camera)
+                                println("\with screen=",scr)
+                            end
        end
 
        if !haskey(ssc.attrib,RObjFnParms)
@@ -268,13 +276,16 @@ function init_romeo( vObjT::SubScreen ;
           println("Dump for object viz of type = ",typeof(viz),"")
           function dumpIntern(viz)
               for k in sort(collect(keys( viz.uniforms)))
-                 println("RODumpMe\tuniform\tkey=$k")
+                 println("\t  RODumpMe\tuniform\tkey=$k")
 	      end
           end
           if isa(viz,Tuple{Vararg{Any}})
+             println("    dump of Tuple: (")
              for v in viz
+              println("\ttype=", typeof(v),"\t objid=",object_id(v))
               isa(v,RenderObject) ?  dumpIntern(v) : @show v
              end
+             println("   ) ")
           elseif isa(viz,RenderObject)
               dumpIntern(viz)
           else

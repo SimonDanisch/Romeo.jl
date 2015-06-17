@@ -439,7 +439,7 @@ function accept(tt::Union(Token{:inSig},Token{:outSig}),
     for chld in child_nodes(xnd)
       spl=map (split(string(chld),",")) do y
           x = strip(y) 
-          x[1]==':' ? x[2:end] : x
+          ( length(x)>0 && x[1]==':' )? x[2:end] : x
       end
       append!(lst, map(Symbol,spl))
     end    

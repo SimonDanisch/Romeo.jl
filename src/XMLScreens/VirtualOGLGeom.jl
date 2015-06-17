@@ -90,9 +90,11 @@ function effVModelGeomCamera{T}(ssc::SubScreen, eyepos::Vector3{T},
       # are we rotating in the right direction?
       ncev::Vector3{T}   = affineProjH(rotmat * cev)
       neye::Vector3{T}   = centerscene + ncev
+      println("effVModelGeomCamera : Rotation")
       return  neye, centerscene
    else
       return  eyepos, centerscene
+      println("effVModelGeomCamera : NO Rotation")
    end
 end
 @doc """ This performs modelSpace transformations
